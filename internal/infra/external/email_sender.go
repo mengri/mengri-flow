@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/config"
+	"mengri-flow/pkg/autowire"
 	"net/smtp"
 	"strings"
 )
@@ -23,9 +24,9 @@ type SMTPEmailSender struct {
 
 var _ repository.EmailSender = (*SMTPEmailSender)(nil)
 
-// NewSMTPEmailSender 创建 SMTP 邮件发送器。
-func NewSMTPEmailSender(emailCfg *config.EmailConfig) *SMTPEmailSender {
-	return &SMTPEmailSender{
+// GenSMTPEmailSender 创建 SMTP 邮件发送器。
+func GenSMTPEmailSender(emailCfg *config.EmailConfig) {
+	emailSender := &SMTPEmailSender{
 		host:    emailCfg.SMTP.Host,
 		port:    emailCfg.SMTP.Port,
 		user:    emailCfg.SMTP.Username,
@@ -34,6 +35,8 @@ func NewSMTPEmailSender(emailCfg *config.EmailConfig) *SMTPEmailSender {
 		subject: emailCfg.Activation.Subject,
 		baseURL: emailCfg.Activation.BaseURL,
 	}
+	autowire.Auto(func() repository.EmailSender { return emailSender })
+
 }
 
 // SendActivationEmail 发送激活邮件。

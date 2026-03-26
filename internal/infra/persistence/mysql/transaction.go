@@ -17,11 +17,6 @@ type TransactionManagerImpl struct {
 
 var _ repository.TransactionManager = (*TransactionManagerImpl)(nil)
 
-// NewTransactionManager 创建事务管理器。
-func NewTransactionManager(db *gorm.DB) *TransactionManagerImpl {
-	return &TransactionManagerImpl{db: db}
-}
-
 // RunInTransaction 在事务中执行 fn。
 // 如果 fn 返回 error，事务自动回滚；否则自动提交。
 // 支持嵌套调用：如果 ctx 中已有事务 DB，则复用它（不开启新事务）。

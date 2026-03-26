@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/auth"
 	"mengri-flow/internal/infra/cache"
 	"mengri-flow/internal/infra/config"
@@ -15,16 +14,11 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		slog.Warn("No .env file found, relying on environment variables")
-	}
+
 	cfgPath := "config.yaml"
 	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
 		cfgPath = envPath
@@ -35,12 +29,13 @@ func main() {
 		slog.Error("failed to load config", "error", err)
 		os.Exit(1)
 	}
+	cfg.Autowired()
 	logger.Setup(cfg.Log.Level, cfg.Log.Format)
 	slog.Info("config loaded successfully", "path", cfgPath)
 	slog.Info("config details", "config", fmt.Sprintf("%+v", cfg))
 
 	// --- Database ---
-	db, err := mysql.NewDB(&cfg.Database)
+	db, err := mysql.GenDB(&cfg.Database)
 	if err != nil {
 		slog.Error("failed to connect database", "error", err)
 		os.Exit(1)
@@ -52,37 +47,29 @@ func main() {
 		Password: cfg.Redis.Password,
 		DB:       cfg.Redis.DB,
 	})
+	autowire.Auto(func() *redis.Client { return rdb })
+
 	slog.Info("redis client created", "addr", cfg.Redis.Addr)
 
 	// --- JWT Manager ---
-	jwtMgr := auth.NewJWTManager(&cfg.Auth.JWT)
-
-	// --- TransactionManager ---
-	txManager := mysql.NewTransactionManager(db)
+	auth.GenerateJWTManager(&cfg.Auth.JWT)
 
 	// --- Email Sender ---
-	emailSender := external.NewSMTPEmailSender(&cfg.Email)
+	external.GenSMTPEmailSender(&cfg.Email)
 
 	// --- Cache Stores ---
-	ticketStore := cache.NewSecurityTicketStore(rdb, cfg.Auth.SecurityTicketTTL)
-
-	// --- Autowire Registration ---
-	autowire.Auto(func() *gorm.DB { return db })
-	autowire.Auto(func() *redis.Client { return rdb })
-	autowire.Auto(func() *auth.JWTManager { return jwtMgr })
-	autowire.Auto(func() repository.TransactionManager { return txManager })
-	autowire.Auto(func() repository.EmailSender { return emailSender })
-	autowire.Auto(func() *cache.SecurityTicketStore { return ticketStore })
-	autowire.Auto(func() *config.Config { return cfg })
+	cache.GenSecurityTicketStore(rdb, cfg.Auth.SecurityTicketTTL)
 
 	r := &router.Router{}
 	autowire.Autowired(r)
 	autowire.Check()
-
 	if cfg.Server.Mode == "debug" {
-		mysql.MigrateOnDebug(db)
+		if err := db.MigrateOnDebug(); err != nil {
+			slog.Error("failed to auto-migrate database", "error", err)
+			os.Exit(1)
+		}
+		slog.Info("database auto-migration completed")
 	}
-
 	autowire.PostEvent(autowire.OnCompleteEvent)
 
 	gin.SetMode(cfg.Server.Mode)

@@ -3,7 +3,9 @@ package mysql
 import (
 	"fmt"
 	"log/slog"
+	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/config"
+	"mengri-flow/pkg/autowire"
 	"mengri-flow/pkg/register"
 	"time"
 
@@ -12,8 +14,12 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// NewDB 初始化 GORM 数据库连接
-func NewDB(cfg *config.DatabaseConfig) (*gorm.DB, error) {
+type MysqlDb struct {
+	DB *gorm.DB
+}
+
+// GenDB 初始化 GORM 数据库连接
+func GenDB(cfg *config.DatabaseConfig) (*MysqlDb, error) {
 	var logLevel logger.LogLevel
 	logLevel = logger.Info
 	slog.Debug("Database DSN:", "dsn", cfg.DSN)
@@ -33,14 +39,17 @@ func NewDB(cfg *config.DatabaseConfig) (*gorm.DB, error) {
 	sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
+	autowire.Auto(func() *gorm.DB { return db })
 
-	return db, nil
+	// --- TransactionManager ---
+	autowire.Auto(func() repository.TransactionManager { return &TransactionManagerImpl{db: db} })
+	return &MysqlDb{DB: db}, nil
 }
 
-func MigrateOnDebug(db *gorm.DB) error {
+func (m *MysqlDb) MigrateOnDebug() error {
 	return register.Do("AutoMigrateOnDebug", func(model any) error {
 
-		if err := db.AutoMigrate(model); err != nil {
+		if err := m.DB.AutoMigrate(model); err != nil {
 			return err
 		}
 

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log/slog"
+	"mengri-flow/pkg/autowire"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -18,6 +19,36 @@ type Config struct {
 	OAuth    OAuthConfig    `yaml:"oauth"`
 	SMS      SMSConfig      `yaml:"sms"`
 	Email    EmailConfig    `yaml:"email"`
+}
+
+func (c *Config) Autowired() {
+	autowire.Auto(func() *Config {
+		return c
+	})
+	autowire.Auto(func() *ServerConfig {
+		return &c.Server
+	})
+	autowire.Auto(func() *DatabaseConfig {
+		return &c.Database
+	})
+	autowire.Auto(func() *RedisConfig {
+		return &c.Redis
+	})
+	autowire.Auto(func() *LogConfig {
+		return &c.Log
+	})
+	autowire.Auto(func() *AuthConfig {
+		return &c.Auth
+	})
+	autowire.Auto(func() *OAuthConfig {
+		return &c.OAuth
+	})
+	autowire.Auto(func() *SMSConfig {
+		return &c.SMS
+	})
+	autowire.Auto(func() *EmailConfig {
+		return &c.Email
+	})
 }
 
 // ServerConfig HTTP 服务配置

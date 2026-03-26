@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"mengri-flow/internal/infra/config"
+	"mengri-flow/pkg/autowire"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -23,13 +24,16 @@ type JWTManager struct {
 	refreshTokenExpiry time.Duration
 }
 
-// NewJWTManager 创建 JWT 管理器。
-func NewJWTManager(cfg *config.JWTConfig) *JWTManager {
-	return &JWTManager{
-		secret:             []byte(cfg.Secret),
-		accessTokenExpiry:  time.Duration(cfg.AccessTokenExpiry) * time.Second,
-		refreshTokenExpiry: time.Duration(cfg.RefreshTokenExpiry) * time.Second,
-	}
+// GenerateJWTManager 创建 JWT 管理器。
+func GenerateJWTManager(cfg *config.JWTConfig) {
+
+	autowire.Auto(func() *JWTManager {
+		return &JWTManager{
+			secret:             []byte(cfg.Secret),
+			accessTokenExpiry:  time.Duration(cfg.AccessTokenExpiry) * time.Second,
+			refreshTokenExpiry: time.Duration(cfg.RefreshTokenExpiry) * time.Second,
+		}
+	})
 }
 
 // GenerateAccessToken 签发 AccessToken。

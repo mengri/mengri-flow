@@ -7,13 +7,11 @@ import (
 	credentialRepository "mengri-flow/internal/infra/persistence/mysql/credential_repository"
 	identityRepository "mengri-flow/internal/infra/persistence/mysql/identity_repository"
 	sessionRepository "mengri-flow/internal/infra/persistence/mysql/session_repository"
-	userRepository "mengri-flow/internal/infra/persistence/mysql/user_respository"
 )
 
 func init() {
 	const event = "AutoMigrateOnDebug"
 
-	userRepository.Auto(event)
 	accountRepository.Auto(event)
 	credentialRepository.Auto(event)
 	identityRepository.Auto(event)

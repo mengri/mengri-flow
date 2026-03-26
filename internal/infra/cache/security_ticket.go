@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"mengri-flow/pkg/autowire"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -16,12 +17,16 @@ type SecurityTicketStore struct {
 	ttl time.Duration
 }
 
-// NewSecurityTicketStore 创建安全票据存储。
-func NewSecurityTicketStore(rdb *redis.Client, ttlSeconds int) *SecurityTicketStore {
-	return &SecurityTicketStore{
-		rdb: rdb,
-		ttl: time.Duration(ttlSeconds) * time.Second,
-	}
+// GenSecurityTicketStore 创建安全票据存储。
+func GenSecurityTicketStore(rdb *redis.Client, ttlSeconds int) {
+
+	autowire.Auto(func() *SecurityTicketStore {
+		return &SecurityTicketStore{
+			rdb: rdb,
+			ttl: time.Duration(ttlSeconds) * time.Second,
+		}
+	})
+
 }
 
 func securityTicketKey(ticket string) string {

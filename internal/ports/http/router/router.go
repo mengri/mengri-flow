@@ -11,7 +11,6 @@ import (
 )
 
 type Router struct {
-	userHandler         handler.UserHandler         `autowired:""`
 	authHandler         handler.AuthHandler         `autowired:""`
 	accountAdminHandler handler.AccountAdminHandler `autowired:""`
 	meHandler           handler.MeHandler           `autowired:""`
@@ -35,16 +34,6 @@ func (r *Router) Setup(engine *gin.Engine) error {
 
 	v1 := engine.Group("/api/v1")
 	{
-		// --- 已有的 users CRUD ---
-		users := v1.Group("/users")
-		{
-			users.POST("", r.userHandler.Create)
-			users.GET("", r.userHandler.List)
-			users.GET("/:id", r.userHandler.GetByID)
-			users.PUT("/:id", r.userHandler.Update)
-			users.DELETE("/:id", r.userHandler.Delete)
-		}
-
 		// --- Auth 公开接口（无需认证） ---
 		authGroup := v1.Group("/auth")
 		{

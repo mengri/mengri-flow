@@ -25,7 +25,7 @@ type MeServiceImpl struct {
 	auditRepo    repository.AuditEventRepository `autowired:""`
 	txManager    repository.TransactionManager   `autowired:""`
 	ticketStore  *cache.SecurityTicketStore      `autowired:""`
-	cfg          *config.Config                  `autowired:""`
+	cfg          *config.AuthConfig              `autowired:""`
 }
 
 var _ MeService = (*MeServiceImpl)(nil)
@@ -83,7 +83,7 @@ func (s *MeServiceImpl) ChangePassword(ctx context.Context, accountID string, re
 	}
 
 	// 2. 哈希新密码
-	newHash, err := auth.HashPassword(req.NewPassword, s.cfg.Auth.Password.BcryptCost)
+	newHash, err := auth.HashPassword(req.NewPassword, s.cfg.Password.BcryptCost)
 	if err != nil {
 		return nil, fmt.Errorf("hash password: %w", err)
 	}
