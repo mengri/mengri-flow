@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"mengri-flow/internal/infra/config"
+	"mengri-flow/pkg/register"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -34,4 +35,15 @@ func NewDB(cfg *config.DatabaseConfig) (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
 
 	return db, nil
+}
+
+func MigrateOnDebug(db *gorm.DB) error {
+	return register.Do("AutoMigrateOnDebug", func(model any) error {
+
+		if err := db.AutoMigrate(model); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-func init() {
+func Auto(eventName string) {
 	autowire.Auto(func() repository.UserRepository {
-		register.Register("AutoMigrateOnDebug", &UserModel{})
+		register.Register(eventName, &UserModel{})
 		return &UserRepositoryImpl{}
 	})
 }

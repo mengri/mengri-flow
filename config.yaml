@@ -17,3 +17,54 @@ redis:
 log:
   level: info   # debug | info | warn | error
   format: json  # json | text
+
+auth:
+  jwt:
+    secret: "${JWT_SECRET:mengri-flow-dev-secret-at-least-32-chars}"
+    access_token_expiry: 7200       # 秒，默认 2 小时
+    refresh_token_expiry: 604800    # 秒，默认 7 天
+  activation:
+    token_expiry: 86400             # 秒，默认 24 小时
+    resend_cooldown: 60             # 秒，默认 60 秒
+  password:
+    min_length: 8
+    bcrypt_cost: 12
+  lockout:
+    max_attempts: 5
+    lock_duration: 1800             # 秒，默认 30 分钟
+  security_ticket_ttl: 300          # 秒，二次验证 ticket 有效期
+
+oauth:
+  github:
+    client_id: "${GITHUB_CLIENT_ID:}"
+    client_secret: "${GITHUB_CLIENT_SECRET:}"
+    redirect_uri: "${GITHUB_REDIRECT_URI:}"
+  wechat:
+    app_id: "${WECHAT_APP_ID:}"
+    app_secret: "${WECHAT_APP_SECRET:}"
+    redirect_uri: "${WECHAT_REDIRECT_URI:}"
+  lark:
+    app_id: "${LARK_APP_ID:}"
+    app_secret: "${LARK_APP_SECRET:}"
+    redirect_uri: "${LARK_REDIRECT_URI:}"
+
+sms:
+  provider: "aliyun"
+  access_key_id: "${SMS_ACCESS_KEY_ID:}"
+  access_key_secret: "${SMS_ACCESS_KEY_SECRET:}"
+  sign_name: "${SMS_SIGN_NAME:}"
+  template_code: "${SMS_TEMPLATE_CODE:}"
+  otp_ttl: 300
+  otp_cooldown: 60
+  otp_length: 6
+
+email:
+  smtp:
+    host: "${SMTP_HOST:}"
+    port: 587
+    username: "${SMTP_USERNAME:}"
+    password: "${SMTP_PASSWORD:}"
+    from: "${SMTP_FROM:}"
+  activation:
+    subject: "激活您的账号"
+    base_url: "${ACTIVATION_BASE_URL:http://localhost:3000}"

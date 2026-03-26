@@ -2,6 +2,7 @@ package router
 
 import (
 	"log/slog"
+	"mengri-flow/internal/infra/auth"
 	"mengri-flow/internal/ports/http/handler"
 	"mengri-flow/internal/ports/http/middleware"
 	"mengri-flow/web"
@@ -10,31 +11,31 @@ import (
 )
 
 type Router struct {
-	userHandler handler.UserHandler `autowired:""`
+	userHandler         handler.UserHandler         `autowired:""`
+	authHandler         handler.AuthHandler         `autowired:""`
+	accountAdminHandler handler.AccountAdminHandler `autowired:""`
+	meHandler           handler.MeHandler           `autowired:""`
+	jwtManager          *auth.JWTManager            `autowired:""`
 }
 
-// Setup 定义所有路由和中间件。Handler 参数均为接口类型，便于测试和依赖注入。
-// Setup 初始化路由。所有 Handler 参数均为接口类型，便于测试和依赖注入。
 func (r *Router) Setup(engine *gin.Engine) error {
-	// 加载内嵌的前端产物
 	frontendFS, err := web.DistFS()
 	if err != nil {
 		slog.Warn("failed to load embedded frontend", "error", err)
 		return err
 	}
-	// 全局中间件
+
 	engine.Use(middleware.Logger())
 	engine.Use(middleware.Recovery())
 	engine.Use(middleware.CORS())
 
-	// 健康检查
 	engine.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// API v1 路由组
 	v1 := engine.Group("/api/v1")
 	{
+		// --- 已有的 users CRUD ---
 		users := v1.Group("/users")
 		{
 			users.POST("", r.userHandler.Create)
@@ -44,6 +45,41 @@ func (r *Router) Setup(engine *gin.Engine) error {
 			users.DELETE("/:id", r.userHandler.Delete)
 		}
 
+		// --- Auth 公开接口（无需认证） ---
+		authGroup := v1.Group("/auth")
+		{
+			authGroup.GET("/activation/validate", r.authHandler.ValidateActivation)
+			authGroup.POST("/activation/confirm", r.authHandler.ConfirmActivation)
+			authGroup.POST("/login/password", r.authHandler.LoginByPassword)
+			authGroup.POST("/token/refresh", r.authHandler.RefreshToken)
+
+			// logout 需要认证
+			authGroup.POST("/logout", middleware.Auth(r.jwtManager), r.authHandler.Logout)
+		}
+
+		// --- Me 账号中心（需要认证） ---
+		meGroup := v1.Group("/me")
+		meGroup.Use(middleware.Auth(r.jwtManager))
+		{
+			meGroup.GET("/profile", r.meHandler.GetProfile)
+			meGroup.GET("/identities", r.meHandler.ListIdentities)
+			meGroup.POST("/password/change", r.meHandler.ChangePassword)
+			meGroup.POST("/security/verify", r.meHandler.SecurityVerify)
+			meGroup.GET("/security/logins", r.meHandler.LoginHistory)
+		}
+
+		// --- Admin 管理后台（需要认证 + 管理员角色） ---
+		adminGroup := v1.Group("/admin")
+		adminGroup.Use(middleware.Auth(r.jwtManager))
+		adminGroup.Use(middleware.Admin())
+		{
+			adminGroup.POST("/accounts", r.accountAdminHandler.Create)
+			adminGroup.GET("/accounts", r.accountAdminHandler.List)
+			adminGroup.GET("/accounts/:accountId", r.accountAdminHandler.GetDetail)
+			adminGroup.PUT("/accounts/:accountId/status", r.accountAdminHandler.ChangeStatus)
+			adminGroup.POST("/accounts/:accountId/activation/resend", r.accountAdminHandler.ResendActivation)
+			adminGroup.GET("/audit/events", r.accountAdminHandler.ListAuditEvents)
+		}
 	}
 
 	engine.NoRoute(frontendFS)
