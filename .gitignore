@@ -1,0 +1,41 @@
+# Binaries
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+tmp/
+
+# Logs
+*.log
+
+# Node (for web/)
+web/node_modules/
+
+# 前端构建产物（由 make build-web 生成，go:embed 内嵌）
+# 保留 placeholder index.html 确保仓库克隆后可直接 go build
+web/dist/*
+!web/dist/index.html
+
+# Docker
+docker-compose.override.yml
