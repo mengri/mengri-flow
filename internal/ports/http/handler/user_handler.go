@@ -11,15 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// UserHandler HTTP 处理器，属于 Ports 层，负责参数绑定和响应转换。
-type UserHandler struct {
-	userService *service.UserService
+// UserHandlerImpl HTTP 处理器实现，属于 Ports 层，负责参数绑定和响应转换。
+type UserHandlerImpl struct {
+	userService service.UserService `autowired:""`
 }
 
-// NewUserHandler 创建用户处理器
-func NewUserHandler(userService *service.UserService) *UserHandler {
-	return &UserHandler{userService: userService}
-}
+// 编译期接口合规检查
+var _ UserHandler = (*UserHandlerImpl)(nil)
 
 // Create 创建用户
 // @Summary 创建用户
@@ -29,7 +27,7 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 // @Param body body dto.CreateUserRequest true "创建用户请求"
 // @Success 200 {object} response.Response{data=dto.UserResponse}
 // @Router /api/v1/users [post]
-func (h *UserHandler) Create(c *gin.Context) {
+func (h *UserHandlerImpl) Create(c *gin.Context) {
 	var req dto.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, err.Error())
@@ -52,7 +50,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 // @Param id path int true "用户ID"
 // @Success 200 {object} response.Response{data=dto.UserResponse}
 // @Router /api/v1/users/{id} [get]
-func (h *UserHandler) GetByID(c *gin.Context) {
+func (h *UserHandlerImpl) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		response.BadRequest(c, "invalid user id")
@@ -76,7 +74,7 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 // @Param page_size query int false "每页数量"
 // @Success 200 {object} response.Response{data=dto.ListUsersResponse}
 // @Router /api/v1/users [get]
-func (h *UserHandler) List(c *gin.Context) {
+func (h *UserHandlerImpl) List(c *gin.Context) {
 	var req dto.ListUsersRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.BadRequest(c, err.Error())
@@ -101,7 +99,7 @@ func (h *UserHandler) List(c *gin.Context) {
 // @Param body body dto.UpdateUserRequest true "更新用户请求"
 // @Success 200 {object} response.Response{data=dto.UserResponse}
 // @Router /api/v1/users/{id} [put]
-func (h *UserHandler) Update(c *gin.Context) {
+func (h *UserHandlerImpl) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		response.BadRequest(c, "invalid user id")
@@ -130,7 +128,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 // @Param id path int true "用户ID"
 // @Success 200 {object} response.Response
 // @Router /api/v1/users/{id} [delete]
-func (h *UserHandler) Delete(c *gin.Context) {
+func (h *UserHandlerImpl) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		response.BadRequest(c, "invalid user id")

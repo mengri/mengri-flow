@@ -38,3 +38,5 @@ func CreateHandler[T any](h func(T)) HandlerFunc {
 		}
 	}
 }
+
+var OnCompleteEvent = CreateHandler(func(v Complete) { v.OnComplete() })

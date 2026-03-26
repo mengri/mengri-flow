@@ -9,21 +9,24 @@ import (
 	"time"
 )
 
-// UserService 应用服务层，编排领域逻辑，不包含业务规则。
-type UserService struct {
-	userRepo repository.UserRepository
+// UserServiceImpl 应用服务层实现，编排领域逻辑，不包含业务规则。
+type UserServiceImpl struct {
+	userRepo repository.UserRepository `autowired:""`
 	// 可注入密码哈希器等接口
 }
 
-// NewUserService 通过构造函数注入依赖
-func NewUserService(userRepo repository.UserRepository) *UserService {
-	return &UserService{
+// 编译期接口合规检查
+var _ UserService = (*UserServiceImpl)(nil)
+
+// NewUserService 通过构造函数注入依赖，返回 UserService 接口。
+func NewUserService(userRepo repository.UserRepository) UserService {
+	return &UserServiceImpl{
 		userRepo: userRepo,
 	}
 }
 
 // CreateUser 创建用户用例
-func (s *UserService) CreateUser(ctx context.Context, req *dto.CreateUserRequest) (*dto.UserResponse, error) {
+func (s *UserServiceImpl) CreateUser(ctx context.Context, req *dto.CreateUserRequest) (*dto.UserResponse, error) {
 	// 检查邮箱唯一性
 	existing, _ := s.userRepo.GetByEmail(ctx, req.Email)
 	if existing != nil {
@@ -47,7 +50,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 }
 
 // GetUser 查询单个用户用例
-func (s *UserService) GetUser(ctx context.Context, id uint64) (*dto.UserResponse, error) {
+func (s *UserServiceImpl) GetUser(ctx context.Context, id uint64) (*dto.UserResponse, error) {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -56,7 +59,7 @@ func (s *UserService) GetUser(ctx context.Context, id uint64) (*dto.UserResponse
 }
 
 // ListUsers 查询用户列表用例
-func (s *UserService) ListUsers(ctx context.Context, req *dto.ListUsersRequest) (*dto.ListUsersResponse, error) {
+func (s *UserServiceImpl) ListUsers(ctx context.Context, req *dto.ListUsersRequest) (*dto.ListUsersResponse, error) {
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -84,7 +87,7 @@ func (s *UserService) ListUsers(ctx context.Context, req *dto.ListUsersRequest) 
 }
 
 // UpdateUser 更新用户用例
-func (s *UserService) UpdateUser(ctx context.Context, id uint64, req *dto.UpdateUserRequest) (*dto.UserResponse, error) {
+func (s *UserServiceImpl) UpdateUser(ctx context.Context, id uint64, req *dto.UpdateUserRequest) (*dto.UserResponse, error) {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -108,7 +111,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id uint64, req *dto.Update
 }
 
 // DeleteUser 删除用户用例
-func (s *UserService) DeleteUser(ctx context.Context, id uint64) error {
+func (s *UserServiceImpl) DeleteUser(ctx context.Context, id uint64) error {
 	return s.userRepo.Delete(ctx, id)
 }
 

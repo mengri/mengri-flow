@@ -1,9 +1,10 @@
-package mysql
+package userRepository
 
 import (
 	"context"
 	"mengri-flow/internal/domain/entity"
 	domainErr "mengri-flow/internal/domain/errors"
+	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/domain/valueobject"
 
 	"gorm.io/gorm"
@@ -12,13 +13,11 @@ import (
 // UserRepositoryImpl 是 UserRepository 接口的 GORM 实现。
 // 实现在 Infra 层，接口定义在 Domain 层 — 依赖倒置。
 type UserRepositoryImpl struct {
-	db *gorm.DB
+	db *gorm.DB `autowired:""`
 }
 
-// NewUserRepository 创建 UserRepository 实例
-func NewUserRepository(db *gorm.DB) *UserRepositoryImpl {
-	return &UserRepositoryImpl{db: db}
-}
+// 编译期接口合规检查
+var _ repository.UserRepository = (*UserRepositoryImpl)(nil)
 
 func (r *UserRepositoryImpl) Create(ctx context.Context, user *entity.User) error {
 	model := toModel(user)

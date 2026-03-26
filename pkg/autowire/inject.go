@@ -7,15 +7,21 @@ import (
 )
 
 func Check() {
+
+	CheckWithEvent(CreateHandler(func(v PreComplete) { v.OnPreComplete() }), CreateHandler(func(v PostComplete) { v.OnPostComplete() }))
+
+}
+func PostEvent(handlers ...Handler) {
 	lock.Lock()
 	defer lock.Unlock()
-	if isChecked {
-		// 已经进行过一次完整检查，后续再次调用 Check 即使传入 handler 也不再生效
-		return
+	if !isChecked {
+		// 未进行完整检查，无法触发事件
+		panic("autowire: cannot trigger post event before Check")
+
 	}
-
-	doCheck(CreateHandler(func(v PreComplete) { v.OnPreComplete() }), CreateHandler(func(v PostComplete) { v.OnPostComplete() }))
-
+	for _, handler := range handlers {
+		postEvent(handler)
+	}
 }
 func CheckWithEvent(handlers ...Handler) {
 	lock.Lock()
@@ -25,10 +31,40 @@ func CheckWithEvent(handlers ...Handler) {
 		return
 	}
 
-	doCheck(handlers...)
+	doCheck()
+	isChecked = true
+	for _, handler := range handlers {
+		postEvent(handler)
+	}
+}
+func doComplete() {
+	// 依赖注入完成后，先收集当前本次可完成的 bean
+	type beanItem struct {
+		name string
+		b    *bean
+	}
+	items := make([]beanItem, 0, len(beans))
+	for name, b := range beans {
+		if b.requireCount == 0 && !b.isComplete {
+			items = append(items, beanItem{name: name, b: b})
+		}
+	}
+	// 最后对所有 bean 执行 OnComplete
+	for _, item := range items {
+		if ch, ok := item.b.v.Interface().(Complete); ok {
+			ch.OnComplete()
+		}
+		item.b.isComplete = true
+	}
 
 }
-func doCheck(handlers ...Handler) {
+func postEvent(handler Handler) {
+
+	for _, item := range beans {
+		handler.Handle(item.name, item.v.Interface())
+	}
+}
+func doCheck() {
 
 	if len(requireBy) == 0 {
 		return
@@ -70,34 +106,6 @@ func doCheck(handlers ...Handler) {
 		return
 	}
 
-	// 依赖注入完成后，先收集当前本次可完成的 bean
-	type beanItem struct {
-		name string
-		b    *bean
-	}
-	items := make([]beanItem, 0, len(beans))
-	for name, b := range beans {
-		if b.requireCount == 0 && !b.isComplete {
-			items = append(items, beanItem{name: name, b: b})
-		}
-	}
-
-	// 先对所有 bean 依次执行所有 handler
-	for _, h := range handlers {
-		for _, item := range items {
-			h.Handle(item.name, item.b.v.Interface())
-		}
-	}
-
-	// 最后对所有 bean 执行 OnComplete
-	for _, item := range items {
-		if ch, ok := item.b.v.Interface().(Complete); ok {
-			ch.OnComplete()
-		}
-		item.b.isComplete = true
-	}
-
-	isChecked = true
 	//清空已经注入的依赖关系表
 	requireBy = make(map[string][]*requireItem)
 }

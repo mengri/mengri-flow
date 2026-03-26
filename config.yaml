@@ -4,13 +4,13 @@ server:
 
 database:
   driver: mysql
-  dsn: "${DB_USER:root}:${DB_PASSWORD:123456}@tcp(${DB_HOST:127.0.0.1}:${DB_PORT:3306})/${DB_NAME:mengri_flow}?charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: "root:asdfqwer@tcp(127.0.0.1:3306)/mengri?charset=utf8mb4&parseTime=True&loc=Local"
   max_idle_conns: 10
   max_open_conns: 100
   conn_max_lifetime: 3600
 
 redis:
-  addr: "${REDIS_ADDR:127.0.0.1:6379}"
+  addr: "${REDIS_ADDR:127.0.0.1:7101}"
   password: "${REDIS_PASSWORD:}"
   db: 0
 

@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -52,7 +53,7 @@ func Load(path string) (*Config, error) {
 
 	// 展开环境变量
 	expanded := os.ExpandEnv(string(data))
-
+	slog.Info("Expanded config content", "content", expanded)
 	cfg := &Config{}
 	if err := yaml.Unmarshal([]byte(expanded), cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
