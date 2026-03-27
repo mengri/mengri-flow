@@ -57,6 +57,12 @@ func main() {
 	// --- Email Sender ---
 	external.GenSMTPEmailSender(&cfg.Email)
 
+	// --- SMS Sender ---
+	if err := external.GenAliyunSMSSender(&cfg.SMS); err != nil {
+		slog.Error("failed to create sms sender", "error", err)
+		os.Exit(1)
+	}
+
 	// --- Cache Stores ---
 	cache.GenSecurityTicketStore(rdb, cfg.Auth.SecurityTicketTTL)
 
