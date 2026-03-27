@@ -4,7 +4,7 @@ server:
 
 database:
   driver: mysql
-  dsn: "root:asdfqwer@tcp(127.0.0.1:3306)/mengri?charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: "${DB_USER:root}:${DB_PASSWORD:asdfqwer}@tcp(${DB_HOST:127.0.0.1}:${DB_PORT:3306})/${DB_NAME:mengri}?charset=utf8mb4&parseTime=True&loc=Local"
   max_idle_conns: 10
   max_open_conns: 100
   conn_max_lifetime: 3600

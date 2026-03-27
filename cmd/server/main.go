@@ -1,25 +1,39 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log/slog"
+	"strings"
+	"time"
+
+	"mengri-flow/internal/domain/entity"
+	"mengri-flow/internal/domain/valueobject"
 	"mengri-flow/internal/infra/auth"
 	"mengri-flow/internal/infra/cache"
 	"mengri-flow/internal/infra/config"
 	"mengri-flow/internal/infra/external"
 	"mengri-flow/internal/infra/persistence/mysql"
+	accountRepository "mengri-flow/internal/infra/persistence/mysql/account_repository"
+	credentialRepository "mengri-flow/internal/infra/persistence/mysql/credential_repository"
+	identityRepository "mengri-flow/internal/infra/persistence/mysql/identity_repository"
 	"mengri-flow/internal/ports/http/router"
 	"mengri-flow/pkg/autowire"
 	"mengri-flow/pkg/logger"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 func main() {
 
 	cfgPath := "config.yaml"
+	godotenv.Load()
+	
 	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
 		cfgPath = envPath
 	}
@@ -76,6 +90,12 @@ func main() {
 		}
 		slog.Info("database auto-migration completed")
 	}
+
+	if err := ensureInitialAdminAccount(db); err != nil {
+		slog.Error("failed to initialize admin account", "error", err)
+		os.Exit(1)
+	}
+
 	autowire.PostEvent(autowire.OnCompleteEvent)
 
 	gin.SetMode(cfg.Server.Mode)
@@ -89,4 +109,114 @@ func main() {
 		slog.Error("server failed to start", "error", err)
 		os.Exit(1)
 	}
+}
+
+func ensureInitialAdminAccount(db *mysql.MysqlDb) error {
+	var adminCount int64
+	if err := db.DB.Model(&accountRepository.AccountModel{}).Where("role = ?", "admin").Count(&adminCount).Error; err != nil {
+		return fmt.Errorf("count admin accounts: %w", err)
+	}
+
+	if adminCount > 0 {
+		return nil
+	}
+
+	fmt.Println("未检测到管理员账号，开始初始化。")
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		email, err := promptLine(reader, "请输入管理员邮箱: ")
+		if err != nil {
+			return fmt.Errorf("read admin email: %w", err)
+		}
+		if _, err := valueobject.NewEmail(email); err != nil {
+			fmt.Printf("邮箱格式不正确: %v\n", err)
+			continue
+		}
+
+		password, err := promptLine(reader, "请输入管理员密码(至少8位且包含大小写字母、数字、特殊字符): ")
+		if err != nil {
+			return fmt.Errorf("read admin password: %w", err)
+		}
+		if err := valueobject.ValidatePasswordStrength(password); err != nil {
+			fmt.Printf("密码强度不满足要求: %v\n", err)
+			continue
+		}
+
+		if err := createInitialAdminAccount(db, email, password); err != nil {
+			fmt.Printf("创建管理员账号失败: %v\n请重新输入。\n", err)
+			continue
+		}
+
+		fmt.Println("管理员账号初始化完成。")
+		return nil
+	}
+}
+
+func promptLine(reader *bufio.Reader, label string) (string, error) {
+	fmt.Print(label)
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(line), nil
+}
+
+func createInitialAdminAccount(db *mysql.MysqlDb, email, password string) error {
+	hashedPassword, err := auth.HashPassword(password, 12)
+	if err != nil {
+		return fmt.Errorf("hash admin password: %w", err)
+	}
+
+	now := time.Now()
+	return db.DB.Transaction(func(tx *gorm.DB) error {
+		var adminCount int64
+		if err := tx.Model(&accountRepository.AccountModel{}).Where("role = ?", "admin").Count(&adminCount).Error; err != nil {
+			return fmt.Errorf("count admin accounts in transaction: %w", err)
+		}
+		if adminCount > 0 {
+			return nil
+		}
+
+		accountID := uuid.New().String()
+		activatedAt := now
+
+		accountModel := &accountRepository.AccountModel{
+			ID:          accountID,
+			Email:       email,
+			Username:    "admin_" + strings.ReplaceAll(uuid.New().String()[:8], "-", ""),
+			DisplayName: "System Admin",
+			Status:      string(entity.AccountStatusActive),
+			Role:        "admin",
+			ActivatedAt: &activatedAt,
+			CreatedAt:   now,
+			UpdatedAt:   now,
+		}
+
+		credentialModel := &credentialRepository.CredentialModel{
+			AccountID:         accountID,
+			PasswordHash:      hashedPassword,
+			PasswordUpdatedAt: now,
+		}
+
+		identityModel := &identityRepository.IdentityModel{
+			ID:         uuid.New().String(),
+			AccountID:  accountID,
+			LoginType:  string(entity.LoginTypePassword),
+			ExternalID: email,
+			CreatedAt:  now,
+		}
+
+		if err := tx.Create(accountModel).Error; err != nil {
+			return fmt.Errorf("create admin account: %w", err)
+		}
+		if err := tx.Create(credentialModel).Error; err != nil {
+			return fmt.Errorf("create admin credential: %w", err)
+		}
+		if err := tx.Create(identityModel).Error; err != nil {
+			return fmt.Errorf("create admin identity: %w", err)
+		}
+
+		return nil
+	})
 }

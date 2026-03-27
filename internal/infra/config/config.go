@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"mengri-flow/pkg/autowire"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -169,7 +170,17 @@ func Load(path string) (*Config, error) {
 	slog.Info("Loaded config content", "content", string(data))
 
 	// 展开环境变量
-	expanded := os.ExpandEnv(string(data))
+	expanded := os.Expand(string(data), func(name string) string {
+		if i := strings.Index(name, ":"); i > 0 {
+			oname := name[:i]
+			def := name[i+1:]
+			if v, has := os.LookupEnv(oname); has {
+				return v
+			}
+			return def
+		}
+		return os.Getenv(name)
+	})
 	slog.Info("Expanded config content", "content", expanded)
 	cfg := &Config{}
 	if err := yaml.Unmarshal([]byte(expanded), cfg); err != nil {
