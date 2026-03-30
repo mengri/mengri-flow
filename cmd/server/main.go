@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"encoding/json"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 	"mengri-flow/internal/domain/entity"
 	"mengri-flow/internal/domain/valueobject"
 	"mengri-flow/internal/infra/auth"
@@ -33,7 +36,7 @@ func main() {
 
 	cfgPath := "config.yaml"
 	godotenv.Load()
-	
+
 	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
 		cfgPath = envPath
 	}
@@ -100,6 +103,32 @@ func main() {
 
 	gin.SetMode(cfg.Server.Mode)
 	engine := gin.New()
+	// 初始化国际化
+	b := i18n.NewBundle(language.English)
+	b.RegisterUnmarshalFunc("json", json.Unmarshal)
+	b.LoadMessageFile("active.en.json")
+	b.LoadMessageFile("active.zh.json")
+
+	// 添加中间件解析语言
+	engine.Use(func(c *gin.Context) {
+		lang := c.Query("lang") // 默认语言
+		if lang == "" {
+			lang = "en"
+		}
+		c.Set("Localizer", i18n.NewLocalizer(b, lang))
+		c.Next()
+	})
+
+	// 示例路由
+	engine.GET("/api/v1/greet", func(c *gin.Context) {
+		localizer := c.MustGet("Localizer").(*i18n.Localizer)
+		greeting := localizer.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: "WelcomeMessage",
+		})
+		c.JSON(200, gin.H{"message": greeting})
+	})
+
+	// 设置路由
 	r.Setup(engine)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
