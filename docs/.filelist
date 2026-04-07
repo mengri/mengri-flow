@@ -1,0 +1,13 @@
+# Docs 目录文件列表
+# 此文件用于帮助文档站点扫描目录中的 Markdown 文档
+
+PRD.md
+architecture-design.md
+executor-design-v2.md
+developer-guide.md
+plugin-development-guide.md
+information-architecture.md
+user-journey-map.md
+page-flow.md
+测试章节目录.md
+代码块测试文档.md

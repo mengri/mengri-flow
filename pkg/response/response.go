@@ -8,13 +8,13 @@ import (
 
 // Response 统一响应格式 { code, data, msg }
 type Response struct {
-	Code int         `json:"code"`
-	Data interface{} `json:"data"`
-	Msg  string      `json:"msg"`
+	Code int    `json:"code"`
+	Data any    `json:"data"`
+	Msg  string `json:"msg"`
 }
 
 // OK 成功响应
-func OK(c *gin.Context, data interface{}) {
+func OK(c *gin.Context, data any) {
 	c.JSON(http.StatusOK, Response{
 		Code: 0,
 		Data: data,
@@ -23,7 +23,7 @@ func OK(c *gin.Context, data interface{}) {
 }
 
 // OKWithMsg 成功响应并附带消息
-func OKWithMsg(c *gin.Context, data interface{}, msg string) {
+func OKWithMsg(c *gin.Context, data any, msg string) {
 	c.JSON(http.StatusOK, Response{
 		Code: 0,
 		Data: data,

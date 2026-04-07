@@ -42,7 +42,7 @@ func (r *CredentialRepositoryImpl) UpdatePassword(ctx context.Context, accountID
 	return r.db.WithContext(ctx).
 		Model(&CredentialModel{}).
 		Where("account_id = ?", accountID).
-		Updates(map[string]interface{}{
+		Updates(map[string]any{
 			"password_hash":       passwordHash,
 			"password_updated_at": time.Now(),
 		}).Error

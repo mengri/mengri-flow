@@ -58,6 +58,7 @@ internal/
   infra/
     config/                    # YAML config loader
     persistence/mysql/         # GORM repository implementations
+    plugin/                    # Plugin framework (types, registry)
   ports/http/
     handler/                   # Gin HTTP handlers with Swagger annotations
     middleware/                # Logger, Recovery, CORS
@@ -68,6 +69,10 @@ pkg/
   logger/                      # Structured logging (slog)
 web/                           # Vue 3 + Vite + TypeScript + Pinia + Element Plus
   embed.go                     # go:embed all:dist (placeholder index.html is git-tracked)
+plugins/                       # Plugin directory (build-time integration)
+  resource/                    # Resource plugins (HTTP, gRPC, etc.)
+  trigger/                     # Trigger plugins (RESTful, Timer, MQ)
+  plugins.yaml                 # Build tags configuration
 ```
 
 **Dependency direction:** Domain <- App <- Infra/Ports. Never import inward.
@@ -132,14 +137,7 @@ Use compile-time checks: `var _ UserService = (*UserServiceImpl)(nil)`
 
 ## Code Style — Vue 3 / TypeScript
 
-- Always `<script setup lang="ts">`. Never use `any`.
-- Complex logic in `src/composables/`, not inline in components.
-- State: Pinia setup stores (`defineStore('name', () => {...})`).
-- Typed props: `defineProps<{ visible: boolean }>()`.
-- Typed emits: `defineEmits<{ 'update:visible': [value: boolean] }>()`.
-- UI: Element Plus + Tailwind CSS.
-- Axios in `src/utils/request.ts` with baseURL `/api/v1`; interceptors check `code !== 0`.
-- Naming: camelCase (vars/functions), PascalCase (components, types), kebab-case (CSS/assets).
+详见 [docs/WEB_DEV.md](docs/WEB_DEV.md)
 
 ## API Response Contract
 
