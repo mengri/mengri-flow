@@ -73,5 +73,7 @@ plugins:
   enabled:
     - http
     - grpc
+    - mysql
+    - postgres
     - example
     - example_trigger

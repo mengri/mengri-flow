@@ -8,6 +8,8 @@ import (
 	_ "mengri-flow/plugins/resource/example"
 	_ "mengri-flow/plugins/resource/grpc"
 	_ "mengri-flow/plugins/resource/http"
+	_ "mengri-flow/plugins/resource/mysql"
+	_ "mengri-flow/plugins/resource/postgres"
 )
 
 // 触发器插件
