@@ -20,6 +20,12 @@ type Config struct {
 	OAuth    OAuthConfig    `yaml:"oauth"`
 	SMS      SMSConfig      `yaml:"sms"`
 	Email    EmailConfig    `yaml:"email"`
+	Plugins  PluginsConfig  `yaml:"plugins"`
+}
+
+// PluginsConfig 插件配置
+type PluginsConfig struct {
+	Enabled []string `yaml:"enabled"` // 启用的插件名称列表
 }
 
 func (c *Config) Autowired() {
@@ -260,5 +266,16 @@ func setDefaults(cfg *Config) {
 	}
 	if cfg.Email.Activation.Subject == "" {
 		cfg.Email.Activation.Subject = "激活您的账号"
+	}
+
+	// Plugins defaults
+	if len(cfg.Plugins.Enabled) == 0 {
+		// 默认启用所有已编译的插件
+		cfg.Plugins.Enabled = []string{
+			"http",
+			"grpc",
+			"example",
+			"example_trigger",
+		}
 	}
 }

@@ -72,10 +72,49 @@ web/                           # Vue 3 + Vite + TypeScript + Pinia + Element Plu
 plugins/                       # Plugin directory (build-time integration)
   resource/                    # Resource plugins (HTTP, gRPC, etc.)
   trigger/                     # Trigger plugins (RESTful, Timer, MQ)
-  plugins.yaml                 # Build tags configuration
 ```
 
 **Dependency direction:** Domain <- App <- Infra/Ports. Never import inward.
+
+## Plugin System
+
+### Plugin Registration & Compilation
+
+All plugins must be explicitly imported in `cmd/server/plugins.go` using blank imports to trigger their `init()` functions:
+
+```go
+// cmd/server/plugins.go
+import (
+    _ "mengri-flow/plugins/resource/http"      // HTTP resource plugin
+    _ "mengri-flow/plugins/resource/grpc"      // gRPC resource plugin
+    _ "mengri-flow/plugins/trigger/timer"      // Timer trigger plugin
+)
+```
+
+**Why this is required:**
+- Go only compiles packages that are part of the import chain from `main`
+- Unimported packages (even if present in filesystem) are not compiled into the binary
+- Blank import `_ "package"` triggers the package's `init()` without requiring direct symbol usage
+- Plugin `init()` functions register themselves with `plugin.GlobalRegistry()`
+
+**Plugin Control Flow:**
+1. Plugin package defines `init()` → calls `registry.RegisterResource/RegisterTrigger()`
+2. `cmd/server/plugins.go` imports plugin with `_ "package"`
+3. At startup: `main()` loads config → calls `registry.SetEnabledPlugins(cfg.Plugins.Enabled)`
+4. Only enabled plugins (by name) are accessible via `registry.GetResource/GetTrigger`
+
+### Plugin Configuration
+
+Enable/disable plugins in `config.yaml`:
+
+```yaml
+plugins:
+  enabled:
+    - http
+    - grpc
+    - example
+    - example_trigger
+```
 
 ## Dependency Injection (autowire)
 

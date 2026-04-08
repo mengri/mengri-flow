@@ -68,3 +68,10 @@ email:
   activation:
     subject: "激活您的账号"
     base_url: "${ACTIVATION_BASE_URL:http://localhost:3000}"
+
+plugins:
+  enabled:
+    - http
+    - grpc
+    - example
+    - example_trigger

@@ -1,6 +1,3 @@
-//go:build resource_grpc
-// +build resource_grpc
-
 package grpc
 
 import (

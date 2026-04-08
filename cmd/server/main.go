@@ -20,6 +20,7 @@ import (
 	accountRepository "mengri-flow/internal/infra/persistence/mysql/account_repository"
 	credentialRepository "mengri-flow/internal/infra/persistence/mysql/credential_repository"
 	identityRepository "mengri-flow/internal/infra/persistence/mysql/identity_repository"
+	"mengri-flow/internal/infra/plugin"
 	"mengri-flow/internal/ports/http/router"
 	"mengri-flow/pkg/autowire"
 	"mengri-flow/pkg/logger"
@@ -50,6 +51,10 @@ func main() {
 	logger.Setup(cfg.Log.Level, cfg.Log.Format)
 	slog.Info("config loaded successfully", "path", cfgPath)
 	slog.Info("config details", "config", fmt.Sprintf("%+v", cfg))
+
+	// --- 设置启用的插件 ---
+	plugin.GlobalRegistry().SetEnabledPlugins(cfg.Plugins.Enabled)
+	slog.Info("plugins enabled", "count", len(cfg.Plugins.Enabled), "plugins", cfg.Plugins.Enabled)
 
 	// --- Database ---
 	db, err := mysql.GenDB(&cfg.Database)

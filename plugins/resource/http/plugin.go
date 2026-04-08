@@ -1,11 +1,9 @@
-//go:build resource_http
-// +build resource_http
-
 package http
 
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -53,7 +51,6 @@ func (p *HTTPPlugin) ConfigSchema() plugin.JSONSchema {
 					"认证类型",
 					[]any{"none", "basic", "bearer", "apiKey"},
 					"none",
-					true,
 				),
 				"username": plugin.BuildStringSchema("用户名", "Basic认证用户名", false),
 				"password": plugin.BuildStringSchema("密码", "Basic认证密码", false, "password"),
@@ -211,6 +208,16 @@ func (p *HTTPPlugin) createHTTPClient(config map[string]any) (*http.Client, erro
 			TLSClientConfig: getTLSConfig(insecure),
 		},
 	}, nil
+}
+
+// getTLSConfig 获取TLS配置
+func getTLSConfig(insecure bool) *tls.Config {
+	if insecure {
+		return &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+	return nil
 }
 
 // setAuth 设置认证信息

@@ -126,12 +126,16 @@ func (b *SchemaBuilder) addRequired(field string) {
 }
 
 // BuildStringSchema 构建字符串类型Schema（辅助函数）
-func BuildStringSchema(title, description string, required bool) JSONSchema {
-	return map[string]any{
+func BuildStringSchema(title, description string, required bool, format ...string) JSONSchema {
+	schema := map[string]any{
 		"type":        "string",
 		"title":       title,
 		"description": description,
 	}
+	if len(format) > 0 && format[0] != "" {
+		schema["format"] = format[0]
+	}
+	return schema
 }
 
 // BuildNumberSchema 构建数字类型Schema（辅助函数）
