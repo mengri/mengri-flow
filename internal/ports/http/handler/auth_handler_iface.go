@@ -11,6 +11,10 @@ type AuthHandler interface {
 	ValidateActivation(c *gin.Context)
 	ConfirmActivation(c *gin.Context)
 	LoginByPassword(c *gin.Context)
+	SendSMSCode(c *gin.Context)
+	LoginBySMS(c *gin.Context)
+	GetOAuthURL(c *gin.Context)
+	OAuthCallback(c *gin.Context)
 	RefreshToken(c *gin.Context)
 	Logout(c *gin.Context)
 }

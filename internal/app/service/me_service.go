@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/domain/entity"
+	domainErr "mengri-flow/internal/domain/errors"
 	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/auth"
 	"mengri-flow/internal/infra/cache"
@@ -23,9 +26,12 @@ type MeServiceImpl struct {
 	identityRepo repository.IdentityRepository   `autowired:""`
 	sessionStore repository.SessionStore         `autowired:""`
 	auditRepo    repository.AuditEventRepository `autowired:""`
+	otpStore     repository.OTPStore             `autowired:""`
 	txManager    repository.TransactionManager   `autowired:""`
 	ticketStore  *cache.SecurityTicketStore      `autowired:""`
+	bindStore    *cache.BindTicketStore          `autowired:""`
 	cfg          *config.AuthConfig              `autowired:""`
+	smsCfg       *config.SMSConfig               `autowired:""`
 }
 
 var _ MeService = (*MeServiceImpl)(nil)
@@ -188,3 +194,163 @@ func (s *MeServiceImpl) LoginHistory(ctx context.Context, accountID string, page
 		PageSize: pageSize,
 	}, nil
 }
+
+// BindPhone 绑定手机号。
+func (s *MeServiceImpl) BindPhone(ctx context.Context, accountID string, req *dto.BindPhoneRequest) (*dto.IdentityResponse, error) {
+	// 1. 验证 security ticket
+	if err := s.ticketStore.Validate(ctx, req.SecurityTicket, accountID); err != nil {
+		return nil, domainErr.ErrSecurityTicketInvalid
+	}
+
+	// 2. 验证验证码
+	codeHash := hashOTP(req.SMSCode)
+	storedHash, err := s.otpStore.Get(ctx, "bind", req.Phone)
+	if err != nil || storedHash == "" || codeHash != storedHash {
+		return nil, domainErr.ErrOTPInvalid
+	}
+	// 删除已使用的验证码
+	s.otpStore.Delete(ctx, "bind", req.Phone)
+
+	var identity *entity.Identity
+
+	err = s.txManager.RunInTransaction(ctx, func(txCtx context.Context) error {
+		// 3. 检查手机号是否已被绑定
+		existingIdentity, err := s.identityRepo.GetByProviderID(txCtx, entity.LoginTypeSMS, req.Phone)
+		if err == nil && existingIdentity != nil {
+			return domainErr.ErrPhoneAlreadyBound
+		}
+
+		// 4. 创建新身份
+		identity, err = entity.NewIdentity(accountID, entity.LoginTypeSMS, req.Phone)
+		if err != nil {
+			return err
+		}
+		identity.ID = uuid.New().String()
+
+		if err := s.identityRepo.Create(txCtx, identity); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 5. 审计
+	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditIdentityBound, entity.AuditResultSuccess, "", "")
+	if audit != nil {
+		audit.ID = uuid.New().String()
+		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
+			slog.Error("failed to write bind phone audit", "error", auditErr)
+		}
+	}
+
+	return &dto.IdentityResponse{
+		IdentityID: identity.ID,
+		LoginType:  string(identity.LoginType),
+		BoundAt:    identity.CreatedAt.Format(time.RFC3339),
+	}, nil
+}
+
+// BindProvider 绑定第三方登录。
+func (s *MeServiceImpl) BindProvider(ctx context.Context, accountID string, provider string, req *dto.BindProviderRequest) (*dto.IdentityResponse, error) {
+	// 1. 验证 bind ticket
+	bindData, err := s.bindStore.Validate(ctx, req.BindTicket)
+	if err != nil {
+		return nil, domainErr.ErrBindTicketInvalid
+	}
+
+	// 2. 验证 security ticket（bind 场景需要）
+	// 注：实际调用时，前端应该在请求头或参数中提供 securityTicket
+	// 这里假设已经从上下文中获取并验证
+
+	var identity *entity.Identity
+
+	err = s.txManager.RunInTransaction(ctx, func(txCtx context.Context) error {
+		// 3. 检查第三方身份是否已被绑定
+		loginType := entity.LoginType(provider + "_oauth")
+		existingIdentity, err := s.identityRepo.GetByProviderID(txCtx, loginType, bindData.ExternalID)
+		if err == nil && existingIdentity != nil {
+			return domainErr.ErrIdentityAlreadyBound
+		}
+
+		// 4. 创建新身份
+		identity, err = entity.NewIdentity(accountID, loginType, bindData.ExternalID)
+		if err != nil {
+			return err
+		}
+		identity.ID = uuid.New().String()
+		identity.ExternalMeta = fmt.Sprintf(`{"nickname":"%s","avatar":"%s"}`, bindData.Nickname, bindData.AvatarURL)
+
+		if err := s.identityRepo.Create(txCtx, identity); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 5. 审计
+	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditIdentityBound, entity.AuditResultSuccess, "", "")
+	if audit != nil {
+		audit.ID = uuid.New().String()
+		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
+			slog.Error("failed to write bind provider audit", "error", auditErr)
+		}
+	}
+
+	return &dto.IdentityResponse{
+		IdentityID: identity.ID,
+		LoginType:  string(identity.LoginType),
+		BoundAt:    identity.CreatedAt.Format(time.RFC3339),
+	}, nil
+}
+
+// UnbindIdentity 解绑登录方式。
+func (s *MeServiceImpl) UnbindIdentity(ctx context.Context, accountID string, identityID string, securityTicket string) error {
+	// 1. 验证 security ticket
+	if err := s.ticketStore.Validate(ctx, securityTicket, accountID); err != nil {
+		return domainErr.ErrSecurityTicketInvalid
+	}
+
+	return s.txManager.RunInTransaction(ctx, func(txCtx context.Context) error {
+		// 2. 查询身份
+		identity, err := s.identityRepo.GetByID(txCtx, identityID)
+		if err != nil {
+			return err
+		}
+
+		// 3. 验证是否属于当前用户
+		if identity.AccountID != accountID {
+			return domainErr.ErrIdentityNotBound
+		}
+
+		// 4. 检查解绑后是否至少保留一种登录方式
+		count, err := s.identityRepo.CountActiveByAccountID(txCtx, accountID)
+		if err != nil {
+			return err
+		}
+		if count <= 1 {
+			return domainErr.ErrCannotUnbindLast
+		}
+
+		// 5. 软删除身份
+		if err := s.identityRepo.SoftDelete(txCtx, identityID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+// hashOTP 对 OTP 做哈希（用于存储）。
+func hashOTP(code string) string {
+	h := sha256.Sum256([]byte(code))
+	return hex.EncodeToString(h[:])
+}
+

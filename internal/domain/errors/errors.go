@@ -60,9 +60,21 @@ var (
 	ErrSecurityTicketInvalid = errors.New("security ticket invalid or expired")
 )
 
+// OAuth 错误
+var (
+	ErrOAuthProviderNotSupported = errors.New("oauth provider not supported")
+	ErrOAuthStateInvalid         = errors.New("oauth state invalid or expired")
+	ErrOAuthExchangeFailed       = errors.New("oauth exchange failed")
+)
+
 // 状态迁移错误
 var (
 	ErrInvalidStatusTransition = errors.New("invalid account status transition")
+)
+
+// 内部错误
+var (
+	ErrInternal = errors.New("internal server error")
 )
 
 // 通用输入错误

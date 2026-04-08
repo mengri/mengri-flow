@@ -16,6 +16,7 @@ import (
 	"mengri-flow/internal/infra/cache"
 	"mengri-flow/internal/infra/config"
 	"mengri-flow/internal/infra/external"
+	"mengri-flow/internal/infra/external/oauth"
 	"mengri-flow/internal/infra/persistence/mysql"
 	accountRepository "mengri-flow/internal/infra/persistence/mysql/account_repository"
 	credentialRepository "mengri-flow/internal/infra/persistence/mysql/credential_repository"
@@ -87,6 +88,9 @@ func main() {
 
 	// --- Cache Stores ---
 	cache.GenSecurityTicketStore(rdb, cfg.Auth.SecurityTicketTTL)
+
+	// --- OAuth Providers ---
+	oauth.InitOAuthProviders(&cfg.OAuth)
 
 	r := &router.Router{}
 	autowire.Autowired(r)

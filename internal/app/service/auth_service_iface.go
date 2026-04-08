@@ -14,6 +14,12 @@ type AuthService interface {
 
 	// 登录
 	LoginByPassword(ctx context.Context, req *dto.PasswordLoginRequest) (*dto.LoginResponse, error)
+	SendSMSCode(ctx context.Context, req *dto.SMSSendRequest) (*dto.SMSSendResponse, error)
+	LoginBySMS(ctx context.Context, req *dto.SMSLoginRequest) (*dto.LoginResponse, error)
+
+	// OAuth
+	GetOAuthURL(ctx context.Context, provider, scene, redirectURI string) (*dto.OAuthURLResponse, error)
+	HandleOAuthCallback(ctx context.Context, provider, code, state string) (*dto.OAuthCallbackResponse, error)
 
 	// Token
 	RefreshToken(ctx context.Context, refreshToken string) (*dto.LoginResponse, error)

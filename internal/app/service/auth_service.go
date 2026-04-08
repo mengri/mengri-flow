@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"math/big"
 	"strings"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 	domainErr "mengri-flow/internal/domain/errors"
 	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/auth"
+	"mengri-flow/internal/infra/cache"
+	"mengri-flow/internal/infra/config"
 
 	"github.com/google/uuid"
 )
@@ -26,8 +30,13 @@ type AuthServiceImpl struct {
 	sessionStore repository.SessionStore              `autowired:""`
 	auditRepo    repository.AuditEventRepository      `autowired:""`
 	identityRepo repository.IdentityRepository        `autowired:""`
+	otpStore     repository.OTPStore                  `autowired:""`
+	smsSender    repository.SMSSender                 `autowired:""`
+	oauthProviders map[string]repository.OAuthProvider `autowired:""`
 	txManager    repository.TransactionManager        `autowired:""`
 	jwtManager   *auth.JWTManager                     `autowired:""`
+	cfg          *config.AuthConfig                   `autowired:""`
+	smsCfg       *config.SMSConfig                    `autowired:""`
 }
 
 var _ AuthService = (*AuthServiceImpl)(nil)
@@ -334,3 +343,240 @@ func maskEmail(email string) string {
 	}
 	return local[:2] + "***@" + parts[1]
 }
+
+// generateOTP 生成指定长度的数字验证码。
+func generateOTP(length int) (string, error) {
+	const digits = "0123456789"
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(10))
+		if err != nil {
+			return "", err
+		}
+		result[i] = digits[num.Int64()]
+	}
+	return string(result), nil
+}
+
+// hashOTP 对 OTP 做哈希（用于存储）。
+func hashOTP(code string) string {
+	h := sha256.Sum256([]byte(code))
+	return hex.EncodeToString(h[:])
+}
+
+// maskPhone 对手机号做脱敏处理。
+func maskPhone(phone string) string {
+	if len(phone) < 7 {
+		return "***"
+	}
+	return phone[:3] + "****" + phone[len(phone)-4:]
+}
+
+// SendSMSCode 发送短信验证码。
+func (s *AuthServiceImpl) SendSMSCode(ctx context.Context, req *dto.SMSSendRequest) (*dto.SMSSendResponse, error) {
+	// 频率限制：60秒内只能发送一次
+	count, err := s.otpStore.IncrSendCount(ctx, req.Phone, time.Duration(s.smsCfg.OTPCooldown)*time.Second)
+	if err != nil {
+		slog.Error("failed to check sms rate limit", "error", err)
+		return nil, domainErr.ErrInternal
+	}
+	if count > 1 {
+		return &dto.SMSSendResponse{
+			Sent:          false,
+			TTLSec:        s.smsCfg.OTPTTL,
+			RetryAfterSec: s.smsCfg.OTPCooldown,
+		}, domainErr.ErrOTPTooFrequent
+	}
+
+	// 生成验证码
+	code, err := generateOTP(s.smsCfg.OTPLength)
+	if err != nil {
+		slog.Error("failed to generate otp", "error", err)
+		return nil, domainErr.ErrInternal
+	}
+
+	// 存储到 Redis（哈希后存储）
+	codeHash := hashOTP(code)
+	if err := s.otpStore.Save(ctx, req.Scene, req.Phone, codeHash, time.Duration(s.smsCfg.OTPTTL)*time.Second); err != nil {
+		slog.Error("failed to save otp", "error", err)
+		return nil, domainErr.ErrInternal
+	}
+
+	// 发送短信
+	if err := s.smsSender.SendOTP(ctx, req.Phone, code); err != nil {
+		slog.Error("failed to send sms", "phone", req.Phone, "error", err)
+		return nil, domainErr.ErrInternal
+	}
+
+	return &dto.SMSSendResponse{
+		Sent:          true,
+		TTLSec:        s.smsCfg.OTPTTL,
+		RetryAfterSec: s.smsCfg.OTPCooldown,
+	}, nil
+}
+
+// LoginBySMS 短信验证码登录。
+func (s *AuthServiceImpl) LoginBySMS(ctx context.Context, req *dto.SMSLoginRequest) (*dto.LoginResponse, error) {
+	// 1. 验证验证码
+	storedHash, err := s.otpStore.Get(ctx, "login", req.Phone)
+	if err != nil {
+		slog.Error("failed to get otp", "error", err)
+		return nil, domainErr.ErrOTPInvalid
+	}
+	if storedHash == "" {
+		return nil, domainErr.ErrOTPExpired
+	}
+
+	// 验证并删除验证码（一次性）
+	inputHash := hashOTP(req.Code)
+	if inputHash != storedHash {
+		// 记录审计
+		s.recordLoginAudit(ctx, "", entity.AuditLoginFailed, req.DeviceInfo)
+		return nil, domainErr.ErrOTPInvalid
+	}
+	// 删除已使用的验证码
+	s.otpStore.Delete(ctx, "login", req.Phone)
+
+	// 2. 查找手机号对应的身份
+	identity, err := s.identityRepo.GetByProviderID(ctx, entity.LoginTypeSMS, req.Phone)
+	if err != nil {
+		// 手机号未绑定任何账号
+		return nil, domainErr.ErrIdentityNotBound
+	}
+
+	// 3. 查询账号
+	account, err := s.accountRepo.GetByID(ctx, identity.AccountID)
+	if err != nil {
+		return nil, domainErr.ErrAccountNotFound
+	}
+
+	// 4. 检查账号状态
+	if !account.CanLogin() {
+		if account.Status == entity.AccountStatusPendingActivation {
+			return nil, domainErr.ErrAccountNotActivated
+		}
+		if account.Status == entity.AccountStatusLocked {
+			return nil, domainErr.ErrAccountLocked
+		}
+		if account.Status == entity.AccountStatusDisabled {
+			return nil, domainErr.ErrAccountDisabled
+		}
+		return nil, domainErr.ErrAccountLocked
+	}
+
+	// 5. 签发 Token
+	loginResp, err := s.issueTokens(ctx, account, req.DeviceInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	// 6. 记录登录成功审计
+	s.recordLoginAudit(ctx, account.ID, entity.AuditLoginSuccess, req.DeviceInfo)
+
+	return loginResp, nil
+}
+
+// GetOAuthURL 获取第三方授权地址。
+func (s *AuthServiceImpl) GetOAuthURL(ctx context.Context, provider, scene, redirectURI string) (*dto.OAuthURLResponse, error) {
+	oauthProvider, ok := s.oauthProviders[provider]
+	if !ok {
+		return nil, domainErr.ErrOAuthProviderNotSupported
+	}
+
+	// 生成并存储 state（CSRF 防护）
+	stateStore := cache.NewOAuthStateStore(nil) // 这里需要 redis client，实际应该在构造时注入
+	state, err := stateStore.Generate(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("generate oauth state: %w", err)
+	}
+
+	authURL := oauthProvider.GetAuthURL(state, redirectURI)
+
+	return &dto.OAuthURLResponse{
+		AuthURL:  authURL,
+		State:    state,
+		ExpireAt: time.Now().Add(5 * time.Minute).Format(time.RFC3339),
+	}, nil
+}
+
+// OAuthCallback 处理第三方回调。
+func (s *AuthServiceImpl) OAuthCallback(ctx context.Context, provider, code, state string) (*dto.OAuthCallbackResponse, error) {
+	// 1. 验证 state
+	stateStore := cache.NewOAuthStateStore(nil) // 需要 redis client
+	if err := stateStore.Validate(ctx, state); err != nil {
+		return nil, domainErr.ErrOAuthStateInvalid
+	}
+
+	oauthProvider, ok := s.oauthProviders[provider]
+	if !ok {
+		return nil, domainErr.ErrOAuthProviderNotSupported
+	}
+
+	// 2. 换取用户信息
+	userInfo, err := oauthProvider.ExchangeCode(ctx, code)
+	if err != nil {
+		slog.Error("failed to exchange oauth code", "provider", provider, "error", err)
+		return nil, domainErr.ErrOAuthExchangeFailed
+	}
+
+	// 3. 查找是否已绑定
+	identity, err := s.identityRepo.GetByProviderID(ctx, entity.LoginType(provider+"_oauth"), userInfo.ProviderUserID)
+	if err != nil {
+		// 未绑定，生成 bind ticket
+		bindStore := cache.NewBindTicketStore(nil) // 需要 redis client
+		bindTicket, err := bindStore.Generate(ctx, &cache.BindTicketData{
+			Provider:   provider,
+			ExternalID: userInfo.ProviderUserID,
+			Nickname:   userInfo.DisplayName,
+			AvatarURL:  userInfo.AvatarURL,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("generate bind ticket: %w", err)
+		}
+
+		return &dto.OAuthCallbackResponse{
+			Result:     "NEED_BIND_EXISTING_ACCOUNT",
+			Provider:   provider,
+			BindTicket: bindTicket,
+			ExpireAt:   time.Now().Add(5 * time.Minute).Format(time.RFC3339),
+		}, nil
+	}
+
+	// 4. 已绑定，查询账号
+	account, err := s.accountRepo.GetByID(ctx, identity.AccountID)
+	if err != nil {
+		return nil, domainErr.ErrAccountNotFound
+	}
+
+	// 5. 检查账号状态
+	if !account.CanLogin() {
+		if account.Status == entity.AccountStatusPendingActivation {
+			return nil, domainErr.ErrAccountNotActivated
+		}
+		if account.Status == entity.AccountStatusLocked {
+			return nil, domainErr.ErrAccountLocked
+		}
+		if account.Status == entity.AccountStatusDisabled {
+			return nil, domainErr.ErrAccountDisabled
+		}
+		return nil, domainErr.ErrAccountLocked
+	}
+
+	// 6. 签发 Token
+	loginResp, err := s.issueTokens(ctx, account, dto.DeviceInfo{})
+	if err != nil {
+		return nil, err
+	}
+
+	// 7. 记录登录审计
+	s.recordLoginAudit(ctx, account.ID, entity.AuditLoginSuccess, dto.DeviceInfo{})
+
+	return &dto.OAuthCallbackResponse{
+		Result:       "LOGIN_SUCCESS",
+		AccessToken:  loginResp.AccessToken,
+		RefreshToken: loginResp.RefreshToken,
+		ExpiresIn:    loginResp.ExpiresIn,
+		Account:      &loginResp.Account,
+	}, nil
+}
+

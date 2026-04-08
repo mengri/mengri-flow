@@ -34,28 +34,35 @@ func (r *Router) Setup(engine *gin.Engine) error {
 
 	v1 := engine.Group("/api/v1")
 	{
-		// --- Auth 公开接口（无需认证） ---
-		authGroup := v1.Group("/auth")
-		{
-			authGroup.GET("/activation/validate", r.authHandler.ValidateActivation)
-			authGroup.POST("/activation/confirm", r.authHandler.ConfirmActivation)
-			authGroup.POST("/login/password", r.authHandler.LoginByPassword)
-			authGroup.POST("/token/refresh", r.authHandler.RefreshToken)
+// --- Auth 公开接口（无需认证） ---
+	authGroup := v1.Group("/auth")
+	{
+		authGroup.GET("/activation/validate", r.authHandler.ValidateActivation)
+		authGroup.POST("/activation/confirm", r.authHandler.ConfirmActivation)
+		authGroup.POST("/login/password", r.authHandler.LoginByPassword)
+		authGroup.POST("/login/sms/send", r.authHandler.SendSMSCode)
+		authGroup.POST("/login/sms/verify", r.authHandler.LoginBySMS)
+		authGroup.GET("/oauth/:provider/url", r.authHandler.GetOAuthURL)
+		authGroup.GET("/oauth/:provider/callback", r.authHandler.OAuthCallback)
+		authGroup.POST("/token/refresh", r.authHandler.RefreshToken)
 
-			// logout 需要认证
-			authGroup.POST("/logout", middleware.Auth(r.jwtManager), r.authHandler.Logout)
-		}
+		// logout 需要认证
+		authGroup.POST("/logout", middleware.Auth(r.jwtManager), r.authHandler.Logout)
+	}
 
-		// --- Me 账号中心（需要认证） ---
-		meGroup := v1.Group("/me")
-		meGroup.Use(middleware.Auth(r.jwtManager))
-		{
-			meGroup.GET("/profile", r.meHandler.GetProfile)
-			meGroup.GET("/identities", r.meHandler.ListIdentities)
-			meGroup.POST("/password/change", r.meHandler.ChangePassword)
-			meGroup.POST("/security/verify", r.meHandler.SecurityVerify)
-			meGroup.GET("/security/logins", r.meHandler.LoginHistory)
-		}
+// --- Me 账号中心（需要认证） ---
+	meGroup := v1.Group("/me")
+	meGroup.Use(middleware.Auth(r.jwtManager))
+	{
+		meGroup.GET("/profile", r.meHandler.GetProfile)
+		meGroup.GET("/identities", r.meHandler.ListIdentities)
+		meGroup.POST("/identities/phone/bind", r.meHandler.BindPhone)
+		meGroup.POST("/identities/:provider/bind", r.meHandler.BindProvider)
+		meGroup.DELETE("/identities/:identityId", r.meHandler.UnbindIdentity)
+		meGroup.POST("/password/change", r.meHandler.ChangePassword)
+		meGroup.POST("/security/verify", r.meHandler.SecurityVerify)
+		meGroup.GET("/security/logins", r.meHandler.LoginHistory)
+	}
 
 		// --- Admin 管理后台（需要认证 + 管理员角色） ---
 		adminGroup := v1.Group("/admin")
