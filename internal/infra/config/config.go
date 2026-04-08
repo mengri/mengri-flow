@@ -35,6 +35,16 @@ type EtcdConfig struct {
 	Password  string   `yaml:"password"`
 }
 
+// ExecutorConfig Executor配置
+type ExecutorConfig struct {
+	EtcdEndpoints string `yaml:"etcd_endpoints"`
+	EtcdUsername  string `yaml:"etcd_username"`
+	EtcdPassword  string `yaml:"etcd_password"`
+	ClusterID     string `yaml:"cluster_id"`
+	NodeID        string `yaml:"node_id"`
+	LogLevel      string `yaml:"log_level"`
+}
+
 func (c *Config) Autowired() {
 	autowire.Auto(func() *Config {
 		return c
