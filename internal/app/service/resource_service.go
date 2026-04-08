@@ -25,8 +25,9 @@ func NewResourceService(repo repository.ResourceRepository, registry *plugin.Reg
 }
 
 func (s *ResourceService) CreateResource(ctx context.Context, req *dto.CreateResourceRequest) (*entity.Resource, error) {
-	plugin, err := s.pluginRegistry.GetResource(req.Type)
-	if err != nil {
+	resourceType := entity.ResourceType(req.Type)
+	plugin, ok := s.pluginRegistry.GetResource(string(resourceType))
+	if !ok {
 		return nil, fmt.Errorf("unsupported resource type: %s", req.Type)
 	}
 
@@ -37,10 +38,10 @@ func (s *ResourceService) CreateResource(ctx context.Context, req *dto.CreateRes
 	resource := &entity.Resource{
 		ID:          uuid.New(),
 		Name:        req.Name,
-		Type:        req.Type,
+		Type:        resourceType,
 		Config:      req.Config,
 		WorkspaceID: uuid.MustParse(req.WorkspaceID),
-		Status:      "active",
+		Status:      entity.ResourceStatusActive,
 		Description: req.Description,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -60,9 +61,9 @@ func (s *ResourceService) UpdateResource(ctx context.Context, id string, req *dt
 	}
 
 	if req.Config != nil {
-		plugin, err := s.pluginRegistry.GetResource(resource.Type)
-		if err != nil {
-			return nil, err
+		plugin, ok := s.pluginRegistry.GetResource(string(resource.Type))
+		if !ok {
+			return nil, fmt.Errorf("unsupported resource type: %s", resource.Type)
 		}
 
 		if err := plugin.TestConnection(ctx, req.Config); err != nil {
@@ -97,14 +98,25 @@ func (s *ResourceService) GetResource(ctx context.Context, id string) (*entity.R
 
 func (s *ResourceService) ListResources(ctx context.Context, workspaceID string, resourceType string, page int, pageSize int) ([]*entity.Resource, int64, error) {
 	if resourceType != "" {
-		return s.resourceRepo.FindByType(ctx, uuid.MustParse(workspaceID), resourceType, page, pageSize)
+		resources, err := s.resourceRepo.ListByType(ctx, entity.ResourceType(resourceType))
+		if err != nil {
+			return nil, 0, err
+		}
+		// TODO: Implement pagination for ListByType
+		return resources, int64(len(resources)), nil
 	}
-	return s.resourceRepo.FindByWorkspace(ctx, uuid.MustParse(workspaceID), page, pageSize)
+	resources, err := s.resourceRepo.ListByWorkspace(ctx, uuid.MustParse(workspaceID))
+	if err != nil {
+		return nil, 0, err
+	}
+	// TODO: Implement pagination for ListByWorkspace
+	return resources, int64(len(resources)), nil
 }
 
 func (s *ResourceService) TestConnection(ctx context.Context, req *dto.TestConnectionRequest) error {
-	plugin, err := s.pluginRegistry.GetResource(req.Type)
-	if err != nil {
+	resourceType := entity.ResourceType(req.Type)
+	plugin, ok := s.pluginRegistry.GetResource(string(resourceType))
+	if !ok {
 		return fmt.Errorf("unsupported resource type: %s", req.Type)
 	}
 

@@ -28,6 +28,13 @@ type PluginsConfig struct {
 	Enabled []string `yaml:"enabled"` // 启用的插件名称列表
 }
 
+// EtcdConfig ETCD 配置
+type EtcdConfig struct {
+	Endpoints []string `yaml:"endpoints"`
+	Username  string   `yaml:"username"`
+	Password  string   `yaml:"password"`
+}
+
 func (c *Config) Autowired() {
 	autowire.Auto(func() *Config {
 		return c

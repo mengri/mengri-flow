@@ -499,8 +499,8 @@ func (s *AuthServiceImpl) GetOAuthURL(ctx context.Context, provider, scene, redi
 	}, nil
 }
 
-// OAuthCallback 处理第三方回调。
-func (s *AuthServiceImpl) OAuthCallback(ctx context.Context, provider, code, state string) (*dto.OAuthCallbackResponse, error) {
+// HandleOAuthCallback 处理第三方回调。
+func (s *AuthServiceImpl) HandleOAuthCallback(ctx context.Context, provider, code, state string) (*dto.OAuthCallbackResponse, error) {
 	// 1. 验证 state
 	stateStore := cache.NewOAuthStateStore(nil) // 需要 redis client
 	if err := stateStore.Validate(ctx, state); err != nil {

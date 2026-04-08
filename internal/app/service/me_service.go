@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"time"
@@ -348,9 +346,5 @@ func (s *MeServiceImpl) UnbindIdentity(ctx context.Context, accountID string, id
 	})
 }
 
-// hashOTP 对 OTP 做哈希（用于存储）。
-func hashOTP(code string) string {
-	h := sha256.Sum256([]byte(code))
-	return hex.EncodeToString(h[:])
-}
+
 

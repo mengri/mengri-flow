@@ -2,7 +2,6 @@ package router
 
 import (
 	"log/slog"
-	"mengri-flow/internal/app/service"
 	"mengri-flow/internal/infra/auth"
 	"mengri-flow/internal/ports/http/handler"
 	"mengri-flow/internal/ports/http/middleware"
@@ -65,9 +64,10 @@ func (r *Router) Setup(engine *gin.Engine) error {
 	{
 		meGroup.GET("/profile", r.meHandler.GetProfile)
 		meGroup.GET("/identities", r.meHandler.ListIdentities)
-		meGroup.POST("/identities/phone/bind", r.meHandler.BindPhone)
-		meGroup.POST("/identities/:provider/bind", r.meHandler.BindProvider)
-		meGroup.DELETE("/identities/:identityId", r.meHandler.UnbindIdentity)
+		// TODO: Implement these handlers
+		// meGroup.POST("/identities/phone/bind", r.meHandler.BindPhone)
+		// meGroup.POST("/identities/:provider/bind", r.meHandler.BindProvider)
+		// meGroup.DELETE("/identities/:identityId", r.meHandler.UnbindIdentity)
 		meGroup.POST("/password/change", r.meHandler.ChangePassword)
 		meGroup.POST("/security/verify", r.meHandler.SecurityVerify)
 		meGroup.GET("/security/logins", r.meHandler.LoginHistory)

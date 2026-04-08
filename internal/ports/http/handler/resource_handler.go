@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/app/service"
 	"mengri-flow/pkg/response"
@@ -49,9 +48,9 @@ func (h *ResourceHandler) CreateResource(c *gin.Context) {
 	resp := &dto.ResourceResponse{
 		ID:          resource.ID.String(),
 		Name:        resource.Name,
-		Type:        resource.Type,
+		Type:        string(resource.Type),
 		Config:      resource.Config,
-		Status:      resource.Status,
+		Status:      string(resource.Status),
 		WorkspaceID: resource.WorkspaceID.String(),
 		Description: resource.Description,
 		CreatedAt:   resource.CreatedAt,
@@ -78,9 +77,9 @@ func (h *ResourceHandler) UpdateResource(c *gin.Context) {
 	resp := &dto.ResourceResponse{
 		ID:          resource.ID.String(),
 		Name:        resource.Name,
-		Type:        resource.Type,
+		Type:        string(resource.Type),
 		Config:      resource.Config,
-		Status:      resource.Status,
+		Status:      string(resource.Status),
 		WorkspaceID: resource.WorkspaceID.String(),
 		Description: resource.Description,
 		CreatedAt:   resource.CreatedAt,
@@ -113,9 +112,9 @@ func (h *ResourceHandler) GetResource(c *gin.Context) {
 	resp := &dto.ResourceResponse{
 		ID:          resource.ID.String(),
 		Name:        resource.Name,
-		Type:        resource.Type,
+		Type:        string(resource.Type),
 		Config:      resource.Config,
-		Status:      resource.Status,
+		Status:      string(resource.Status),
 		WorkspaceID: resource.WorkspaceID.String(),
 		Description: resource.Description,
 		CreatedAt:   resource.CreatedAt,
@@ -147,9 +146,9 @@ func (h *ResourceHandler) ListResources(c *gin.Context) {
 		list[i] = dto.ResourceResponse{
 			ID:          resource.ID.String(),
 			Name:        resource.Name,
-			Type:        resource.Type,
+			Type:        string(resource.Type),
 			Config:      resource.Config,
-			Status:      resource.Status,
+			Status:      string(resource.Status),
 			WorkspaceID: resource.WorkspaceID.String(),
 			Description: resource.Description,
 			CreatedAt:   resource.CreatedAt,

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -71,10 +70,6 @@ func (h *RunHandler) GetExecutionTimeline(c *gin.Context) {
 func (h *RunHandler) RetryRun(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
-
-	req := &dto.RetryRunRequest{
-		RunID: id,
-	}
 
 	run, err := h.service.RetryRun(c.Request.Context(), id, accountID)
 	if err != nil {

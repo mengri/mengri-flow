@@ -16,5 +16,5 @@ type OAuthUserInfo struct {
 // OAuthProvider 第三方 OAuth 提供方接口。
 type OAuthProvider interface {
 	GetAuthURL(state, redirectURI string) string
-	ExchangeCode(ctx context.Context, code string) (OAuthUserInfo, error)
+	ExchangeCode(ctx context.Context, code string) (*OAuthUserInfo, error)
 }

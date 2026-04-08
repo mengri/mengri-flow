@@ -69,3 +69,21 @@ func InternalError(c *gin.Context, msg string) {
 func Conflict(c *gin.Context, msg string) {
 	Fail(c, http.StatusConflict, 409, msg)
 }
+
+// TooManyRequests 429 错误
+func TooManyRequests(c *gin.Context, msg string) {
+	Fail(c, http.StatusTooManyRequests, 429, msg)
+}
+
+// Success 成功响应（兼容别名，等同于 OK）
+func Success(c *gin.Context, data any) {
+	OK(c, data)
+}
+
+// Error 错误响应（带错误详情）
+func Error(c *gin.Context, httpCode int, msg string, err error) {
+	if err != nil {
+		msg = msg + ": " + err.Error()
+	}
+	Fail(c, httpCode, httpCode, msg)
+}

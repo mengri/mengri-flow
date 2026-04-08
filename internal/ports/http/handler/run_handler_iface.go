@@ -1,7 +1,15 @@
 package handler
 
-import "mengri-flow/internal/app/service"
+import "github.com/gin-gonic/gin"
 
-type RunHandler struct {
-	service service.IRunService
+// IRunHandler 运行记录处理器接口
+type IRunHandler interface {
+	ListRuns(c *gin.Context)
+	GetRunDetail(c *gin.Context)
+	GetExecutionTimeline(c *gin.Context)
+	RetryRun(c *gin.Context)
+	GetRunStats(c *gin.Context)
 }
+
+// Ensure RunHandler implements IRunHandler
+var _ IRunHandler = (*RunHandler)(nil)

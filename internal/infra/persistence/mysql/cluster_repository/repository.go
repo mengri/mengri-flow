@@ -2,14 +2,14 @@ package clusterRepository
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/domain/entity"
 	domainErr "mengri-flow/internal/domain/errors"
 	"mengri-flow/internal/domain/repository"
+
+	"github.com/google/uuid"
 
 	"gorm.io/gorm"
 )
@@ -123,9 +123,9 @@ func (r *ClusterRepositoryImpl) UpdateExecutorStatus(ctx context.Context, id uui
 	result := r.db.WithContext(ctx).Model(&ClusterModel{}).
 		Where("id = ?", id.String()).
 		Updates(map[string]interface{}{
-			"executor_count":  count,
-			"last_heartbeat":  lastHeartbeat,
-			"updated_at":      time.Now(),
+			"executor_count": count,
+			"last_heartbeat": lastHeartbeat,
+			"updated_at":     time.Now(),
 		})
 	if result.Error != nil {
 		return fmt.Errorf("clusterRepository.UpdateExecutorStatus: failed to update executor status: %w", result.Error)
