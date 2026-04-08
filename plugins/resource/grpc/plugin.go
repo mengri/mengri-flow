@@ -5,10 +5,11 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 
 	"mengri-flow/internal/infra/plugin"
+
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -53,7 +54,7 @@ func (p *GRPCPlugin) TestConnection(ctx context.Context, config map[string]any) 
 	defer conn.Close()
 
 	// 测试连接状态
-	if conn.GetState() == grpc.Connecting {
+	if conn.GetState() == connectivity.Connecting {
 		return plugin.ErrConnectionFailed
 	}
 
