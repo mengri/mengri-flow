@@ -1,5 +1,37 @@
 # 任务 05: gRPC资源插件
 
+## ⚠️ 项目规范提醒
+在开始本任务前，请仔细阅读并遵守以下规范：
+
+### 插件开发铁律
+- **必须**在 `init()` 函数中注册插件：`registry.RegisterResource(&gRPCPlugin{})`
+- **必须**添加接口编译时检查：`var _ plugin.ResourcePlugin = (*gRPCPlugin)(nil)`
+- **必须**使用正确的构建标签：`//go:build grpc`
+- **必须**在 `plugins/plugins.yaml` 中注册 `grpc` 构建标签
+- **必须**实现所有接口方法（元数据、Schema、连接测试、工具执行）
+
+### gRPC客户端规范
+- **必须**使用 `grpc.DialContext(ctx, ...)` 传递上下文
+- **必须**设置合理的超时（默认 30 秒，可配置）
+- **必须**处理 TLS 配置（启用/跳过验证）
+- **必须**优雅关闭连接（`defer conn.Close()`）
+- **必须**处理连接错误（DNS、网络、认证）
+
+### Proto文件解析
+- **必须**验证 Proto 语法（使用 `protoparse`）
+- **必须**处理 import 语句（相对路径、标准库）
+- **必须**提取所有 service 和 rpc 方法
+- **必须**转换 message 为 JSON Schema
+- **必须**处理嵌套 message 和枚举类型
+
+### 动态调用
+- **必须**使用 gRPC 反射 API（`grpc.reflection.v1alpha.ServerReflection`）
+- **必须**缓存反射结果（避免重复请求）
+- **必须**处理未知 message 类型（动态构建）
+- **必须**验证输入参数（根据反射的 message 描述）
+
+---
+
 ## 任务概述
 实现gRPC资源插件，支持连接gRPC服务、执行RPC方法调用和从Proto文件批量导入工具。
 
@@ -290,5 +322,138 @@ func (p *gRPCPlugin) ExtractTools(ctx context.Context, config map[string]interfa
 - `docs/plugin-development-guide.md` - 资源插件规范
 - `docs/PRD.md` - 资源类型配置
 
+## 约束条件
+
+### 性能指标
+- gRPC 连接测试 **< 5秒** 超时
+- RPC 调用执行 **< 30秒**（可配置）
+- Proto 解析 **< 10秒**（大型文件）
+- 支持 **100+** 并发 RPC 调用
+
+### 安全要求
+- **必须**支持 TLS 1.2+ 连接
+- **必须**验证服务器证书（可配置跳过）
+- **必须**限制消息大小（最大 10MB）
+- **必须**在日志中脱敏敏感配置
+
+### 可靠性要求
+- **必须**实现连接池（复用连接）
+- **必须**处理连接断开（自动重连）
+- **必须**处理 gRPC 错误码（转换为标准化错误）
+- **必须**验证服务和方法存在性（通过反射）
+
+### 测试要求
+- **必须**测试 TLS 连接（启用/跳过验证）
+- **必须**测试反射 API 调用
+- **必须**测试 Proto 解析（各种语法）
+- **必须**测试 RPC 错误处理
+- **必须**测试连接池功能
+
+## 验收标准
+- [ ] 插件符合插件开发规范
+- [ ] 支持 gRPC 连接和 TLS 配置
+- [ ] 支持通过反射动态调用 RPC 方法
+- [ ] 支持从 Proto 文件批量导入工具
+- [ ] 单元测试覆盖率 > 70%
+- [ ] 可成功编译：`go build -tags grpc`
+
+## 技术难点
+- gRPC 动态调用需要反射支持
+- Proto 解析和消息构建复杂度高
+- 可能需要简化实现（MVP 阶段只支持静态生成的客户端）
+
+## 参考文档
+- `docs/plugin-development-guide.md` - 资源插件规范
+- `docs/PRD.md` - 资源类型配置
+
 ## 预估工时
 5-6 天（含反射和Proto解析）
+
+---
+
+## 🎯 AI生成指令
+
+### 你必须遵守的铁律：
+1. **不要**生成任何超出本任务范围的代码
+2. **不要**修改或重构已有的文件（除非本任务明确要求）
+3. **必须**在代码中添加关键注释说明设计决策
+4. **必须**在 `init()` 中注册插件到全局注册表
+5. **必须**添加接口编译时检查
+6. **必须**实现所有接口方法（元数据、Schema、连接测试、工具执行）
+7. **必须**返回标准化的 `PluginError` 类型
+8. **必须**验证所有配置参数（serverAddress、TLS 等）
+9. **必须**使用 `grpc.DialContext` 传递上下文
+10. **必须**处理 gRPC 反射和动态调用
+
+### ⚠️ 常见陷阱提醒：
+- [ ] 不要忘记在 `replace_in_file` 时使用**精确的旧代码字符串**
+- [ ] 不要忘记在文件顶部添加 `//go:build grpc`
+- [ ] 不要忘记在 `plugins/plugins.yaml` 中注册 `grpc` 标签
+- [ ] 不要忘记使用 `defer conn.Close()` 关闭连接
+- [ ] 不要忘记设置连接超时（默认 30 秒）
+- [ ] 不要忽略 gRPC 错误码（需要转换为标准化错误）
+- [ ] 不要在日志中输出敏感配置
+- [ ] 不要忘记处理 Proto 的 import 语句
+- [ ] 不要忘记缓存反射结果（提高性能）
+- [ ] 不要忘记验证服务和方法存在性
+
+### gRPC 连接示例：
+```go
+// ✅ 正确
+func (p *gRPCPlugin) createConnection(ctx context.Context, config map[string]interface{}) (*grpc.ClientConn, error) {
+    serverAddress := config["serverAddress"].(string)
+    
+    ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+    defer cancel()
+    
+    opts := []grpc.DialOption{
+        grpc.WithBlock(),
+    }
+    
+    // TLS 配置
+    if tls, ok := config["tls"].(map[string]interface{}); ok {
+        if enabled, _ := tls["enabled"].(bool); enabled {
+            insecureVal, _ := tls["insecure"].(bool)
+            if insecureVal {
+                opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+            } else {
+                // 生产环境：加载实际证书
+                creds, err := credentials.NewClientTLSFromFile("cert.pem", "")
+                if err != nil {
+                    return nil, fmt.Errorf("load tls cert: %w", err)
+                }
+                opts = append(opts, grpc.WithTransportCredentials(creds))
+            }
+        }
+    } else {
+        opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+    }
+    
+    conn, err := grpc.DialContext(ctx, serverAddress, opts...)
+    if err != nil {
+        return nil, &plugin.PluginError{
+            Type:    "CONNECTION_FAILED",
+            Message: fmt.Sprintf("failed to connect to %s: %v", serverAddress, err),
+            Cause:   plugin.ErrConnectionFailed,
+        }
+    }
+    
+    return conn, nil
+}
+```
+
+### 📝 完成标准：
+1. 运行测试：`GOTOOLCHAIN=local go test ./plugins/resource/grpc/... -v -race -cover`
+2. 检查lint：`golangci-lint run ./plugins/resource/grpc/...`
+3. 验证构建：`go build -tags grpc ./plugins/resource/grpc/`
+4. 手动测试连接（如有测试 gRPC 服务器）
+5. 提供简要的完成总结
+6. **调用 `open_result_view` 展示主要交付文件**
+
+### 📚 必须参考：
+- `plans/00-AI生成提示词优化指南.md` - 所有强制规范
+- `AGENTS.md` - 项目整体规范
+- `docs/plugin-development-guide.md` - 插件开发详细规范
+- 本文档开头的"项目规范提醒"章节
+
+**关键提醒**：gRPC 插件复杂度较高，特别是反射和 Proto 解析部分。如果遇到困难，建议先实现基础功能（连接测试），再逐步添加高级功能（反射、动态调用）！
