@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"mengri-flow/internal/infra/plugin"
+	"mengri-flow/plugins/resource/common"
 )
 
 func init() {
@@ -77,6 +78,45 @@ func (p *PostgreSQLPlugin) TestConnection(ctx context.Context, config map[string
 	}
 
 	return nil
+}
+
+// getDBConnection 获取数据库连接（使用连接池）
+func (p *PostgreSQLPlugin) getDBConnection(config map[string]any) (*sql.DB, error) {
+	dsn := p.buildDSN(config)
+
+	// 使用全局连接池
+	pool := common.GetConnectionPool()
+
+	// 定义如何打开数据库连接
+	openDBFunc := func(dsn string) (*sql.DB, error) {
+		db, err := sql.Open("postgres", dsn)
+		if err != nil {
+			return nil, err
+		}
+
+		// 设置连接池参数
+		maxOpenConns := getInt(config, "maxOpenConns", 10)
+		maxIdleConns := getInt(config, "maxIdleConns", 5)
+		connMaxLifetime := getInt(config, "connMaxLifetime", 3600)
+
+		db.SetMaxOpenConns(maxOpenConns)
+		db.SetMaxIdleConns(maxIdleConns)
+		db.SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Second)
+
+		return db, nil
+	}
+
+	// 从连接池获取或创建连接
+	db, err := pool.GetOrCreateConnection(dsn, openDBFunc)
+	if err != nil {
+		return nil, &plugin.PluginError{
+			Type:    "CONNECTION_FAILED",
+			Message: "无法创建数据库连接：" + err.Error(),
+			Cause:   err,
+		}
+	}
+
+	return db, nil
 }
 
 // ExecuteTool 执行工具（SQL查询）
@@ -149,8 +189,84 @@ func (p *PostgreSQLPlugin) ExecuteTool(
 
 // ExtractTools 从SQLc文件批量导入工具
 func (p *PostgreSQLPlugin) ExtractTools(ctx context.Context, config map[string]any) ([]plugin.ToolDefinition, error) {
-	// 暂时返回空实现，后续可扩展SQLc文件解析
-	return []plugin.ToolDefinition{}, nil
+	// 获取SQLc文件内容
+	sqlcContent, ok := config["sqlcContent"].(string)
+	if !ok || sqlcContent == "" {
+		return nil, &plugin.PluginError{
+			Type:    "INVALID_INPUT",
+			Message: "SQLc文件内容不能为空",
+		}
+	}
+
+	// 解析SQLc文件
+	queries, err := common.ParseSQLcFile(sqlcContent)
+	if err != nil {
+		return nil, &plugin.PluginError{
+			Type:    "INVALID_INPUT",
+			Message: "SQLc文件解析失败：" + err.Error(),
+			Cause:   err,
+		}
+	}
+
+	// 转换为ToolDefinition
+	var tools []plugin.ToolDefinition
+	for _, query := range queries {
+		// 验证SQL查询
+		if err := common.ValidateSQLQuery(query.SQL); err != nil {
+			continue // 跳过不安全的查询
+		}
+
+		tool := plugin.ToolDefinition{
+			Name:        query.Name,
+			Type:        "sql_query",
+			Method:      "POST",
+			Path:        "/query/" + query.Name,
+			Description: query.Description,
+			InputSchema: buildInputSchema(query.Params),
+			OutputSchema: buildOutputSchema(),
+			Config: map[string]any{
+				"sql": query.SQL,
+			},
+		}
+		tools = append(tools, tool)
+	}
+
+	return tools, nil
+}
+
+// buildInputSchema 构建输入Schema
+func buildInputSchema(params []common.SQLParam) plugin.JSONSchema {
+	if len(params) == 0 {
+		return plugin.NewSchemaBuilder().
+			AddObjectField("params", "参数", "查询参数", nil, nil).
+			Build()
+	}
+
+	builder := plugin.NewSchemaBuilder()
+
+	for _, param := range params {
+		// 根据参数名称推断类型（简单规则）
+		fieldType := "string"
+		if strings.Contains(param.Name, "id") || strings.Contains(param.Name, "age") {
+			fieldType = "number"
+		}
+
+		if fieldType == "number" {
+			builder.AddNumberField(param.Name, param.Name, "参数："+param.Name, false, nil, nil)
+		} else {
+			builder.AddStringField(param.Name, param.Name, "参数："+param.Name, false)
+		}
+	}
+
+	return builder.Build()
+}
+
+// buildOutputSchema 构建输出Schema
+func buildOutputSchema() plugin.JSONSchema {
+	return plugin.NewSchemaBuilder().
+		AddArrayField("rows", "结果行", "查询结果行", nil).
+		AddNumberField("count", "结果数", "结果行数", false, float64Ptr(0), nil).
+		Build()
 }
 
 // buildDSN 构建DSN连接字符串
@@ -164,32 +280,6 @@ func (p *PostgreSQLPlugin) buildDSN(config map[string]any) string {
 
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		host, port, username, password, database, sslMode)
-}
-
-// getDBConnection 获取数据库连接
-func (p *PostgreSQLPlugin) getDBConnection(config map[string]any) (*sql.DB, error) {
-	dsn := p.buildDSN(config)
-
-	// 创建新连接
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, &plugin.PluginError{
-			Type:    "INVALID_CONFIG",
-			Message: "数据库配置无效：" + err.Error(),
-			Cause:   err,
-		}
-	}
-
-	// 设置连接池参数
-	maxOpenConns := getInt(config, "maxOpenConns", 10)
-	maxIdleConns := getInt(config, "maxIdleConns", 5)
-	connMaxLifetime := getInt(config, "connMaxLifetime", 3600)
-
-	db.SetMaxOpenConns(maxOpenConns)
-	db.SetMaxIdleConns(maxIdleConns)
-	db.SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Second)
-
-	return db, nil
 }
 
 // parseRows 解析查询结果
