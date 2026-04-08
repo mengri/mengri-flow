@@ -64,3 +64,9 @@ var (
 var (
 	ErrInvalidStatusTransition = errors.New("invalid account status transition")
 )
+
+// 通用输入错误
+var (
+	ErrValidationFailed = errors.New("validation failed")
+	ErrInvalidInput     = errors.New("invalid input")
+)
