@@ -15,4 +15,5 @@ import (
 // 触发器插件
 import (
 	_ "mengri-flow/plugins/trigger/example_trigger"
+	_ "mengri-flow/plugins/trigger/restful"
 )
