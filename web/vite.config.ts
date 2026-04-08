@@ -14,6 +14,15 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     assetsDir: 'assets',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia', 'element-plus'],
+          utils: ['axios', 'dayjs', 'lodash-es'],
+        },
+      },
+    },
   },
   server: {
     port: 3000,

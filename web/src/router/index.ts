@@ -1,38 +1,141 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
-import { getToken } from '@/utils/request'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const routes: RouteRecordRaw[] = [
-  // --- Public routes (no auth required) ---
   {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/login/index.vue'),
-    meta: { public: true },
+    meta: { requiresAuth: false },
   },
   {
     path: '/activation',
     name: 'Activation',
     component: () => import('@/views/activation/index.vue'),
-    meta: { public: true },
+    meta: { requiresAuth: false },
   },
-  // --- Authenticated routes (with layout) ---
   {
     path: '/',
-    name: 'Home',
-    component: () => import('@/views/home/index.vue'),
-  },
-  {
-    path: '/account',
-    name: 'Account',
-    component: () => import('@/views/account/index.vue'),
+    component: () => import('@/layouts/AppLayout.vue'),
     meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'Dashboard',
+        component: () => import('@/views/DashboardView.vue'),
+      },
+      {
+        path: '/account',
+        name: 'Account',
+        component: () => import('@/views/account/index.vue'),
+      },
+      {
+        path: '/admin/accounts',
+        name: 'AdminAccounts',
+        component: () => import('@/views/admin/accounts/index.vue'),
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: '/resources',
+        name: 'Resources',
+        component: () => import('@/views/resources/Index.vue'),
+      },
+      {
+        path: '/resources/new',
+        name: 'CreateResource',
+        component: () => import('@/views/resources/Create.vue'),
+      },
+      {
+        path: '/resources/:id',
+        name: 'ResourceDetail',
+        component: () => import('@/views/resources/Detail.vue'),
+      },
+      {
+        path: '/tools',
+        name: 'Tools',
+        component: () => import('@/views/tools/Index.vue'),
+      },
+      {
+        path: '/tools/new',
+        name: 'CreateTool',
+        component: () => import('@/views/tools/Create.vue'),
+      },
+      {
+        path: '/tools/import',
+        name: 'ImportTools',
+        component: () => import('@/views/tools/Import.vue'),
+      },
+      {
+        path: '/tools/:id',
+        name: 'ToolDetail',
+        component: () => import('@/views/tools/Detail.vue'),
+      },
+      {
+        path: '/flows',
+        name: 'Flows',
+        component: () => import('@/views/flows/Index.vue'),
+      },
+      {
+        path: '/flows/new',
+        name: 'CreateFlow',
+        component: () => import('@/views/flows/Create.vue'),
+      },
+      {
+        path: '/flows/:id',
+        name: 'FlowCanvas',
+        component: () => import('@/views/flows/Canvas.vue'),
+      },
+      {
+        path: '/triggers',
+        name: 'Triggers',
+        component: () => import('@/views/triggers/Index.vue'),
+      },
+      {
+        path: '/triggers/new',
+        name: 'CreateTrigger',
+        component: () => import('@/views/triggers/Create.vue'),
+      },
+      {
+        path: '/triggers/:id',
+        name: 'TriggerDetail',
+        component: () => import('@/views/triggers/Detail.vue'),
+      },
+      {
+        path: '/runs',
+        name: 'Runs',
+        component: () => import('@/views/runs/Index.vue'),
+      },
+      {
+        path: '/runs/:id',
+        name: 'RunDetail',
+        component: () => import('@/views/runs/Detail.vue'),
+      },
+      {
+        path: '/clusters',
+        name: 'Clusters',
+        component: () => import('@/views/clusters/Index.vue'),
+      },
+      {
+        path: '/clusters/:id',
+        name: 'ClusterDetail',
+        component: () => import('@/views/clusters/Detail.vue'),
+      },
+      {
+        path: '/profile',
+        name: 'Profile',
+        component: () => import('@/views/Profile.vue'),
+      },
+      {
+        path: '/settings',
+        name: 'Settings',
+        component: () => import('@/views/Settings.vue'),
+        meta: { requiresAdmin: true },
+      },
+    ],
   },
   {
-    path: '/admin/accounts',
-    name: 'AdminAccounts',
-    component: () => import('@/views/admin/accounts/index.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true },
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
   },
 ]
 
@@ -41,26 +144,17 @@ const router = createRouter({
   routes,
 })
 
-// Navigation guard
-router.beforeEach(async (to) => {
-  const requiresAuth = to.meta.requiresAuth === true
-  const token = getToken()
-
-  // 已登录用户访问登录页 → 跳转首页
-  if (to.path === '/login' && token) {
-    return { path: '/' }
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next('/login')
+  } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    next('/')
+  } else {
+    next()
   }
-
-  // 需要认证但没有 token → 跳转登录页
-  if (requiresAuth && !token) {
-    return { path: '/login', query: { redirect: to.fullPath } }
-  }
-
-  // Admin 路由检查 — 需要在拿到 profile 后才能判断，
-  // 这里先做基础的 token 检查，具体角色由页面级别判断
-  // (profile 在 App.vue onMounted 中加载)
-
-  return true
 })
 
 export default router

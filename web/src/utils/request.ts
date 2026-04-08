@@ -1,82 +1,63 @@
-import axios from 'axios'
-import type { ApiResponse } from '@/types'
-import { ElMessage } from 'element-plus'
-
-const request = axios.create({
-  baseURL: '/api/v1',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
-const TOKEN_KEY = 'accessToken'
-const REFRESH_TOKEN_KEY = 'refreshToken'
-
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
-}
-
-export function setToken(accessToken: string, refreshToken: string): void {
-  localStorage.setItem(TOKEN_KEY, accessToken)
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
-}
-
-export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY)
-}
-
-export function clearTokens(): void {
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
-}
-
-// 请求拦截器 — 自动附加 JWT
-request.interceptors.request.use(
-  (config) => {
-    const token = getToken()
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+export function buildURL(path: string, params: Record<string, any> = {}) {
+  const url = new URL(path, window.location.origin)
+  
+  Object.keys(params).forEach(key => {
+    if (params[key] !== undefined && params[key] !== null) {
+      url.searchParams.append(key, params[key])
     }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  },
-)
+  })
+  
+  return url.toString()
+}
 
-// 响应拦截器 — 统一处理 { code, data, msg } 格式
-request.interceptors.response.use(
-  (response) => {
-    const res = response.data as ApiResponse
-    if (res.code !== 0) {
-      // Session 过期跳转登录
-      if (res.code === 110005) {
-        clearTokens()
-        const current = window.location.pathname
-        if (current !== '/login') {
-          window.location.href = '/login'
-        }
-        return Promise.reject(new Error(res.msg || 'Session expired'))
-      }
-      ElMessage.error(res.msg || 'Request failed')
-      return Promise.reject(new Error(res.msg || 'Request failed'))
-    }
-    return response
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      clearTokens()
-      const current = window.location.pathname
-      if (current !== '/login') {
-        window.location.href = '/login'
-      }
-      return Promise.reject(error)
-    }
-    const msg = error.response?.data?.msg || error.message || 'Network error'
-    ElMessage.error(msg)
-    return Promise.reject(error)
-  },
-)
+export function downloadFile(content: Blob, filename: string) {
+  const url = window.URL.createObjectURL(content)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+}
 
-export default request
+export function formatDate(date: string | Date, format = 'YYYY-MM-DD HH:mm:ss') {
+  const dayjs = require('dayjs')
+  return dayjs(date).format(format)
+}
+
+export function formatDuration(ms: number) {
+  if (ms < 1000) return `${ms}ms`
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
+  return `${(ms / 60000).toFixed(1)}min`
+}
+
+export function statusTagType(status: string) {
+  const map: Record<string, string> = {
+    active: 'success',
+    success: 'success',
+    published: 'success',
+    error: 'danger',
+    failed: 'danger',
+    inactive: 'info',
+    draft: 'info',
+    running: 'warning',
+    timeout: 'info',
+  }
+  return map[status] || 'info'
+}
+
+export function statusText(status: string) {
+  const map: Record<string, string> = {
+    active: '正常',
+    success: '成功',
+    published: '已发布',
+    error: '异常',
+    failed: '失败',
+    inactive: '未激活',
+    draft: '草稿',
+    running: '运行中',
+    timeout: '超时',
+  }
+  return map[status] || status
+}
