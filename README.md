@@ -6,7 +6,7 @@ Nginx or separate frontend deployment required. Designed for private deployment 
 
 ## Tech Stack
 
-**Backend:** Go 1.23 | Gin | GORM | MySQL | slog
+**Backend:** Go 1.26.1 | Gin | GORM | MySQL | slog
 
 **Frontend:** Vue 3 (Composition API) | TypeScript | Vite | Pinia | Tailwind CSS | Element Plus
 
@@ -41,7 +41,7 @@ Dependency direction: **Domain <- App <- Infra/Ports**. Domain layer has zero ex
 
 ## Prerequisites
 
-- Go 1.23 (via [gvm](https://github.com/moovweb/gvm) or direct install)
+- Go 1.26.1 (via [gvm](https://github.com/moovweb/gvm) or direct install)
 - Node.js 22+
 - MySQL 8.0+
 - (Optional) Docker
@@ -138,7 +138,7 @@ docker run -p 8080:8080 --env-file .env mengri-flow
 
 The Docker image uses a multi-stage build:
 1. **Node 22 Alpine** — builds the Vue 3 frontend
-2. **Go 1.23 Alpine** — compiles the backend with embedded frontend
+2. **Go 1.26.1 Alpine** — compiles the backend with embedded frontend
 3. **Alpine 3.19** — minimal runtime (~12MB binary + config only)
 
 ## API
