@@ -56,7 +56,7 @@ func TestAuto(t *testing.T) {
 	Autowired(&ti)
 	Autowired(&t2)
 	Autowired(t3)
-	Check()
+	CheckWithEvent(CreateHandler(func(v PreComplete) { v.OnPreComplete() }), CreateHandler(func(v Complete) { v.OnComplete() }), CreateHandler(func(v PostComplete) { v.OnPostComplete() }))
 
 	// Check 过程中会自动触发 OnInitialized，且在 handler 之后自动触发 OnComplete
 	if !lifecycleFlags.initialized {

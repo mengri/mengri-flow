@@ -8,7 +8,7 @@ import (
 
 func Check() {
 
-	CheckWithEvent(CreateHandler(func(v PreComplete) { v.OnPreComplete() }), CreateHandler(func(v PostComplete) { v.OnPostComplete() }))
+	CheckWithEvent()
 
 }
 func PostEvent(handlers ...Handler) {
