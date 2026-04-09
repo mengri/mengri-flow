@@ -18,10 +18,10 @@ type IWorkspaceService interface {
 	ListMembers(ctx context.Context, workspaceID string, accountID string, page int, pageSize int) ([]dto.WorkspaceMemberResponse, error)
 }
 
-var _ IWorkspaceService = (*WorkspaceService)(nil)
+var _ IWorkspaceService = (*workspaceServiceImpl)(nil)
 
 func init() {
 	autowire.Auto(func() IWorkspaceService {
-		return new(WorkspaceService)
+		return new(workspaceServiceImpl)
 	})
 }

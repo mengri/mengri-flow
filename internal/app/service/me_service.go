@@ -17,7 +17,7 @@ import (
 )
 
 // MeServiceImpl 账号中心服务实现。
-type MeServiceImpl struct {
+type meServiceImpl struct {
 	accountRepo  repository.AccountRepository    `autowired:""`
 	credRepo     repository.CredentialRepository `autowired:""`
 	identityRepo repository.IdentityRepository   `autowired:""`
@@ -31,10 +31,10 @@ type MeServiceImpl struct {
 	smsCfg       *config.SMSConfig               `autowired:""`
 }
 
-var _ IMeService = (*MeServiceImpl)(nil)
+var _ IMeService = (*meServiceImpl)(nil)
 
 // GetProfile 获取当前用户资料。
-func (s *MeServiceImpl) GetProfile(ctx context.Context, accountID string) (*dto.ProfileResponse, error) {
+func (s *meServiceImpl) GetProfile(ctx context.Context, accountID string) (*dto.ProfileResponse, error) {
 	account, err := s.accountRepo.GetByID(ctx, accountID)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (s *MeServiceImpl) GetProfile(ctx context.Context, accountID string) (*dto.
 }
 
 // ListIdentities 列出当前用户所有登录身份。
-func (s *MeServiceImpl) ListIdentities(ctx context.Context, accountID string) (*dto.IdentityListResponse, error) {
+func (s *meServiceImpl) ListIdentities(ctx context.Context, accountID string) (*dto.IdentityListResponse, error) {
 	identities, err := s.identityRepo.ListByAccountID(ctx, accountID)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (s *MeServiceImpl) ListIdentities(ctx context.Context, accountID string) (*
 }
 
 // ChangePassword 修改密码。
-func (s *MeServiceImpl) ChangePassword(ctx context.Context, accountID string, req *dto.ChangePasswordRequest) (*dto.ChangePasswordResponse, error) {
+func (s *meServiceImpl) ChangePassword(ctx context.Context, accountID string, req *dto.ChangePasswordRequest) (*dto.ChangePasswordResponse, error) {
 	// 1. 验证旧密码
 	storedHash, err := s.credRepo.GetByAccountID(ctx, accountID)
 	if err != nil {
@@ -129,7 +129,7 @@ func (s *MeServiceImpl) ChangePassword(ctx context.Context, accountID string, re
 }
 
 // SecurityVerify 二次安全验证：验证密码后签发票据。
-func (s *MeServiceImpl) SecurityVerify(ctx context.Context, accountID string, password string) (*dto.SecurityTicketResponse, error) {
+func (s *meServiceImpl) SecurityVerify(ctx context.Context, accountID string, password string) (*dto.SecurityTicketResponse, error) {
 	// 1. 验证密码
 	storedHash, err := s.credRepo.GetByAccountID(ctx, accountID)
 	if err != nil {
@@ -163,7 +163,7 @@ func (s *MeServiceImpl) SecurityVerify(ctx context.Context, accountID string, pa
 }
 
 // LoginHistory 查询当前用户登录记录。
-func (s *MeServiceImpl) LoginHistory(ctx context.Context, accountID string, page, pageSize int) (*dto.AuditEventListResponse, error) {
+func (s *meServiceImpl) LoginHistory(ctx context.Context, accountID string, page, pageSize int) (*dto.AuditEventListResponse, error) {
 	page, pageSize = normalizePageParams(page, pageSize)
 	offset := (page - 1) * pageSize
 
@@ -193,7 +193,7 @@ func (s *MeServiceImpl) LoginHistory(ctx context.Context, accountID string, page
 }
 
 // BindPhone 绑定手机号。
-func (s *MeServiceImpl) BindPhone(ctx context.Context, accountID string, req *dto.BindPhoneRequest) (*dto.IdentityResponse, error) {
+func (s *meServiceImpl) BindPhone(ctx context.Context, accountID string, req *dto.BindPhoneRequest) (*dto.IdentityResponse, error) {
 	// 1. 验证 security ticket
 	if err := s.ticketStore.Validate(ctx, req.SecurityTicket, accountID); err != nil {
 		return nil, domainErr.ErrSecurityTicketInvalid
@@ -252,7 +252,7 @@ func (s *MeServiceImpl) BindPhone(ctx context.Context, accountID string, req *dt
 }
 
 // BindProvider 绑定第三方登录。
-func (s *MeServiceImpl) BindProvider(ctx context.Context, accountID string, provider string, req *dto.BindProviderRequest) (*dto.IdentityResponse, error) {
+func (s *meServiceImpl) BindProvider(ctx context.Context, accountID string, provider string, req *dto.BindProviderRequest) (*dto.IdentityResponse, error) {
 	// 1. 验证 bind ticket
 	bindData, err := s.bindStore.Validate(ctx, req.BindTicket)
 	if err != nil {
@@ -309,7 +309,7 @@ func (s *MeServiceImpl) BindProvider(ctx context.Context, accountID string, prov
 }
 
 // UnbindIdentity 解绑登录方式。
-func (s *MeServiceImpl) UnbindIdentity(ctx context.Context, accountID string, identityID string, securityTicket string) error {
+func (s *meServiceImpl) UnbindIdentity(ctx context.Context, accountID string, identityID string, securityTicket string) error {
 	// 1. 验证 security ticket
 	if err := s.ticketStore.Validate(ctx, securityTicket, accountID); err != nil {
 		return domainErr.ErrSecurityTicketInvalid

@@ -11,10 +11,10 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-type ClusterService struct {
+type clusterServiceImpl struct {
 }
 
-func (s *ClusterService) CreateCluster(ctx context.Context, req *dto.CreateClusterRequest) (*dto.ClusterResponse, error) {
+func (s *clusterServiceImpl) CreateCluster(ctx context.Context, req *dto.CreateClusterRequest) (*dto.ClusterResponse, error) {
 	// TODO: Implement cluster creation logic
 	return &dto.ClusterResponse{
 		ID:            uuid.New().String(),
@@ -30,7 +30,7 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *dto.CreateClust
 	}, nil
 }
 
-func (s *ClusterService) ListClusters(ctx context.Context, environmentID string, page int, pageSize int) (*dto.ListClustersResponse, error) {
+func (s *clusterServiceImpl) ListClusters(ctx context.Context, environmentID string, page int, pageSize int) (*dto.ListClustersResponse, error) {
 	// TODO: Implement cluster listing logic
 	return &dto.ListClustersResponse{
 		Total:    0,
@@ -40,22 +40,22 @@ func (s *ClusterService) ListClusters(ctx context.Context, environmentID string,
 	}, nil
 }
 
-func (s *ClusterService) GetClusterDetail(ctx context.Context, id string) (*dto.ClusterDetailResponse, error) {
+func (s *clusterServiceImpl) GetClusterDetail(ctx context.Context, id string) (*dto.ClusterDetailResponse, error) {
 	// TODO: Implement cluster detail retrieval logic
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (s *ClusterService) UpdateCluster(ctx context.Context, id string, req *dto.UpdateClusterRequest) (*dto.ClusterResponse, error) {
+func (s *clusterServiceImpl) UpdateCluster(ctx context.Context, id string, req *dto.UpdateClusterRequest) (*dto.ClusterResponse, error) {
 	// TODO: Implement cluster update logic
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (s *ClusterService) DeleteCluster(ctx context.Context, id string) error {
+func (s *clusterServiceImpl) DeleteCluster(ctx context.Context, id string) error {
 	// TODO: Implement cluster deletion logic
 	return fmt.Errorf("not implemented")
 }
 
-func (s *ClusterService) TestEtcdConnection(ctx context.Context, req *dto.TestEtcdConnectionRequest) (*dto.TestEtcdConnectionResponse, error) {
+func (s *clusterServiceImpl) TestEtcdConnection(ctx context.Context, req *dto.TestEtcdConnectionRequest) (*dto.TestEtcdConnectionResponse, error) {
 	// Create etcd client with provided endpoints
 	cfg := clientv3.Config{
 		Endpoints:   []string{req.Endpoints},

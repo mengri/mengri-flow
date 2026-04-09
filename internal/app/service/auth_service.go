@@ -23,7 +23,7 @@ import (
 )
 
 // AuthServiceImpl 认证应用服务实现。
-type AuthServiceImpl struct {
+type authServiceImpl struct {
 	accountRepo    repository.AccountRepository         `autowired:""`
 	credRepo       repository.CredentialRepository      `autowired:""`
 	tokenRepo      repository.ActivationTokenRepository `autowired:""`
@@ -41,10 +41,10 @@ type AuthServiceImpl struct {
 	bindStore      repository.BindTicketStore           `autowired:""`
 }
 
-var _ AuthService = (*AuthServiceImpl)(nil)
+var _ AuthService = (*authServiceImpl)(nil)
 
 // ValidateActivationToken 验证激活令牌是否有效。
-func (s *AuthServiceImpl) ValidateActivationToken(ctx context.Context, rawToken string) (*dto.ActivationValidateResponse, error) {
+func (s *authServiceImpl) ValidateActivationToken(ctx context.Context, rawToken string) (*dto.ActivationValidateResponse, error) {
 	tokenHash := hashToken(rawToken)
 
 	token, err := s.tokenRepo.GetByHash(ctx, tokenHash)
@@ -73,7 +73,7 @@ func (s *AuthServiceImpl) ValidateActivationToken(ctx context.Context, rawToken 
 }
 
 // ConfirmActivation 确认激活：设置密码并激活账号。
-func (s *AuthServiceImpl) ConfirmActivation(ctx context.Context, req *dto.ActivationConfirmRequest) (*dto.ActivationConfirmResponse, error) {
+func (s *authServiceImpl) ConfirmActivation(ctx context.Context, req *dto.ActivationConfirmRequest) (*dto.ActivationConfirmResponse, error) {
 	tokenHash := hashToken(req.Token)
 
 	var resp *dto.ActivationConfirmResponse
@@ -159,7 +159,7 @@ func (s *AuthServiceImpl) ConfirmActivation(ctx context.Context, req *dto.Activa
 }
 
 // LoginByPassword 密码登录。
-func (s *AuthServiceImpl) LoginByPassword(ctx context.Context, req *dto.PasswordLoginRequest) (*dto.LoginResponse, error) {
+func (s *authServiceImpl) LoginByPassword(ctx context.Context, req *dto.PasswordLoginRequest) (*dto.LoginResponse, error) {
 	// 1. 查找账号：包含 @ 按 email 查询，否则按 username
 	var account *entity.Account
 	var err error
@@ -207,7 +207,7 @@ func (s *AuthServiceImpl) LoginByPassword(ctx context.Context, req *dto.Password
 }
 
 // RefreshToken 刷新 Token。
-func (s *AuthServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*dto.LoginResponse, error) {
+func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*dto.LoginResponse, error) {
 	// 1. 解析 refresh token
 	claims, err := s.jwtManager.ParseToken(refreshToken)
 	if err != nil {
@@ -255,7 +255,7 @@ func (s *AuthServiceImpl) RefreshToken(ctx context.Context, refreshToken string)
 }
 
 // Logout 登出：吊销 refresh token。
-func (s *AuthServiceImpl) Logout(ctx context.Context, accountID, refreshTokenRaw string) error {
+func (s *authServiceImpl) Logout(ctx context.Context, accountID, refreshTokenRaw string) error {
 	if refreshTokenRaw != "" {
 		tokenHash := hashToken(refreshTokenRaw)
 		if err := s.sessionStore.RevokeRefreshToken(ctx, tokenHash); err != nil {
@@ -278,7 +278,7 @@ func (s *AuthServiceImpl) Logout(ctx context.Context, accountID, refreshTokenRaw
 // --- 私有方法 ---
 
 // issueTokens 签发 access + refresh token 并存储 session。
-func (s *AuthServiceImpl) issueTokens(ctx context.Context, account *entity.Account, device dto.DeviceInfo) (*dto.LoginResponse, error) {
+func (s *authServiceImpl) issueTokens(ctx context.Context, account *entity.Account, device dto.DeviceInfo) (*dto.LoginResponse, error) {
 	accessToken, err := s.jwtManager.GenerateAccessToken(account.ID, account.Role)
 	if err != nil {
 		return nil, fmt.Errorf("generate access token: %w", err)
@@ -313,7 +313,7 @@ func (s *AuthServiceImpl) issueTokens(ctx context.Context, account *entity.Accou
 }
 
 // recordLoginAudit 记录登录审计事件。
-func (s *AuthServiceImpl) recordLoginAudit(ctx context.Context, accountID, eventType string, device dto.DeviceInfo) {
+func (s *authServiceImpl) recordLoginAudit(ctx context.Context, accountID, eventType string, device dto.DeviceInfo) {
 	result := entity.AuditResultSuccess
 	if eventType == entity.AuditLoginFailed {
 		result = entity.AuditResultFailure
@@ -375,7 +375,7 @@ func maskPhone(phone string) string {
 }
 
 // SendSMSCode 发送短信验证码。
-func (s *AuthServiceImpl) SendSMSCode(ctx context.Context, req *dto.SMSSendRequest) (*dto.SMSSendResponse, error) {
+func (s *authServiceImpl) SendSMSCode(ctx context.Context, req *dto.SMSSendRequest) (*dto.SMSSendResponse, error) {
 	// 频率限制：60秒内只能发送一次
 	count, err := s.otpStore.IncrSendCount(ctx, req.Phone, time.Duration(s.smsCfg.OTPCooldown)*time.Second)
 	if err != nil {
@@ -418,7 +418,7 @@ func (s *AuthServiceImpl) SendSMSCode(ctx context.Context, req *dto.SMSSendReque
 }
 
 // LoginBySMS 短信验证码登录。
-func (s *AuthServiceImpl) LoginBySMS(ctx context.Context, req *dto.SMSLoginRequest) (*dto.LoginResponse, error) {
+func (s *authServiceImpl) LoginBySMS(ctx context.Context, req *dto.SMSLoginRequest) (*dto.LoginResponse, error) {
 	// 1. 验证验证码
 	storedHash, err := s.otpStore.Get(ctx, "login", req.Phone)
 	if err != nil {
@@ -479,7 +479,7 @@ func (s *AuthServiceImpl) LoginBySMS(ctx context.Context, req *dto.SMSLoginReque
 }
 
 // GetOAuthURL 获取第三方授权地址。
-func (s *AuthServiceImpl) GetOAuthURL(ctx context.Context, provider, scene, redirectURI string) (*dto.OAuthURLResponse, error) {
+func (s *authServiceImpl) GetOAuthURL(ctx context.Context, provider, scene, redirectURI string) (*dto.OAuthURLResponse, error) {
 	oauthProvider, ok := s.oauthProviders.GetProvider(provider)
 	if !ok {
 		return nil, domainErr.ErrOAuthProviderNotSupported
@@ -501,7 +501,7 @@ func (s *AuthServiceImpl) GetOAuthURL(ctx context.Context, provider, scene, redi
 }
 
 // HandleOAuthCallback 处理第三方回调。
-func (s *AuthServiceImpl) HandleOAuthCallback(ctx context.Context, provider, code, state string) (*dto.OAuthCallbackResponse, error) {
+func (s *authServiceImpl) HandleOAuthCallback(ctx context.Context, provider, code, state string) (*dto.OAuthCallbackResponse, error) {
 	// 1. 验证 state
 	if err := s.stateStore.Validate(ctx, state); err != nil {
 		return nil, domainErr.ErrOAuthStateInvalid

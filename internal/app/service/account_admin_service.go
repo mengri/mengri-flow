@@ -18,7 +18,7 @@ import (
 )
 
 // AccountAdminServiceImpl 管理员账号管理服务实现。
-type AccountAdminServiceImpl struct {
+type accountAdminServiceImpl struct {
 	accountRepo  repository.AccountRepository         `autowired:""`
 	tokenRepo    repository.ActivationTokenRepository `autowired:""`
 	identityRepo repository.IdentityRepository        `autowired:""`
@@ -28,10 +28,10 @@ type AccountAdminServiceImpl struct {
 	cfg          *config.Config                       `autowired:""`
 }
 
-var _ IAccountAdminService = (*AccountAdminServiceImpl)(nil)
+var _ IAccountAdminService = (*accountAdminServiceImpl)(nil)
 
 // CreateAccount 管理员创建账号。
-func (s *AccountAdminServiceImpl) CreateAccount(ctx context.Context, req *dto.CreateAccountRequest, operatorID string) (*dto.AccountResponse, error) {
+func (s *accountAdminServiceImpl) CreateAccount(ctx context.Context, req *dto.CreateAccountRequest, operatorID string) (*dto.AccountResponse, error) {
 	// 1. 创建 Account 聚合根（业务校验在实体内）
 	account, err := entity.NewAccount(req.Email, req.Username, req.DisplayName)
 	if err != nil {
@@ -76,7 +76,7 @@ func (s *AccountAdminServiceImpl) CreateAccount(ctx context.Context, req *dto.Cr
 }
 
 // GetAccountDetail 获取账号详情（含身份列表）。
-func (s *AccountAdminServiceImpl) GetAccountDetail(ctx context.Context, accountID string) (*dto.AccountDetailResponse, error) {
+func (s *accountAdminServiceImpl) GetAccountDetail(ctx context.Context, accountID string) (*dto.AccountDetailResponse, error) {
 	account, err := s.accountRepo.GetByID(ctx, accountID)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (s *AccountAdminServiceImpl) GetAccountDetail(ctx context.Context, accountI
 }
 
 // ListAccounts 分页查询账号列表。
-func (s *AccountAdminServiceImpl) ListAccounts(ctx context.Context, req *dto.ListAccountsRequest) (*dto.ListAccountsResponse, error) {
+func (s *accountAdminServiceImpl) ListAccounts(ctx context.Context, req *dto.ListAccountsRequest) (*dto.ListAccountsResponse, error) {
 	page, pageSize := normalizePageParams(req.Page, req.PageSize)
 	offset := (page - 1) * pageSize
 
@@ -132,7 +132,7 @@ func (s *AccountAdminServiceImpl) ListAccounts(ctx context.Context, req *dto.Lis
 }
 
 // ChangeAccountStatus 管理员变更账号状态。
-func (s *AccountAdminServiceImpl) ChangeAccountStatus(ctx context.Context, accountID string, req *dto.ChangeStatusRequest, operatorID string) (*dto.AccountResponse, error) {
+func (s *accountAdminServiceImpl) ChangeAccountStatus(ctx context.Context, accountID string, req *dto.ChangeStatusRequest, operatorID string) (*dto.AccountResponse, error) {
 	var account *entity.Account
 
 	err := s.txManager.RunInTransaction(ctx, func(txCtx context.Context) error {
@@ -173,7 +173,7 @@ func (s *AccountAdminServiceImpl) ChangeAccountStatus(ctx context.Context, accou
 }
 
 // ResendActivation 重发激活邮件。
-func (s *AccountAdminServiceImpl) ResendActivation(ctx context.Context, accountID string, reason string, operatorID string) (*dto.ResendActivationResponse, error) {
+func (s *accountAdminServiceImpl) ResendActivation(ctx context.Context, accountID string, reason string, operatorID string) (*dto.ResendActivationResponse, error) {
 	account, err := s.accountRepo.GetByID(ctx, accountID)
 	if err != nil {
 		return nil, err
@@ -219,7 +219,7 @@ func (s *AccountAdminServiceImpl) ResendActivation(ctx context.Context, accountI
 }
 
 // ListAuditEvents 查询审计事件列表。
-func (s *AccountAdminServiceImpl) ListAuditEvents(ctx context.Context, req *dto.AuditEventFilter) (*dto.AuditEventListResponse, error) {
+func (s *accountAdminServiceImpl) ListAuditEvents(ctx context.Context, req *dto.AuditEventFilter) (*dto.AuditEventListResponse, error) {
 	page, pageSize := normalizePageParams(req.Page, req.PageSize)
 	offset := (page - 1) * pageSize
 
@@ -270,7 +270,7 @@ func (s *AccountAdminServiceImpl) ListAuditEvents(ctx context.Context, req *dto.
 
 // --- 私有方法 ---
 
-func (s *AccountAdminServiceImpl) writeAudit(ctx context.Context, actorID, targetID, eventType string) {
+func (s *accountAdminServiceImpl) writeAudit(ctx context.Context, actorID, targetID, eventType string) {
 	audit, _ := entity.NewAuditEvent(actorID, targetID, eventType, entity.AuditResultSuccess, "", "")
 	if audit != nil {
 		audit.ID = uuid.New().String()

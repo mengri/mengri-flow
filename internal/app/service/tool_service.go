@@ -10,10 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type ToolService struct {
+type toolServiceImpl struct {
 }
 
-func (s *ToolService) CreateTool(ctx context.Context, req *dto.CreateToolRequest) (*dto.ToolResponse, error) {
+func (s *toolServiceImpl) CreateTool(ctx context.Context, req *dto.CreateToolRequest) (*dto.ToolResponse, error) {
 	// TODO: Implement tool creation logic
 	return &dto.ToolResponse{
 		ID:          uuid.New().String(),
@@ -28,7 +28,7 @@ func (s *ToolService) CreateTool(ctx context.Context, req *dto.CreateToolRequest
 	}, nil
 }
 
-func (s *ToolService) ListTools(ctx context.Context, req *dto.ListToolsRequest) (*dto.ListToolsResponse, error) {
+func (s *toolServiceImpl) ListTools(ctx context.Context, req *dto.ListToolsRequest) (*dto.ListToolsResponse, error) {
 	// TODO: Implement tool listing logic
 	return &dto.ListToolsResponse{
 		Total:    0,
@@ -38,37 +38,37 @@ func (s *ToolService) ListTools(ctx context.Context, req *dto.ListToolsRequest) 
 	}, nil
 }
 
-func (s *ToolService) GetTool(ctx context.Context, id string) (*dto.ToolResponse, error) {
+func (s *toolServiceImpl) GetTool(ctx context.Context, id string) (*dto.ToolResponse, error) {
 	// TODO: Implement tool retrieval logic
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (s *ToolService) UpdateTool(ctx context.Context, id string, req *dto.UpdateToolRequest) (*dto.ToolResponse, error) {
+func (s *toolServiceImpl) UpdateTool(ctx context.Context, id string, req *dto.UpdateToolRequest) (*dto.ToolResponse, error) {
 	// TODO: Implement tool update logic
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (s *ToolService) TestTool(ctx context.Context, req *dto.TestToolRequest) error {
+func (s *toolServiceImpl) TestTool(ctx context.Context, req *dto.TestToolRequest) error {
 	// TODO: Implement tool testing logic
 	return fmt.Errorf("not implemented")
 }
 
-func (s *ToolService) ImportTools(ctx context.Context, req *dto.ImportToolsRequest) error {
+func (s *toolServiceImpl) ImportTools(ctx context.Context, req *dto.ImportToolsRequest) error {
 	// TODO: Implement tool import logic
 	return fmt.Errorf("not implemented")
 }
 
-func (s *ToolService) PublishTool(ctx context.Context, toolID string) error {
+func (s *toolServiceImpl) PublishTool(ctx context.Context, toolID string) error {
 	// TODO: Implement tool publishing logic
 	return fmt.Errorf("not implemented")
 }
 
-func (s *ToolService) DeprecateTool(ctx context.Context, toolID string) error {
+func (s *toolServiceImpl) DeprecateTool(ctx context.Context, toolID string) error {
 	// TODO: Implement tool deprecation logic
 	return fmt.Errorf("not implemented")
 }
 
-func (s *ToolService) ListVersions(ctx context.Context, toolID string) ([]string, error) {
+func (s *toolServiceImpl) ListVersions(ctx context.Context, toolID string) ([]string, error) {
 	// TODO: Implement version listing logic
 	return []string{}, nil
 }

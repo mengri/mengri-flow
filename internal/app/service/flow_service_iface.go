@@ -19,10 +19,10 @@ type IFlowService interface {
 	RollbackVersion(ctx context.Context, flowID string, version int, operatorID string) error
 }
 
-var _ IFlowService = (*FlowService)(nil)
+var _ IFlowService = (*flowServiceImpl)(nil)
 
 func init() {
 	autowire.Auto(func() IFlowService {
-		return new(FlowService)
+		return new(flowServiceImpl)
 	})
 }

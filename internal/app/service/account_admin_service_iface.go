@@ -16,8 +16,10 @@ type IAccountAdminService interface {
 	ListAuditEvents(ctx context.Context, req *dto.AuditEventFilter) (*dto.AuditEventListResponse, error)
 }
 
+var _ IAccountAdminService = (*accountAdminServiceImpl)(nil)
+
 func init() {
 	autowire.Auto(func() IAccountAdminService {
-		return &AccountAdminServiceImpl{}
+		return &accountAdminServiceImpl{}
 	})
 }

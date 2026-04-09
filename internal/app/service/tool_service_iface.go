@@ -19,10 +19,10 @@ type IToolService interface {
 	ListVersions(ctx context.Context, toolID string) ([]string, error)
 }
 
-var _ IToolService = (*ToolService)(nil)
+var _ IToolService = (*toolServiceImpl)(nil)
 
 func init() {
 	autowire.Auto(func() IToolService {
-		return new(ToolService)
+		return new(toolServiceImpl)
 	})
 }

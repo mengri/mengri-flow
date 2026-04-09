@@ -17,6 +17,6 @@ type IMeService interface {
 
 func init() {
 	autowire.Auto(func() IMeService {
-		return &MeServiceImpl{}
+		return &meServiceImpl{}
 	})
 }

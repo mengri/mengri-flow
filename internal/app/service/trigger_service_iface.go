@@ -18,10 +18,10 @@ type ITriggerService interface {
 	PublishToCluster(ctx context.Context, triggerID string, clusterID string, operatorID string) error
 }
 
-var _ ITriggerService = (*TriggerService)(nil)
+var _ ITriggerService = (*triggerServiceImpl)(nil)
 
 func init() {
 	autowire.Auto(func() ITriggerService {
-		return new(TriggerService)
+		return new(triggerServiceImpl)
 	})
 }

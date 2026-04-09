@@ -16,10 +16,10 @@ type IClusterService interface {
 	TestEtcdConnection(ctx context.Context, req *dto.TestEtcdConnectionRequest) (*dto.TestEtcdConnectionResponse, error)
 }
 
-var _ IClusterService = (*ClusterService)(nil)
+var _ IClusterService = (*clusterServiceImpl)(nil)
 
 func init() {
 	autowire.Auto(func() IClusterService {
-		return &ClusterService{}
+		return &clusterServiceImpl{}
 	})
 }

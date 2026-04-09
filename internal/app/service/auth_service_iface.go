@@ -26,8 +26,10 @@ type AuthService interface {
 	Logout(ctx context.Context, accountID, refreshTokenHash string) error
 }
 
+var _ AuthService = (*authServiceImpl)(nil)
+
 func init() {
 	autowire.Auto(func() AuthService {
-		return &AuthServiceImpl{}
+		return &authServiceImpl{}
 	})
 }

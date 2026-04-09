@@ -15,10 +15,10 @@ type IEnvironmentService interface {
 	DeleteEnvironment(ctx context.Context, id string) error
 }
 
-var _ IEnvironmentService = (*EnvironmentService)(nil)
+var _ IEnvironmentService = (*environmentServiceImpl)(nil)
 
 func init() {
 	autowire.Auto(func() IEnvironmentService {
-		return &EnvironmentService{}
+		return &environmentServiceImpl{}
 	})
 }
