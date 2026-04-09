@@ -8,8 +8,6 @@ import { useAuth } from '@/composables/useAuth'
 // 组件导入
 import MengriTopbar from '@/components/ui/MengriTopbar.vue'
 import MengriSidebar from '@/components/ui/MengriSidebar.vue'
-import GlobalNotification from '@/components/ui/GlobalNotification.vue'
-import GlobalLoading from '@/components/ui/GlobalLoading.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -17,7 +15,6 @@ const { handleLogout: authLogout } = useAuth()
 
 // 响应式状态
 const showSidebar = ref(true)
-const globalLoading = ref(false)
 
 // 窗口尺寸
 const { width } = useWindowSize()
@@ -36,7 +33,7 @@ const breadcrumbs = computed(() => {
     
     crumbs.push({
       path: currentPath,
-      label: routeName,
+      label: (routeName as string) || segment,
     })
   })
   
@@ -76,7 +73,7 @@ const navigation = computed(() => {
       title: 'Workspace',
       items: [
         { path: '/dashboard', label: 'Overview', icon: 'HomeIcon' },
-        { path: '/workflows', label: 'Workflows', icon: 'ArrowsRightLeftIcon', badge: authStore.workflowCount || 0 },
+        { path: '/workflows', label: 'Workflows', icon: 'ArrowsRightLeftIcon' },
         { 
           path: '/automation', 
           label: 'Automation', 
@@ -103,7 +100,7 @@ const navigation = computed(() => {
     sections.push({
       title: 'Administration',
       items: [
-        { path: '/admin/users', label: 'Users', icon: 'UsersIcon', badge: authStore.pendingUsers || 0 },
+        { path: '/admin/users', label: 'Users', icon: 'UsersIcon' },
         { path: '/admin/roles', label: 'Roles & Permissions', icon: 'ShieldCheckIcon' },
         { path: '/admin/audit', label: 'Audit Logs', icon: 'ClipboardDocumentListIcon' },
         { path: '/admin/settings', label: 'System Settings', icon: 'Cog8ToothIcon' },
@@ -129,11 +126,7 @@ const onSidebarToggle = (collapsed: boolean) => {
 }
 
 const handleLogout = () => {
-  globalLoading.value = true
-  setTimeout(() => {
-    authLogout()
-    globalLoading.value = false
-  }, 500)
+  authLogout()
 }
 
 const openSettings = () => {
@@ -242,11 +235,6 @@ onUnmounted(() => {
       </main>
     </div>
     
-    <!-- 全局通知 -->
-    <GlobalNotification />
-    
-    <!-- 全局加载状态 -->
-    <GlobalLoading :loading="globalLoading" />
   </div>
 </template>
 

@@ -110,27 +110,6 @@ const routes: RouteRecordRaw[] = [
         name: 'RunDetail',
         component: () => import('@/views/runs/Detail.vue'),
       },
-      {
-        path: '/clusters',
-        name: 'Clusters',
-        component: () => import('@/views/clusters/Index.vue'),
-      },
-      {
-        path: '/clusters/:id',
-        name: 'ClusterDetail',
-        component: () => import('@/views/clusters/Detail.vue'),
-      },
-      {
-        path: '/profile',
-        name: 'Profile',
-        component: () => import('@/views/Profile.vue'),
-      },
-      {
-        path: '/settings',
-        name: 'Settings',
-        component: () => import('@/views/Settings.vue'),
-        meta: { requiresAdmin: true },
-      },
     ],
   },
   {
@@ -145,7 +124,7 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
   
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {

@@ -49,11 +49,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue'
 import type { Tool } from '@/types/tool'
-import { Tools, CircleCheck, CircleClose, VideoPause } from '@element-plus/icons-vue'
+import { Tools } from '@element-plus/icons-vue'
 
-const props = defineProps<{
+defineProps<{
   tools: Tool[]
 }>()
 

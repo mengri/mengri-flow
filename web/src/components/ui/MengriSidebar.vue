@@ -527,7 +527,7 @@ onUnmounted(() => {
 }
 
 .nav-chevron.rotate-90 {
-  @apply transform rotate-90;
+  transform: rotate(90deg);
 }
 
 .nav-action {
@@ -610,7 +610,7 @@ onUnmounted(() => {
 }
 
 .workspace-menu {
-  @apply absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z1-10;
+  @apply absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-10;
 }
 
 .workspace-menu-header {

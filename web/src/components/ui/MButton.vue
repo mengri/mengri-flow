@@ -154,7 +154,7 @@ const handleClick = (event: MouseEvent) => {
 
 /* 大小样式 */
 .m-button.size-xs {
-  @apply text-xs px-2 py 1.5;
+  @apply text-xs px-2 py-1.5;
   min-height: 1.75rem;
   gap: 0.25rem;
 }
@@ -224,10 +224,10 @@ const handleClick = (event: MouseEvent) => {
 }
 
 .m-button.variant-danger {
-  @apply bg-danger-600 text-white border-danger-600;
-  @apply hover:bg-danger-700 hover:border-danger-700;
-  @apply active:bg-danger-800 active:border-danger-800;
-  @apply focus-visible:ring-danger-500;
+  @apply bg-error-600 text-white border-error-600;
+  @apply hover:bg-error-700 hover:border-error-700;
+  @apply active:bg-error-800 active:border-error-800;
+  @apply focus-visible:ring-error-500;
 }
 
 .m-button.variant-success {
@@ -387,7 +387,7 @@ const handleClick = (event: MouseEvent) => {
 
 /* 工具提示 */
 .button-tooltip {
-  @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px,2 py,1 text-xs font-medium bg-gray-900 text-white rounded whitespace-nowrap opacity-0 transition-opacity duration-200 pointer-events-none z-50;
+  @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs font-medium bg-gray-900 text-white rounded whitespace-nowrap opacity-0 transition-opacity duration-200 pointer-events-none z-50;
   @apply before:absolute before:top-full before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-gray-900;
 }
 

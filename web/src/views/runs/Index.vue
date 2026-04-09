@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { runAPI } from '@/api/runs'
@@ -151,7 +151,7 @@ async function loadRuns() {
   loading.value = true
   try {
     const data = await runAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
       page: pagination.page,
       pageSize: pagination.pageSize,
     })
@@ -167,7 +167,7 @@ async function loadRuns() {
 async function loadStats() {
   try {
     const data = await runAPI.getStats({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
     })
     
     // 构建统计卡片数据

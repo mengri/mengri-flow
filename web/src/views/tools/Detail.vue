@@ -146,7 +146,7 @@ function handleDelete() {
 }
 
 function statusTagType(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     published: 'success',
     draft: 'info',
     deprecated: 'warning',
@@ -155,7 +155,7 @@ function statusTagType(status: string) {
 }
 
 function statusText(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     published: '已发布',
     draft: '草稿',
     deprecated: '已下线',

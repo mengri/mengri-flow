@@ -125,7 +125,7 @@ async function loadTriggers() {
   loading.value = true
   try {
     const data = await triggerAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
     })
     triggers.value = data
     pagination.total = data.length
@@ -187,7 +187,7 @@ function handleCurrentChange() {
 }
 
 function statusTagType(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     active: 'success',
     inactive: 'info',
   }
@@ -195,7 +195,7 @@ function statusTagType(status: string) {
 }
 
 function statusText(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     active: '运行中',
     inactive: '已停止',
   }

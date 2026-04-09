@@ -1,5 +1,5 @@
 <template>
-  <div class="flow-canvas" ref="canvasRef">
+  <div class="flow-canvas">
     <!-- 工具面板 -->
     <NodePanel
       :tools="tools"
@@ -9,7 +9,8 @@
     <!-- 画布区域 -->
     <div class="canvas-area" @drop="handleDrop" @dragover.prevent>
       <VueFlow
-        v-model="flowData"
+        v-model:nodes="nodes"
+        v-model:edges="edges"
         :default-zoom="1"
         :min-zoom="0.5"
         :max-zoom="2"
@@ -18,18 +19,18 @@
         @node-click="handleNodeClick"
         @connect="handleConnect"
       >
-        <template #node-start="{ node }">
-          <StartNode :node="node" />
+        <template #node-start="nodeProps">
+          <StartNode :node="(nodeProps as any).node" />
         </template>
 
-        <template #node-end="{ node }">
-          <EndNode :node="node" />
+        <template #node-end="nodeProps">
+          <EndNode :node="(nodeProps as any).node" />
         </template>
 
-        <template #node-tool="{ node }">
+        <template #node-tool="nodeProps">
           <ToolNode
-            :node="node"
-            :status="nodeStatus[node.id]"
+            :node="(nodeProps as any).node"
+            :status="nodeStatus[(nodeProps as any).node.id]"
             @remove="removeNode"
           />
         </template>
@@ -49,9 +50,6 @@
             <el-icon><FullScreen /></el-icon>
           </ControlButton>
         </Controls>
-
-        <!-- 迷你地图 -->
-        <MiniMap />
       </VueFlow>
     </div>
 
@@ -59,14 +57,15 @@
     <ConfigDrawer
       v-model="drawerVisible"
       :node="selectedNode"
-      :flow-input-schema="flow.inputSchema"
+      :flow-input-schema="flowData?.inputSchema || {}"
       @save="handleNodeConfigSave"
     />
 
     <!-- 测试面板 -->
     <TestPanel
+      v-if="flowData"
       v-model="testPanelVisible"
-      :flow="flow"
+      :flow="flowData"
       @run="handleRunTest"
       @close="testPanelVisible = false"
     />
@@ -74,14 +73,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { VueFlow, useVueFlow, Controls, ControlButton, MiniMap } from '@vue-flow/core'
+import { ref, onMounted, type Ref } from 'vue'
+import { VueFlow, useVueFlow, type GraphNode, type GraphEdge } from '@vue-flow/core'
+import { Controls, ControlButton } from '@vue-flow/controls'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useWorkspaceStore } from '@/stores/workspace'
 import { useFlowCanvas } from '@/composables/useFlowCanvas'
 import NodePanel from './NodePanel.vue'
 import ConfigDrawer from './ConfigDrawer.vue'
 import TestPanel from './TestPanel.vue'
 import { toolAPI } from '@/api/tools'
 import { flowAPI } from '@/api/flows'
+import type { Tool } from '@/types/tool'
 
 const props = defineProps<{
   flowId: string
@@ -90,12 +93,8 @@ const props = defineProps<{
 const {
   nodes,
   edges,
-  addNodes,
-  addEdges,
-  removeNodes,
-  updateNode,
   fitView,
-} = useVueFlow()
+} = useVueFlow() as { nodes: Ref<GraphNode[]>, edges: Ref<GraphEdge[]>, fitView: () => void }
 
 const {
   flowData,
@@ -103,7 +102,6 @@ const {
   drawerVisible,
   testPanelVisible,
   nodeStatus,
-  loadFlow,
   handleNodeClick,
   handleConnect,
   handleDrop,
@@ -117,15 +115,30 @@ const tools = ref<Tool[]>([])
 onMounted(async () => {
   // 加载工具列表
   const workspaceStore = useWorkspaceStore()
+  const workspaceId = workspaceStore.currentWorkspaceIdOrThrow
   tools.value = await toolAPI.list({
-    workspaceId: workspaceStore.currentWorkspace,
+    workspaceId,
     status: 'published',
   })
 })
 
 async function handleSave() {
+  if (!flowData.value?.canvasData) return
   await flowAPI.update(props.flowId, {
-    canvasData: flowData.value,
+    canvasData: {
+      nodes: nodes.value.map(node => ({
+        id: node.id,
+        type: node.type as 'start' | 'end' | 'tool' | 'condition',
+        position: node.position,
+        data: node.data,
+      })),
+      edges: edges.value.map(edge => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        type: edge.type || 'default',
+      })),
+    },
   })
   ElMessage.success('保存成功')
 }
@@ -148,7 +161,7 @@ async function handleRunTest(input: Record<string, any>) {
   
   // 更新节点状态
   result.nodeLogs.forEach((log: any) => {
-    nodeStatus.value[log.nodeId] = log.status
+    ;(nodeStatus as any)[log.nodeId] = log.status
   })
   
   return result

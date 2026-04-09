@@ -65,6 +65,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useWorkspaceStore } from '@/stores/workspace'
 import { resourceAPI } from '@/api/resources'
 import { toolAPI } from '@/api/tools'
 import type { Resource } from '@/types/resource'
@@ -94,7 +95,7 @@ async function loadTools() {
   try {
     const workspaceStore = useWorkspaceStore()
     tools.value = await toolAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
       resourceId: resource.value.id,
     })
   } catch (error) {
@@ -142,7 +143,7 @@ function handleViewTool(id: string) {
 }
 
 function statusTagType(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     active: 'success',
     published: 'success',
     error: 'danger',
@@ -156,7 +157,7 @@ function statusTagType(status: string) {
 }
 
 function statusText(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     active: '正常',
     published: '已发布',
     error: '异常',

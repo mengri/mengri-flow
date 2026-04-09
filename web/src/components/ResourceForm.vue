@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, defineProps, defineEmits } from 'vue'
+import { ref, reactive, defineProps, defineEmits, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { resourceAPI } from '@/api/resources'
 import { useWorkspaceStore } from '@/stores/workspace'
@@ -79,11 +79,19 @@ const emit = defineEmits<{
 const formRef = ref()
 const workspaceStore = useWorkspaceStore()
 
+const workspaces = computed(() => workspaceStore.workspaces)
+
+onMounted(() => {
+  if (workspaceStore.workspaces.length === 0) {
+    workspaceStore.loadWorkspaces()
+  }
+})
+
 const form = reactive<CreateResourceRequest>({
   name: props.initialData?.name || '',
   type: props.initialData?.type || 'http',
   config: props.initialData?.config || {},
-  workspaceId: props.initialData?.workspaceId || workspaceStore.currentWorkspace,
+  workspaceId: props.initialData?.workspaceId || workspaceStore.currentWorkspaceIdOrThrow || '',
   description: props.initialData?.description || '',
 })
 
@@ -113,9 +121,9 @@ async function handleSubmit() {
   try {
     await formRef.value?.validate()
     submitting.value = true
-    const resource = await resourceAPI.create(form)
+    const response = await resourceAPI.create(form)
     ElMessage.success('创建成功')
-    emit('success', resource)
+    emit('success', response)
   } catch (error) {
     ElMessage.error('创建失败')
   } finally {
@@ -127,13 +135,13 @@ function handleCancel() {
   emit('cancel')
 }
 
-function handleTypeChange(type: string) {
+function handleTypeChange() {
   // 清空配置
   form.config = {}
 }
 
 function getConfigFormComponent(type: string) {
-  const components = {
+  const components: Record<string, string> = {
     http: 'HttpConfigForm',
     grpc: 'GrpcConfigForm',
     mysql: 'MysqlConfigForm',
@@ -145,6 +153,8 @@ function getConfigFormComponent(type: string) {
 function getConfigSchema(type: string) {
   // 返回对应类型的Schema
   // 可以从后端获取或前端静态定义
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  void type
   return {}
 }
 </script>

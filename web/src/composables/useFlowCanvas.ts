@@ -1,39 +1,45 @@
 import { ref, reactive } from 'vue'
-import { useVueFlow, type Node, type Edge } from '@vue-flow/core'
-import { ElMessage } from 'element-plus'
+import { useVueFlow, type GraphNode, type GraphEdge } from '@vue-flow/core'
 import type { Flow } from '@/types/flow'
 import type { Tool } from '@/types/tool'
 import { flowAPI } from '@/api/flows'
 
 export function useFlowCanvas(flowId: string) {
   const flowData = ref<Flow>()
-  const selectedNode = ref<Node>()
+  const selectedNode = ref<GraphNode | null>(null)
   const drawerVisible = ref(false)
   const testPanelVisible = ref(false)
   const nodeStatus = reactive<Record<string, string>>({})
 
-  const { nodes, edges, addNodes, addEdges, removeNodes, updateNode, fitView } = useVueFlow()
+  const { nodes, edges, addNodes, addEdges, removeNodes, updateNode } = useVueFlow()
 
   async function loadFlow() {
-    flowData.value = await flowAPI.get(flowId)
+    const result = await flowAPI.get(flowId)
+    flowData.value = result
     
-    // 初始化节点和连线
-    nodes.value = flowData.value.canvasData.nodes.map((node: any) => ({
+    if (!result.canvasData) return
+    
+    // 初始化节点和连线 - 使用类型断言避免复杂类型问题
+    nodes.value = result.canvasData.nodes.map((node: any) => ({
       id: node.id,
       type: node.type,
       position: node.position,
       data: node.data,
-    }))
+    })) as GraphNode[]
     
-    edges.value = flowData.value.canvasData.edges.map((edge: any) => ({
+    edges.value = result.canvasData.edges.map((edge: any) => ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
       type: edge.type,
-    }))
+    })) as GraphEdge[]
   }
 
-  function handleNodeClick({ node }: { node: Node }) {
+  // 加载流程
+  loadFlow()
+
+  function handleNodeClick(event: any) {
+    const node = event.node as GraphNode
     if (node.type === 'tool') {
       selectedNode.value = node
       drawerVisible.value = true
@@ -55,7 +61,7 @@ export function useFlowCanvas(flowId: string) {
       y: event.clientY - rect.top,
     }
     
-    const newNode: Node = {
+    const newNode = {
       id: `node_${Date.now()}`,
       type: 'tool',
       position,
@@ -72,7 +78,7 @@ export function useFlowCanvas(flowId: string) {
       },
     }
     
-    addNodes([newNode])
+    addNodes([newNode as GraphNode])
   }
 
   function handleDragStart(event: DragEvent, tool: Tool) {
@@ -85,6 +91,7 @@ export function useFlowCanvas(flowId: string) {
       return node
     })
     drawerVisible.value = false
+    selectedNode.value = null
   }
 
   function removeNode(nodeId: string) {
@@ -97,7 +104,6 @@ export function useFlowCanvas(flowId: string) {
     drawerVisible,
     testPanelVisible,
     nodeStatus,
-    loadFlow,
     handleNodeClick,
     handleConnect,
     handleDrop,

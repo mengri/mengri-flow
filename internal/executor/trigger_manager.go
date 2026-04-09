@@ -12,11 +12,11 @@ import (
 
 // TriggerManager 触发器管理器
 type TriggerManager struct {
-	flowEngine     *FlowEngine
-	triggers       map[string]plugin.TriggerPlugin
-	handlers       map[string]plugin.TriggerHandler
-	mu             sync.RWMutex
-	nodeID         string
+	flowEngine *FlowEngine
+	triggers   map[string]plugin.TriggerPlugin
+	handlers   map[string]plugin.TriggerHandler
+	mu         sync.RWMutex
+	nodeID     string
 }
 
 // NewTriggerManager 创建新的触发器管理器
@@ -129,7 +129,7 @@ func (m *TriggerManager) createTriggerPlugin(triggerType entity.TriggerType) (pl
 
 // createTriggerHandler 创建触发器处理器
 func (m *TriggerManager) createTriggerHandler(trigger *entity.Trigger) plugin.TriggerHandler {
-	return func(ctx any, input map[string]any) (*plugin.TriggerResult, error) {
+	return func(ctx context.Context, input map[string]any) (*plugin.TriggerResult, error) {
 		triggerID := trigger.ID.String()
 		log.Printf("Trigger %s executed", triggerID)
 

@@ -24,8 +24,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(account: string, password: string): Promise<AccountBrief> {
     loading.value = true
     try {
-      const { data } = await loginByPassword({ account, password })
-      const result = data.data
+      const result = await loginByPassword({ account, password })
       accessToken.value = result.accessToken
       refreshTokenValue.value = result.refreshToken
       setToken(result.accessToken, result.refreshToken)
@@ -41,9 +40,9 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchProfile(): Promise<ProfileResponse | null> {
     if (!accessToken.value) return null
     try {
-      const { data } = await getProfile()
-      profile.value = data.data
-      return data.data
+      const data = await getProfile()
+      profile.value = data
+      return data
     } catch {
       profile.value = null
       return null

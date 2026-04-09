@@ -146,7 +146,7 @@ async function loadTools() {
   loading.value = true
   try {
     const data = await toolAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
       resourceId: filters.resourceId || undefined,
       status: filters.status || undefined,
     })
@@ -171,7 +171,7 @@ async function loadTools() {
 async function loadResources() {
   try {
     const data = await resourceAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
     })
     resources.value = data
   } catch (error) {
@@ -246,7 +246,7 @@ function handleCurrentChange() {
 }
 
 function statusTagType(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     published: 'success',
     draft: 'info',
     deprecated: 'warning',
@@ -255,7 +255,7 @@ function statusTagType(status: string) {
 }
 
 function statusText(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     published: '已发布',
     draft: '草稿',
     deprecated: '已下线',

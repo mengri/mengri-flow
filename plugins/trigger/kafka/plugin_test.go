@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"mengri-flow/internal/infra/plugin"
+
+	"github.com/segmentio/kafka-go"
 )
 
 func TestKafkaTriggerPlugin_PluginMeta(t *testing.T) {

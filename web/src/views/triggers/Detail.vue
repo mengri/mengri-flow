@@ -32,7 +32,7 @@
             {{ statusText(trigger.status) }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="绑定流程">{{ trigger.flowName }}</el-descriptions-item>
+        <el-descriptions-item label="绑定流程">{{ trigger.flowId }}</el-descriptions-item>
         <el-descriptions-item label="集群">{{ trigger.clusterId }}</el-descriptions-item>
         <el-descriptions-item label="版本">v{{ trigger.flowVersion }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ formatDate(trigger.createdAt) }}</el-descriptions-item>
@@ -119,7 +119,7 @@ function handleDelete() {
 }
 
 function statusTagType(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     active: 'success',
     inactive: 'info',
   }
@@ -127,7 +127,7 @@ function statusTagType(status: string) {
 }
 
 function statusText(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     active: '运行中',
     inactive: '已停止',
   }

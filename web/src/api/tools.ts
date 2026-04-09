@@ -1,5 +1,5 @@
 import api from './client'
-import type { Tool, CreateToolRequest, ImportToolsRequest } from '@/types/tool'
+import type { Tool, CreateToolRequest } from '@/types/tool'
 
 export const toolAPI = {
   // 工具列表

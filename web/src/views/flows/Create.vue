@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { flowAPI } from '@/api/flows'
@@ -80,10 +80,10 @@ const workspaceStore = useWorkspaceStore()
 
 const formRef = ref()
 
-const form = reactive<CreateFlowRequest>({
+const form = reactive<CreateFlowRequest & { inputSchema?: any; outputSchema?: any }>({
   name: '',
   description: '',
-  workspaceId: workspaceStore.currentWorkspace,
+  workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
 })
 
 const rules = {
@@ -94,6 +94,8 @@ const rules = {
 const submitting = ref(false)
 const inputSchemaStr = ref('{"type":"object","properties":{}}')
 const outputSchemaStr = ref('{"type":"object","properties":{}}')
+
+const workspaces = computed(() => workspaceStore.workspaces)
 
 function handleSchemaChange() {
   try {
@@ -120,9 +122,9 @@ async function handleSubmit() {
     handleSchemaChange()
     handleOutputSchemaChange()
     
-    const flow = await flowAPI.create(form)
+    const response = await flowAPI.create(form)
     ElMessage.success('创建成功')
-    router.push(`/flows/${flow.id}`)
+    router.push(`/flows/${response.id}`)
   } catch (error) {
     ElMessage.error('创建失败')
   } finally {

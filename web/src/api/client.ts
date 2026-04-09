@@ -1,8 +1,9 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
+import type { ApiResponse } from '@/types'
 
-const api = axios.create({
+const instance = axios.create({
   baseURL: '/api/v1',
   timeout: 30000,
   headers: {
@@ -11,7 +12,7 @@ const api = axios.create({
 })
 
 // 请求拦截器
-api.interceptors.request.use(
+instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
@@ -23,7 +24,7 @@ api.interceptors.request.use(
 )
 
 // 响应拦截器
-api.interceptors.response.use(
+instance.interceptors.response.use(
   (response) => {
     const { code, data, msg } = response.data
     
@@ -44,5 +45,21 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+// 自定义 API 方法，返回解包后的数据
+const api = {
+  get: <T = any>(url: string, config?: AxiosRequestConfig) => {
+    return instance.get<ApiResponse<T>>(url, config).then(res => res as unknown as T)
+  },
+  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => {
+    return instance.post<ApiResponse<T>>(url, data, config).then(res => res as unknown as T)
+  },
+  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) => {
+    return instance.put<ApiResponse<T>>(url, data, config).then(res => res as unknown as T)
+  },
+  delete: <T = any>(url: string, config?: AxiosRequestConfig) => {
+    return instance.delete<ApiResponse<T>>(url, config).then(res => res as unknown as T)
+  },
+}
 
 export default api

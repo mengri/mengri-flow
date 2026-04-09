@@ -112,7 +112,7 @@ func TestRESTfulTriggerPlugin_SyncExecution(t *testing.T) {
 		"async":     false,
 	}
 
-	var mockHandler plugin.TriggerHandler = func(ctx any, input map[string]any) (*plugin.TriggerResult, error) {
+	var mockHandler plugin.TriggerHandler = func(ctx context.Context, input map[string]any) (*plugin.TriggerResult, error) {
 		return &plugin.TriggerResult{
 			Success: true,
 			Data:    map[string]any{"message": "processed"},
@@ -173,7 +173,7 @@ func TestRESTfulTriggerPlugin_AsyncExecution(t *testing.T) {
 	}
 
 	executionCount := 0
-	var mockHandler plugin.TriggerHandler = func(ctx any, input map[string]any) (*plugin.TriggerResult, error) {
+	var mockHandler plugin.TriggerHandler = func(ctx context.Context, input map[string]any) (*plugin.TriggerResult, error) {
 		executionCount++
 		return &plugin.TriggerResult{
 			Success: true,
@@ -312,19 +312,19 @@ func TestRESTfulTriggerPlugin_AuthValidation(t *testing.T) {
 			p := &RESTfulTriggerPlugin{}
 			ctx := context.Background()
 
-			var mockHandler plugin.TriggerHandler = func(ctx any, input map[string]any) (*plugin.TriggerResult, error) {
+			var mockHandler plugin.TriggerHandler = func(ctx context.Context, input map[string]any) (*plugin.TriggerResult, error) {
 				return &plugin.TriggerResult{
 					Success: true,
 					Data:    map[string]any{"status": "ok"},
 				}, nil
 			}
 
-triggerID := tt.config["triggerId"].(string)
-		err := p.Start(ctx, tt.config, mockHandler)
-		if err != nil {
-			t.Fatalf("failed to start plugin: %v", err)
-		}
-		defer p.Stop()
+			triggerID := tt.config["triggerId"].(string)
+			err := p.Start(ctx, tt.config, mockHandler)
+			if err != nil {
+				t.Fatalf("failed to start plugin: %v", err)
+			}
+			defer p.Stop()
 
 			body := bytes.NewReader([]byte("{}"))
 			req := httptest.NewRequest("POST", tt.config["path"].(string), body)
@@ -367,7 +367,7 @@ func TestRESTfulTriggerPlugin_MethodValidation(t *testing.T) {
 		"async":     false,
 	}
 
-	var mockHandler plugin.TriggerHandler = func(ctx any, input map[string]any) (*plugin.TriggerResult, error) {
+	var mockHandler plugin.TriggerHandler = func(ctx context.Context, input map[string]any) (*plugin.TriggerResult, error) {
 		return &plugin.TriggerResult{
 			Success: true,
 			Data:    map[string]any{"status": "ok"},
@@ -417,7 +417,7 @@ func TestRESTfulTriggerPlugin_Stop(t *testing.T) {
 		"async":     false,
 	}
 
-	var mockHandler plugin.TriggerHandler = func(ctx any, input map[string]any) (*plugin.TriggerResult, error) {
+	var mockHandler plugin.TriggerHandler = func(ctx context.Context, input map[string]any) (*plugin.TriggerResult, error) {
 		return &plugin.TriggerResult{
 			Success: true,
 			Data:    map[string]any{"status": "ok"},
@@ -456,7 +456,7 @@ func TestRESTfulTriggerPlugin_ConcurrentRequests(t *testing.T) {
 	}
 
 	requestCount := 0
-	var mockHandler plugin.TriggerHandler = func(ctx any, input map[string]any) (*plugin.TriggerResult, error) {
+	var mockHandler plugin.TriggerHandler = func(ctx context.Context, input map[string]any) (*plugin.TriggerResult, error) {
 		requestCount++
 		time.Sleep(10 * time.Millisecond)
 		return &plugin.TriggerResult{

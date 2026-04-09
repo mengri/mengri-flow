@@ -117,7 +117,7 @@ async function loadResources() {
   loading.value = true
   try {
     const data = await resourceAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
       type: filters.type || undefined,
       status: filters.status || undefined,
     })

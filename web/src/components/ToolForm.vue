@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, defineProps, defineEmits, onMounted } from 'vue'
+import { ref, reactive, defineProps, defineEmits, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { toolAPI } from '@/api/tools'
 import { resourceAPI } from '@/api/resources'
@@ -119,6 +119,8 @@ const emit = defineEmits<{
 const formRef = ref()
 const workspaceStore = useWorkspaceStore()
 
+const workspaces = computed(() => workspaceStore.workspaces)
+
 const form = reactive<CreateToolRequest>({
   name: props.initialData?.name || '',
   resourceId: props.initialData?.resourceId || '',
@@ -129,7 +131,7 @@ const form = reactive<CreateToolRequest>({
   outputSchema: props.initialData?.outputSchema || {},
   description: props.initialData?.description || '',
   tags: props.initialData?.tags || [],
-  workspaceId: props.initialData?.workspaceId || workspaceStore.currentWorkspace,
+  workspaceId: props.initialData?.workspaceId || workspaceStore.currentWorkspaceIdOrThrow || '',
 })
 
 const rules = {
@@ -145,8 +147,13 @@ const outputSchemaStr = ref(JSON.stringify(form.outputSchema, null, 2))
 
 async function loadResources() {
   try {
+    const workspaceId = workspaceStore.currentWorkspaceIdOrThrow
+    if (!workspaceId) {
+      ElMessage.error('请先选择工作空间')
+      return
+    }
     const data = await resourceAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId,
     })
     resources.value = data
   } catch (error) {
@@ -175,9 +182,9 @@ async function handleSubmit() {
     handleSchemaChange('input')
     handleSchemaChange('output')
     
-    const tool = await toolAPI.create(form)
+    const response = await toolAPI.create(form)
     ElMessage.success('创建成功')
-    emit('success', tool)
+    emit('success', response)
   } catch (error) {
     ElMessage.error('创建失败')
   } finally {

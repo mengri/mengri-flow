@@ -1,6 +1,5 @@
-import request from '@/utils/request'
+import api from './client'
 import type {
-  ApiResponse,
   CreateAccountRequest,
   AccountResponse,
   AccountDetailResponse,
@@ -24,7 +23,7 @@ import type {
 
 /** 创建账号 */
 export function createAccount(data: CreateAccountRequest) {
-  return request.post<ApiResponse<AccountResponse>>(
+  return api.post<AccountResponse>(
     '/admin/accounts',
     data,
   )
@@ -32,7 +31,7 @@ export function createAccount(data: CreateAccountRequest) {
 
 /** 账号列表 */
 export function listAccounts(params: ListAccountsRequest) {
-  return request.get<ApiResponse<ListAccountsResponse>>(
+  return api.get<ListAccountsResponse>(
     '/admin/accounts',
     { params },
   )
@@ -40,14 +39,14 @@ export function listAccounts(params: ListAccountsRequest) {
 
 /** 账号详情 */
 export function getAccountDetail(accountId: string) {
-  return request.get<ApiResponse<AccountDetailResponse>>(
+  return api.get<AccountDetailResponse>(
     `/admin/accounts/${accountId}`,
   )
 }
 
 /** 变更账号状态 */
 export function changeAccountStatus(accountId: string, data: ChangeStatusRequest) {
-  return request.put<ApiResponse<{ accountId: string; status: string; updatedAt: string }>>(
+  return api.put<{ accountId: string; status: string; updatedAt: string }>(
     `/admin/accounts/${accountId}/status`,
     data,
   )
@@ -55,7 +54,7 @@ export function changeAccountStatus(accountId: string, data: ChangeStatusRequest
 
 /** 重发激活邮件 */
 export function resendActivation(accountId: string, data?: ResendActivationRequest) {
-  return request.post<ApiResponse<ResendActivationResponse>>(
+  return api.post<ResendActivationResponse>(
     `/admin/accounts/${accountId}/activation/resend`,
     data,
   )
@@ -63,7 +62,7 @@ export function resendActivation(accountId: string, data?: ResendActivationReque
 
 /** 审计事件列表 */
 export function listAuditEvents(params: AuditEventFilter) {
-  return request.get<ApiResponse<AuditEventListResponse>>(
+  return api.get<AuditEventListResponse>(
     '/admin/audit/events',
     { params },
   )
@@ -73,17 +72,17 @@ export function listAuditEvents(params: AuditEventFilter) {
 
 /** 获取我的资料 */
 export function getProfile() {
-  return request.get<ApiResponse<ProfileResponse>>('/me/profile')
+  return api.get<ProfileResponse>('/me/profile')
 }
 
 /** 获取我的身份列表 */
 export function listMyIdentities() {
-  return request.get<ApiResponse<IdentityListResponse>>('/me/identities')
+  return api.get<IdentityListResponse>('/me/identities')
 }
 
 /** 修改密码 */
 export function changePassword(data: ChangePasswordRequest) {
-  return request.post<ApiResponse<ChangePasswordResponse>>(
+  return api.post<ChangePasswordResponse>(
     '/me/password/change',
     data,
   )
@@ -91,7 +90,7 @@ export function changePassword(data: ChangePasswordRequest) {
 
 /** 二次安全验证 */
 export function securityVerify(data: SecurityVerifyRequest) {
-  return request.post<ApiResponse<SecurityTicketResponse>>(
+  return api.post<SecurityTicketResponse>(
     '/me/security/verify',
     data,
   )
@@ -99,7 +98,7 @@ export function securityVerify(data: SecurityVerifyRequest) {
 
 /** 登录历史 */
 export function getLoginHistory() {
-  return request.get<ApiResponse<LoginHistoryItem[]>>(
+  return api.get<LoginHistoryItem[]>(
     '/me/security/logins',
   )
 }

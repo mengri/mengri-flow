@@ -14,8 +14,7 @@ const profileLoading = ref(false)
 async function fetchProfile() {
   profileLoading.value = true
   try {
-    const { data } = await getProfile()
-    profile.value = data.data
+    profile.value = await getProfile()
   } finally {
     profileLoading.value = false
   }
@@ -28,8 +27,7 @@ const identitiesLoading = ref(false)
 async function fetchIdentities() {
   identitiesLoading.value = true
   try {
-    const { data } = await listMyIdentities()
-    identities.value = data.data
+    identities.value = await listMyIdentities()
   } finally {
     identitiesLoading.value = false
   }
@@ -90,16 +88,16 @@ async function onChangePassword() {
 
   passwordSubmitting.value = true
   try {
-    const { data } = await changePassword({
+    const result = await changePassword({
       oldPassword: passwordForm.oldPassword,
       newPassword: passwordForm.newPassword,
       confirmPassword: passwordForm.confirmPassword,
       revokeOtherSessions: passwordForm.revokeOtherSessions,
     })
-    if (data.data.changed) {
+    if (result.changed) {
       ElMessage.success(
-        data.data.revokedSessions > 0
-          ? `Password changed. ${data.data.revokedSessions} other session(s) revoked.`
+        result.revokedSessions > 0
+          ? `Password changed. ${result.revokedSessions} other session(s) revoked.`
           : 'Password changed successfully',
       )
       passwordFormRef.value?.resetFields()
@@ -116,8 +114,7 @@ const historyLoading = ref(false)
 async function fetchLoginHistory() {
   historyLoading.value = true
   try {
-    const { data } = await getLoginHistory()
-    loginHistory.value = data.data
+    loginHistory.value = await getLoginHistory()
   } finally {
     historyLoading.value = false
   }

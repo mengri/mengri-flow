@@ -143,13 +143,6 @@ const props = withDefaults(defineProps<{
   loading: false,
 })
 
-// Emits
-const emit = defineEmits<{
-  'refresh': []
-  'more': []
-  'view-details': []
-}>()
-
 // Refs
 const trendChart = ref<HTMLCanvasElement | null>(null)
 let chartInstance: Chart | null = null

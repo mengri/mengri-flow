@@ -40,12 +40,12 @@
         <!-- 桌面端主导航 -->
         <nav v-if="!isMobile" class="main-nav">
           <ul class="nav-list">
-            <li class="nav-item" v-for="item in menuItems" :key="item.path">
+            <li class="nav-item" v-for="(item, index) in menuItems" :key="item.path">
               <router-link
                 :to="item.path"
                 class="nav-link"
                 :class="{ active: $route.path.startsWith(item.path) }"
-                @focus="activeNavIndex = $index"
+                @focus="activeNavIndex = index"
               >
                 <component
                   v-if="item.icon"
@@ -326,17 +326,30 @@ import { useWindowSize, useEventListener } from '@vueuse/core'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
 
-// Props
-const props = defineProps<{
+interface MenuItem {
+  path: string
+  label: string
+  icon?: string
+  badge?: string | number
+}
+
+interface Props {
   showMobileMenuToggle?: boolean
+  menuItems?: MenuItem[]
   showSearch?: boolean
-  menuItems?: Array<{
-    path: string
-    label: string
-    icon?: any
-    badge?: number | string
-  }>
-}>()
+}
+
+// Props - use defineProps without assignment to avoid unused variable error
+withDefaults(defineProps<Props>(), {
+  showMobileMenuToggle: true,
+  menuItems: () => [
+    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/flows', label: 'Flows' },
+    { path: '/resources', label: 'Resources' },
+    { path: '/tools', label: 'Tools' },
+  ],
+  showSearch: true,
+})
 
 // Emits
 const emit = defineEmits<{
@@ -351,7 +364,7 @@ const { handleLogout: authLogout } = useAuth()
 
 // Reactive state
 const searchQuery = ref('')
-const searchSuggestions = ref([])
+const searchSuggestions = ref<Array<{id: string, text: string, type: string}>>([])
 const isSearchFocused = ref(false)
 const showNotifications = ref(false)
 const showUserMenu = ref(false)
@@ -374,7 +387,7 @@ const notifications = ref([
 const user = computed(() => ({
   displayName: authStore.displayName || 'User',
   avatar: null, // 这里可以以后集成真实头像
-  email: authStore.email || 'user@example.com',
+  email: authStore.profile?.email || 'user@example.com',
   role: authStore.isAdmin ? 'Administrator' : 'User',
   isAdmin: authStore.isAdmin,
 }))
@@ -410,7 +423,7 @@ const clearSearch = () => {
 }
 
 const getNotificationIcon = (type: string) => {
-  const icons = {
+  const icons: Record<string, string> = {
     success: 'CheckCircleIcon',
     info: 'InformationCircleIcon',
     warning: 'ExclamationCircleIcon',
@@ -627,11 +640,11 @@ onUnmounted(() => {
 }
 
 .notification-badge {
-  @apply absolute -top-1 -right-1 bg-danger-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center;
+  @apply absolute -top-1 -right-1 bg-error-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center;
 }
 
 .notifications-dropdown {
-  @apply absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z1-50 overflow-hidden;
+  @apply absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden;
   top: 100%;
 }
 
@@ -734,7 +747,7 @@ onUnmounted(() => {
 }
 
 .user-menu-dropdown {
-  @apply absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z1-50 overflow-hidden;
+  @apply absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden;
   top: 100%;
 }
 
@@ -796,7 +809,7 @@ onUnmounted(() => {
 }
 
 .logout-item {
-  @apply text-danger-600 hover:text-danger-800;
+  @apply text-error-600 hover:text-error-800;
 }
 
 /* 响应式调整 */

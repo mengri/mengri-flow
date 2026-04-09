@@ -45,9 +45,9 @@ export const useAccountStore = defineStore('account', () => {
     }
     loading.value = true
     try {
-      const { data } = await listAccounts(filters)
-      accounts.value = data.data.items
-      total.value = data.data.total
+      const result = await listAccounts(filters)
+      accounts.value = result.items
+      total.value = result.total
     } finally {
       loading.value = false
     }
@@ -55,16 +55,16 @@ export const useAccountStore = defineStore('account', () => {
 
   /** 获取账号详情 */
   async function fetchDetail(accountId: string): Promise<AccountDetailResponse> {
-    const { data } = await getAccountDetail(accountId)
-    currentDetail.value = data.data
-    return data.data
+    const result = await getAccountDetail(accountId)
+    currentDetail.value = result
+    return result
   }
 
   /** 创建账号 */
   async function create(req: CreateAccountRequest): Promise<AccountResponse> {
-    const { data } = await createAccount(req)
+    const result = await createAccount(req)
     await fetchAccounts()
-    return data.data
+    return result
   }
 
   /** 变更状态 */
@@ -82,9 +82,9 @@ export const useAccountStore = defineStore('account', () => {
   async function fetchAuditEvents(params: AuditEventFilter): Promise<void> {
     auditLoading.value = true
     try {
-      const { data } = await listAuditEvents(params)
-      auditEvents.value = data.data.items
-      auditTotal.value = data.data.total
+      const result = await listAuditEvents(params)
+      auditEvents.value = result.items
+      auditTotal.value = result.total
     } finally {
       auditLoading.value = false
     }

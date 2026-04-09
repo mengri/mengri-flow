@@ -373,9 +373,6 @@ import {
   TemplateIcon,
   ChartBarIcon,
   PuzzleIcon,
-  PlayIcon,
-  ArrowPathIcon,
-  CheckCircleIcon,
   ClockIcon,
   CalendarIcon,
   ChartNoDataIcon,
@@ -463,7 +460,7 @@ const editTrigger = (trigger: any) => {
 }
 
 const getActivityIcon = (type: string) => {
-  const icons = {
+  const icons: Record<string, string> = {
     success: 'CheckCircleIcon',
     error: 'XCircleIcon',
     warning: 'ExclamationTriangleIcon',
@@ -473,7 +470,7 @@ const getActivityIcon = (type: string) => {
 }
 
 const getWorkflowIcon = (type: string) => {
-  const icons = {
+  const icons: Record<string, string> = {
     workflow: 'ArrowsRightLeftIcon',
     timer: 'ClockIcon',
     sync: 'ArrowPathIcon',
@@ -483,7 +480,7 @@ const getWorkflowIcon = (type: string) => {
 }
 
 const getTriggerIcon = (type: string) => {
-  const icons = {
+  const icons: Record<string, string> = {
     timer: 'ClockIcon',
     webhook: 'LinkIcon',
     mq: 'QueueListIcon',
@@ -492,7 +489,7 @@ const getTriggerIcon = (type: string) => {
 }
 
 const getStatusType = (status: string) => {
-  const types = {
+  const types: Record<string, string> = {
     completed: 'success',
     scheduled: 'info',
     created: 'info',
@@ -503,7 +500,7 @@ const getStatusType = (status: string) => {
 }
 
 const getRunStatusType = (status: string) => {
-  const types = {
+  const types: Record<string, string> = {
     success: 'success',
     running: 'warning',
     failed: 'danger',
@@ -512,7 +509,7 @@ const getRunStatusType = (status: string) => {
 }
 
 const getTriggerStatusType = (type: string) => {
-  const types = {
+  const types: Record<string, string> = {
     timer: 'warning',
     webhook: 'primary',
     mq: 'success',
@@ -764,7 +761,7 @@ const getTriggerStatusType = (type: string) => {
 }
 
 .progress-fill.danger {
-  @apply bg-danger-500;
+  @apply bg-error-500;
 }
 
 /* 即将到期的触发器 */

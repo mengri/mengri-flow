@@ -45,7 +45,7 @@ type ToolResult struct {
 }
 
 // TriggerHandler 触发器回调函数
-type TriggerHandler func(ctx any, input map[string]any) (*TriggerResult, error)
+type TriggerHandler func(ctx context.Context, input map[string]any) (*TriggerResult, error)
 
 // TriggerResult 触发处理结果
 type TriggerResult struct {

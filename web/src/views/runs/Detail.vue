@@ -72,6 +72,7 @@
 
     <!-- 执行时间线 -->
     <ExecutionTimeline
+      v-if="timeline"
       :timeline="timeline"
       :node-logs="nodeLogs"
       class="timeline-section"
@@ -81,7 +82,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { runAPI } from '@/api/runs'
 import ExecutionTimeline from '@/components/run/ExecutionTimeline.vue'
@@ -89,7 +90,6 @@ import type { RunDetail, ExecutionTimeline as Timeline } from '@/types/run'
 import { formatDate, formatDuration, statusTagType, statusText } from '@/utils/request'
 
 const route = useRoute()
-const router = useRouter()
 
 const run = ref<RunDetail>()
 const timeline = ref<Timeline>()

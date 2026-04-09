@@ -117,7 +117,7 @@ async function loadFlows() {
   loading.value = true
   try {
     const data = await flowAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
       status: filters.status || undefined,
     })
     flows.value = data
@@ -184,7 +184,7 @@ function handleCurrentChange() {
 }
 
 function statusTagType(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     published: 'success',
     draft: 'info',
   }
@@ -192,7 +192,7 @@ function statusTagType(status: string) {
 }
 
 function statusText(status: string) {
-  const map = {
+  const map: Record<string, string> = {
     published: '已发布',
     draft: '草稿',
   }

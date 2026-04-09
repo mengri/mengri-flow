@@ -151,6 +151,13 @@ const workspaceStore = useWorkspaceStore()
 const step = ref(1)
 const loadingFlows = ref(false)
 const publishedFlows = ref<Flow[]>([])
+const workspaces = computed(() => workspaceStore.workspaces)
+
+const rules = {
+  name: [{ required: true, message: '请输入触发器名称', trigger: 'blur' }],
+  type: [{ required: true, message: '请选择触发器类型', trigger: 'change' }],
+  workspaceId: [{ required: true, message: '请选择工作空间', trigger: 'change' }],
+}
 
 const form = reactive<CreateTriggerRequest>({
   name: '',
@@ -165,7 +172,7 @@ const form = reactive<CreateTriggerRequest>({
     strategy: 'default',
     retryOnFailure: false,
   },
-  workspaceId: workspaceStore.currentWorkspace,
+  workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
 })
 
 const triggerInputFields = computed(() => {
@@ -213,12 +220,12 @@ async function selectFlow(flow: Flow) {
   nextStep()
 }
 
-function getTriggerConfigComponent(type: string) {
+function getTriggerConfigComponent(_type: string) {
   // 返回不同类型的配置组件
   return 'div'
 }
 
-function getTriggerConfigSchema(type: string) {
+function getTriggerConfigSchema(_type: string) {
   // 返回对应类型的Schema
   return {}
 }
@@ -238,7 +245,7 @@ onMounted(async () => {
   loadingFlows.value = true
   try {
     publishedFlows.value = await flowAPI.list({
-      workspaceId: workspaceStore.currentWorkspace,
+      workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
       status: 'published',
     })
   } finally {

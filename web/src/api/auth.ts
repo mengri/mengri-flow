@@ -1,6 +1,5 @@
-import request from '@/utils/request'
+import api from './client'
 import type {
-  ApiResponse,
   ActivationValidateResponse,
   ActivationConfirmRequest,
   ActivationConfirmResponse,
@@ -11,7 +10,7 @@ import type {
 
 /** 验证激活链接 */
 export function validateActivation(token: string) {
-  return request.get<ApiResponse<ActivationValidateResponse>>(
+  return api.get<ActivationValidateResponse>(
     '/auth/activation/validate',
     { params: { token } },
   )
@@ -19,7 +18,7 @@ export function validateActivation(token: string) {
 
 /** 确认激活并设置密码 */
 export function confirmActivation(data: ActivationConfirmRequest) {
-  return request.post<ApiResponse<ActivationConfirmResponse>>(
+  return api.post<ActivationConfirmResponse>(
     '/auth/activation/confirm',
     data,
   )
@@ -27,7 +26,7 @@ export function confirmActivation(data: ActivationConfirmRequest) {
 
 /** 密码登录 */
 export function loginByPassword(data: PasswordLoginRequest) {
-  return request.post<ApiResponse<LoginResponse>>(
+  return api.post<LoginResponse>(
     '/auth/login/password',
     data,
   )
@@ -35,7 +34,7 @@ export function loginByPassword(data: PasswordLoginRequest) {
 
 /** 刷新 Token */
 export function refreshToken(data: RefreshTokenRequest) {
-  return request.post<ApiResponse<LoginResponse>>(
+  return api.post<LoginResponse>(
     '/auth/token/refresh',
     data,
   )
@@ -43,7 +42,7 @@ export function refreshToken(data: RefreshTokenRequest) {
 
 /** 登出 */
 export function logout() {
-  return request.post<ApiResponse<{ success: boolean }>>(
+  return api.post<{ success: boolean }>(
     '/auth/logout',
   )
 }

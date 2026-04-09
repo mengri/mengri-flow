@@ -63,11 +63,11 @@ onMounted(async () => {
     return
   }
   try {
-    const { data } = await validateActivation(token)
-    activationInfo.value = data.data
-    if (data.data.alreadyActivated) {
+    const result = await validateActivation(token)
+    activationInfo.value = result
+    if (result.alreadyActivated) {
       state.value = 'already_activated'
-    } else if (data.data.valid) {
+    } else if (result.valid) {
       state.value = 'valid'
     } else {
       state.value = 'expired'

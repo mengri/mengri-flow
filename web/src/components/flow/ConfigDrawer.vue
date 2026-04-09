@@ -21,7 +21,7 @@
                 v-model="row.source"
                 placeholder="选择来源"
                 clearable
-                @change="(val) => updateMapping(row, val)"
+                @change="(val: any) => updateMapping(row, val)"
               >
                 <el-option-group label="流程输入">
                   <el-option
@@ -107,11 +107,14 @@
 import { ref, computed, watch } from 'vue'
 import type { Node } from '@vue-flow/core'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: boolean
-  node?: Node
+  node?: Node | null
   flowInputSchema: Record<string, any>
-}>()
+}>(), {
+  node: null,
+  flowInputSchema: () => ({}),
+})
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
@@ -138,7 +141,7 @@ const flowInputFields = computed(() => {
 const upstreamNodes = computed(() => {
   // 获取上游节点
   // 根据edges计算
-  return []
+  return [] as Array<{id: string, name: string}>
 })
 
 function addMapping() {
@@ -149,12 +152,13 @@ function removeMapping(index: number) {
   paramMappings.value.splice(index, 1)
 }
 
-function updateMapping(row: any, val: string) {
+function updateMapping(row: any, val: any) {
   row.source = val
 }
 
 function handleSave() {
-  emit('save', props.node!.id, {
+  if (!props.node?.id) return
+  emit('save', props.node.id, {
     inputMapping: paramMappings.value,
     config: nodeConfig.value,
   })
@@ -169,6 +173,13 @@ watch(
         timeout: node.data.config?.timeout || 30000,
         retry: node.data.config?.retry || 0,
         condition: node.data.config?.condition || '',
+      }
+    } else {
+      paramMappings.value = []
+      nodeConfig.value = {
+        timeout: 30000,
+        retry: 0,
+        condition: '',
       }
     }
   },

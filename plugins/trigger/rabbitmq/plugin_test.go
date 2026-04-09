@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"mengri-flow/internal/infra/plugin"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 func TestRabbitMQTriggerPlugin_PluginMeta(t *testing.T) {
@@ -85,9 +87,9 @@ func TestRabbitMQTriggerPlugin_InvalidConfig(t *testing.T) {
 		{
 			name: "missing triggerId",
 			config: map[string]interface{}{
-				"brokerUrl":     "amqp://localhost:5672",
-				"queue":         "test-queue",
-				"consumerTag":   "test-consumer",
+				"brokerUrl":   "amqp://localhost:5672",
+				"queue":       "test-queue",
+				"consumerTag": "test-consumer",
 			},
 		},
 		{
@@ -117,10 +119,10 @@ func TestRabbitMQTriggerPlugin_InvalidConfig(t *testing.T) {
 		{
 			name: "empty triggerId",
 			config: map[string]interface{}{
-				"triggerId":     "",
-				"brokerUrl":     "amqp://localhost:5672",
-				"queue":         "test-queue",
-				"consumerTag":   "test-consumer",
+				"triggerId":   "",
+				"brokerUrl":   "amqp://localhost:5672",
+				"queue":       "test-queue",
+				"consumerTag": "test-consumer",
 			},
 		},
 	}

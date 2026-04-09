@@ -2,6 +2,7 @@ package timer
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
