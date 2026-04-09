@@ -40,42 +40,155 @@ import (
 )
 
 func main() {
-	// 解析命令行参数
-	var (
-		role          = flag.String("role", "console", "运行角色: console 或 executor")
-		cfgPath       = flag.String("config", "config.yaml", "配置文件路径")
-		etcdEndpoints = flag.String("etcd-endpoints", "", "etcd endpoints (executor角色时必需)")
-		etcdUsername  = flag.String("etcd-username", "", "etcd username (executor角色)")
-		etcdPassword  = flag.String("etcd-password", "", "etcd password (executor角色)")
-		clusterID     = flag.String("cluster-id", "", "cluster ID (executor角色时必需)")
-		nodeID        = flag.String("node-id", "", "executor node ID (executor角色，可选)")
-		executorPort  = flag.Int("executor-port", 0, "executor RESTful触发器端口 (executor角色，可选)")
-	)
-	flag.Parse()
-
 	// 加载环境变量
 	godotenv.Load()
+
+	// 解析子命令
+	if len(os.Args) < 2 {
+		// 默认启动console
+		runConsole(getConfigPath())
+		return
+	}
+
+	// 检查第一个参数是否是子命令
+	switch os.Args[1] {
+	case "node":
+		// 启动executor
+		if err := runExecutorCommand(); err != nil {
+			log.Fatal(err)
+		}
+	case "-h", "--help", "help":
+		printHelp()
+	case "-v", "--version", "version":
+		printVersion()
+	default:
+		// 如果第一个参数不是node，则认为是console的启动参数
+		// 需要重新解析console的参数
+		if strings.HasPrefix(os.Args[1], "-") {
+			// 是参数，不是子命令，启动console
+			runConsole(parseConsoleFlags())
+		} else {
+			log.Fatalf("Unknown command: %s. Use 'node' to start executor or no command to start console", os.Args[1])
+		}
+	}
+}
+
+// parseConsoleFlags 解析console的参数
+func parseConsoleFlags() string {
+	cfgPath := flag.String("config", "config.yaml", "配置文件路径")
+	flag.Parse()
 
 	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
 		*cfgPath = envPath
 	}
+	return *cfgPath
+}
 
-	// 根据角色启动不同的服务
-	switch *role {
-	case "console":
-		runConsole(*cfgPath)
-	case "executor":
-		runExecutor(&ExecutorCLIConfig{
-			EtcdEndpoints: *etcdEndpoints,
-			EtcdUsername:  *etcdUsername,
-			EtcdPassword:  *etcdPassword,
-			ClusterID:     *clusterID,
-			NodeID:        *nodeID,
-			Port:          *executorPort,
-		})
-	default:
-		log.Fatalf("Invalid role: %s. Must be 'console' or 'executor'", *role)
+// getConfigPath 获取配置文件路径
+func getConfigPath() string {
+	// 检查是否有 --config 参数
+	for i, arg := range os.Args {
+		if arg == "--config" && i+1 < len(os.Args) {
+			return os.Args[i+1]
+		}
+		if strings.HasPrefix(arg, "--config=") {
+			return strings.TrimPrefix(arg, "--config=")
+		}
 	}
+
+	// 检查环境变量
+	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
+		return envPath
+	}
+
+	return "config.yaml"
+}
+
+// runExecutorCommand 运行executor子命令
+func runExecutorCommand() error {
+	// 为executor创建新的flag set
+	executorFlags := flag.NewFlagSet("node", flag.ExitOnError)
+
+	var (
+		etcdEndpoints = executorFlags.String("etcd-endpoints", "", "etcd endpoints (必需)")
+		etcdUsername  = executorFlags.String("etcd-username", "", "etcd username")
+		etcdPassword  = executorFlags.String("etcd-password", "", "etcd password")
+		clusterID     = executorFlags.String("cluster-id", "", "cluster ID (必需)")
+		nodeID        = executorFlags.String("node-id", "", "executor node ID (可选，自动生成)")
+		port          = executorFlags.Int("port", 0, "RESTful触发器端口 (可选)")
+		logLevel      = executorFlags.String("log-level", "info", "日志级别 (debug|info|warn|error)")
+	)
+
+	// 解析executor的参数（跳过第一个参数"node"）
+	if err := executorFlags.Parse(os.Args[2:]); err != nil {
+		return err
+	}
+
+	// 验证必需参数
+	if *etcdEndpoints == "" {
+		return fmt.Errorf("--etcd-endpoints is required for executor")
+	}
+	if *clusterID == "" {
+		return fmt.Errorf("--cluster-id is required for executor")
+	}
+
+	// 启动executor
+	runExecutor(&ExecutorCLIConfig{
+		EtcdEndpoints: *etcdEndpoints,
+		EtcdUsername:  *etcdUsername,
+		EtcdPassword:  *etcdPassword,
+		ClusterID:     *clusterID,
+		NodeID:        *nodeID,
+		Port:          *port,
+		LogLevel:      *logLevel,
+	})
+	return nil
+}
+
+// printHelp 打印帮助信息
+func printHelp() {
+	help := `Mengri Flow - API编排平台
+
+使用方式:
+  mengri-flow [命令] [选项]
+
+命令:
+  <无命令>        启动Console（控制台），默认行为
+  node            启动Executor（执行器）
+  help, --help    显示帮助信息
+  version, --version 显示版本信息
+
+Console选项:
+  --config string    配置文件路径 (默认 "config.yaml")
+
+Executor选项（node命令）:
+  --etcd-endpoints string    etcd集群地址，多个用逗号分隔 (必需)
+  --cluster-id string        集群ID (必需)
+  --node-id string           执行器节点ID (可选，自动生成)
+  --port int                RESTful触发器端口 (可选)
+  --etcd-username string     etcd用户名 (可选)
+  --etcd-password string     etcd密码 (可选)
+  --log-level string         日志级别: debug|info|warn|error (默认 "info")
+
+示例:
+  # 启动Console（默认）
+  ./mengri-flow
+  ./mengri-flow --config=config.yaml
+
+  # 启动Executor
+  ./mengri-flow node --etcd-endpoints=etcd:2379 --cluster-id=cluster-prod-001
+  ./mengri-flow node --etcd-endpoints=etcd:2379 --cluster-id=cluster-prod-001 --node-id=executor-1
+
+更多信息请参考: docs/dual-role-deployment.md
+`
+	fmt.Println(help)
+	os.Exit(0)
+}
+
+// printVersion 打印版本信息
+func printVersion() {
+	fmt.Println("Mengri Flow v1.0.0")
+	os.Exit(0)
 }
 
 // ExecutorCLIConfig 执行器命令行配置
@@ -86,6 +199,7 @@ type ExecutorCLIConfig struct {
 	ClusterID     string
 	NodeID        string
 	Port          int
+	LogLevel      string
 }
 
 // runConsole 启动控制台服务
