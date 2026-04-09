@@ -1,25 +1,33 @@
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 /** 认证相关的组合式函数 */
 export function useAuth() {
   const router = useRouter()
   const authStore = useAuthStore()
+  const workspaceStore = useWorkspaceStore()
 
   /** 执行登录并跳转 */
   async function handleLogin(account: string, password: string): Promise<boolean> {
     try {
       await authStore.login(account, password)
       ElMessage.success('Login successful')
+      
+      // 登录后加载工作空间列表
+      await workspaceStore.loadWorkspaces()
+      
       // 管理员跳后台，普通用户跳个人中心
       if (authStore.isAdmin) {
         await router.push('/admin/accounts')
       } else {
-        await router.push('/account')
+        await router.push('/')
       }
       return true
-    } catch {
+    } catch (error) {
+      console.error('Login failed:', error)
+      ElMessage.error(error instanceof Error ? error.message : 'Login failed')
       return false
     }
   }

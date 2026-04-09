@@ -127,8 +127,8 @@ async function loadTriggers() {
     const data = await triggerAPI.list({
       workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
     })
-    triggers.value = data
-    pagination.total = data.length
+    triggers.value = data.list
+    pagination.total = data.total
   } catch (error) {
     ElMessage.error('加载触发器失败')
   } finally {

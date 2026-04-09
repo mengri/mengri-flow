@@ -109,6 +109,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import Chart from 'chart.js/auto'
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from '@/components/icons'
 
 // Props
 const props = withDefaults(defineProps<{
@@ -188,11 +193,11 @@ const changeClass = computed(() => {
 
 const changeIcon = computed(() => {
   if (props.changeType === 'increase') {
-    return 'TrendingUpIcon'
+    return TrendingUp
   } else if (props.changeType === 'decrease') {
-    return 'TrendingDownIcon'
+    return TrendingDown
   }
-  return 'MinusIcon'
+  return Minus
 })
 
 const progressClass = computed(() => {

@@ -1,10 +1,17 @@
 import api from './client'
 import type { Trigger, CreateTriggerRequest } from '@/types/trigger'
 
+interface ListTriggersResponse {
+  total: number
+  page: number
+  pageSize: number
+  list: Trigger[]
+}
+
 export const triggerAPI = {
   // 触发器列表
-  list: (params: { workspaceId: string }) => {
-    return api.get<Trigger[]>('/triggers', { params })
+  list: (params: { workspaceId?: string; flowId?: string; status?: string; page?: number; pageSize?: number }) => {
+    return api.get<ListTriggersResponse>('/triggers', { params })
   },
 
   // 创建触发器

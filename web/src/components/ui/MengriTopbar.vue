@@ -321,15 +321,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, type VNode } from 'vue'
 import { useWindowSize, useEventListener } from '@vueuse/core'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
+import {
+  CheckCircleIcon,
+  InformationCircleIcon,
+  ExclamationCircleIcon,
+  XCircleIcon,
+} from '@/components/icons'
 
 interface MenuItem {
   path: string
   label: string
-  icon?: string
+  icon?: VNode | string
   badge?: string | number
 }
 
@@ -423,13 +429,13 @@ const clearSearch = () => {
 }
 
 const getNotificationIcon = (type: string) => {
-  const icons: Record<string, string> = {
-    success: 'CheckCircleIcon',
-    info: 'InformationCircleIcon',
-    warning: 'ExclamationCircleIcon',
-    danger: 'XCircleIcon',
+  const icons: Record<string, any> = {
+    success: CheckCircleIcon,
+    info: InformationCircleIcon,
+    warning: ExclamationCircleIcon,
+    danger: XCircleIcon,
   }
-  return icons[type] || 'InformationCircleIcon'
+  return icons[type] || InformationCircleIcon
 }
 
 const markAsRead = (id: number) => {

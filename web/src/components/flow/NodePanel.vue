@@ -50,7 +50,7 @@
 
 <script setup lang="ts">
 import type { Tool } from '@/types/tool'
-import { Tools } from '@element-plus/icons-vue'
+import { Tools, CircleCheck, CircleClose, VideoPause } from '@element-plus/icons-vue'
 
 defineProps<{
   tools: Tool[]
@@ -65,19 +65,19 @@ const basicNodes = [
   {
     type: 'start',
     name: '开始',
-    icon: 'CircleCheck',
+    icon: CircleCheck,
     color: '#67c23a',
   },
   {
     type: 'end',
     name: '结束',
-    icon: 'CircleClose',
+    icon: CircleClose,
     color: '#f56c6c',
   },
   {
     type: 'condition',
     name: '条件判断',
-    icon: 'VideoPause',
+    icon: VideoPause,
     color: '#e6a23c',
   },
 ]

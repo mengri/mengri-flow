@@ -10,7 +10,7 @@
           Here's what's happening with your workflows today.
         </p>
       </div>
-      
+
       <div class="dashboard-actions">
         <m-button variant="primary" size="md" @click="createWorkflow">
           <template #icon>
@@ -20,353 +20,283 @@
         </m-button>
       </div>
     </div>
-    
-    <!-- 快捷操作卡片 -->
-    <div class="quick-actions">
-      <div class="quick-action-card" @click="navigateTo('workflows')">
-        <div class="action-icon-wrapper">
-          <ArrowsRightLeftIcon class="action-icon h-6 w-6" />
-        </div>
-        <h3 class="action-title">Workflows</h3>
-        <p class="action-description">Manage your automation workflows</p>
-      </div>
-      
-      <div class="quick-action-card" @click="navigateTo('templates')">
-        <div class="action-icon-wrapper">
-          <TemplateIcon class="action-icon h-6 w-6" />
-        </div>
-        <h3 class="action-title">Templates</h3>
-        <p class="action-description">Start from pre-built templates</p>
-      </div>
-      
-      <div class="quick-action-card" @click="navigateTo('analytics')">
-        <div class="action-icon-wrapper">
-          <ChartBarIcon class="action-icon h-6 w-6" />
-        </div>
-        <h3 class="action-title">Analytics</h3>
-        <p class="action-description">View performance insights</p>
-      </div>
-      
-      <div class="quick-action-card" @click="navigateTo('integrations')">
-        <div class="action-icon-wrapper">
-          <PuzzleIcon class="action-icon h-6 w-6" />
-        </div>
-        <h3 class="action-title">Integrations</h3>
-        <p class="action-description">Connect your tools</p>
-      </div>
+
+    <!-- 加载状态 -->
+    <div v-if="isLoading" class="loading-container">
+      <el-icon class="is-loading"><Loading /></el-icon>
+      <span>Loading dashboard data...</span>
     </div>
-    
+
     <!-- 主要内容区域 -->
-    <div class="dashboard-content">
-      <!-- 左栏：统计数据 -->
-      <div class="dashboard-left">
-        <!-- 统计卡片网格 -->
-        <div class="statistics-grid">
-          <m-stat-card
-            title="Active Workflows"
-            :value="statistics.activeWorkflows"
-            :change="12"
-            change-type="increase"
-            icon="PlayIcon"
-            color="primary"
-          />
-          
-          <m-stat-card
-            title="Total Runs"
-            :value="statistics.totalRuns"
-            :change="8"
-            change-type="increase"
-            icon="ArrowPathIcon"
-            color="secondary"
-          />
-          
-          <m-stat-card
-            title="Success Rate"
-            :value="`${statistics.successRate}%`"
-            :change="-2"
-            change-type="decrease"
-            icon="CheckCircleIcon"
-            color="success"
-          />
-          
-          <m-stat-card
-            title="Avg. Execution Time"
-            :value="`${statistics.avgExecutionTime}s`"
-            :change="-15"
-            change-type="decrease"
-            icon="ClockIcon"
-            color="info"
-          />
+    <template v-else>
+      <!-- 快捷操作卡片 -->
+      <div class="quick-actions">
+        <div class="quick-action-card" @click="navigateTo('workflows')">
+          <div class="action-icon-wrapper">
+            <ArrowsRightLeftIcon class="action-icon h-6 w-6" />
+          </div>
+          <h3 class="action-title">Workflows</h3>
+          <p class="action-description">Manage your automation workflows</p>
         </div>
-        
-        <!-- 最近活动 -->
-        <div class="recent-activity">
-          <div class="section-header">
-            <h2 class="section-title">Recent Activity</h2>
-            <router-link to="/activity" class="view-all-link">
-              View All
-            </router-link>
+
+        <div class="quick-action-card" @click="navigateTo('templates')">
+          <div class="action-icon-wrapper">
+            <TemplateIcon class="action-icon h-6 w-6" />
           </div>
-          
-          <div class="activity-list">
-            <div
-              v-for="activity in recentActivity"
-              :key="activity.id"
-              class="activity-item"
-            >
-              <div class="activity-icon-wrapper" :class="`type-${activity.type}`">
-                <component :is="getActivityIcon(activity.type)" class="h-4 w-4" />
-              </div>
-              <div class="activity-content">
-                <p class="activity-message">{{ activity.message }}</p>
-                <span class="activity-time">{{ activity.time }}</span>
-              </div>
-              <el-tag
-                v-if="activity.status"
-                :type="getStatusType(activity.status)"
-                size="small"
-                class="activity-status"
-              >
-                {{ activity.status }}
-              </el-tag>
-            </div>
+          <h3 class="action-title">Templates</h3>
+          <p class="action-description">Start from pre-built templates</p>
+        </div>
+
+        <div class="quick-action-card" @click="navigateTo('analytics')">
+          <div class="action-icon-wrapper">
+            <ChartBarIcon class="action-icon h-6 w-6" />
           </div>
+          <h3 class="action-title">Analytics</h3>
+          <p class="action-description">View performance insights</p>
+        </div>
+
+        <div class="quick-action-card" @click="navigateTo('integrations')">
+          <div class="action-icon-wrapper">
+            <PuzzleIcon class="action-icon h-6 w-6" />
+          </div>
+          <h3 class="action-title">Integrations</h3>
+          <p class="action-description">Connect your tools</p>
         </div>
       </div>
-      
-      <!-- 右栏：工作流最近运行 -->
-      <div class="dashboard-right">
-        <div class="workflow-runs">
-          <div class="section-header">
-            <h2 class="section-title">Recent Workflow Runs</h2>
-            <div class="filter-dropdown">
-              <el-select
-                v-model="workflowFilter"
-                size="small"
-                placeholder="Filter by status"
-                class="w-full"
-              >
-                <el-option label="All" value="all" />
-                <el-option label="Success" value="success" />
-                <el-option label="Failed" value="failed" />
-                <el-option label="Running" value="running" />
-              </el-select>
-            </div>
+
+      <!-- 主要内容区域 -->
+      <div class="dashboard-content">
+        <!-- 左栏：统计数据 -->
+        <div class="dashboard-left">
+          <!-- 统计卡片网格 -->
+          <div class="statistics-grid">
+            <m-stat-card
+              title="Active Workflows"
+              :value="statistics.activeWorkflows"
+              :change="12"
+              change-type="increase"
+              :icon="PlayIcon"
+              color="primary"
+            />
+
+            <m-stat-card
+              title="Total Runs"
+              :value="statistics.totalRuns"
+              :change="8"
+              change-type="increase"
+              :icon="ArrowPathIcon"
+              color="secondary"
+            />
+
+            <m-stat-card
+              title="Success Rate"
+              :value="`${statistics.successRate}%`"
+              :change="-2"
+              change-type="decrease"
+              :icon="CheckCircleIcon"
+              color="success"
+            />
+
+            <m-stat-card
+              title="Avg. Execution Time"
+              :value="`${statistics.avgExecutionTime}s`"
+              :change="-15"
+              change-type="decrease"
+              :icon="ClockIcon"
+              color="info"
+            />
           </div>
-          
-          <div class="runs-table-wrapper">
-            <table class="runs-table">
-              <thead>
-                <tr>
-                  <th class="text-left">Workflow</th>
-                  <th class="text-left">Status</th>
-                  <th class="text-left">Started</th>
-                  <th class="text-left">Duration</th>
-                  <th class="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="run in filteredWorkflowRuns"
-                  :key="run.id"
-                  class="run-row"
+
+          <!-- 最近活动 -->
+          <div class="recent-activity">
+            <div class="section-header">
+              <h2 class="section-title">Recent Activity</h2>
+              <router-link to="/runs" class="view-all-link">
+                View All
+              </router-link>
+            </div>
+
+            <div v-if="recentActivity.length === 0" class="empty-activity">
+              <p class="text-gray-500">No recent activity</p>
+            </div>
+
+            <div v-else class="activity-list">
+              <div
+                v-for="activity in recentActivity"
+                :key="activity.id"
+                class="activity-item"
+              >
+                <div class="activity-icon-wrapper" :class="`type-${activity.type}`">
+                  <component :is="getActivityIcon(activity.type)" class="h-4 w-4" />
+                </div>
+                <div class="activity-content">
+                  <p class="activity-message">{{ activity.message }}</p>
+                  <span class="activity-time">{{ activity.time }}</span>
+                </div>
+                <el-tag
+                  v-if="activity.status"
+                  :type="getStatusType(activity.status)"
+                  size="small"
+                  class="activity-status"
                 >
-                  <td class="run-name">
-                    <div class="flex items-center gap-2">
-                      <div class="run-icon-wrapper">
-                        <component :is="getWorkflowIcon(run.type)" class="h-4 w-4" />
+                  {{ activity.status }}
+                </el-tag>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右栏：工作流最近运行 -->
+        <div class="dashboard-right">
+          <div class="workflow-runs">
+            <div class="section-header">
+              <h2 class="section-title">Recent Workflow Runs</h2>
+              <div class="filter-dropdown">
+                <el-select
+                  v-model="workflowFilter"
+                  size="small"
+                  placeholder="Filter by status"
+                  class="w-full"
+                >
+                  <el-option label="All" value="all" />
+                  <el-option label="Success" value="success" />
+                  <el-option label="Failed" value="failed" />
+                  <el-option label="Running" value="running" />
+                </el-select>
+              </div>
+            </div>
+
+            <div v-if="filteredWorkflowRuns.length === 0" class="empty-state">
+              <div class="empty-state-content">
+                <ChartNoDataIcon class="empty-state-icon" />
+                <p class="empty-state-title">No workflow runs found</p>
+                <p class="empty-state-description">
+                  {{ workflowFilter === 'all' ? 'Start by creating your first workflow.' : `No ${workflowFilter} runs found.` }}
+                </p>
+                <m-button variant="primary" size="sm" @click="createWorkflow">
+                  Create Workflow
+                </m-button>
+              </div>
+            </div>
+
+            <div v-else class="runs-table-wrapper">
+              <table class="runs-table">
+                <thead>
+                  <tr>
+                    <th class="text-left">Workflow</th>
+                    <th class="text-left">Status</th>
+                    <th class="text-left">Started</th>
+                    <th class="text-left">Duration</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="run in filteredWorkflowRuns"
+                    :key="run.id"
+                    class="run-row"
+                  >
+                    <td class="run-name">
+                      <div class="flex items-center gap-2">
+                        <div class="run-icon-wrapper">
+                          <component :is="getWorkflowIcon(run.type)" class="h-4 w-4" />
+                        </div>
+                        <span class="truncate">{{ run.name }}</span>
                       </div>
-                      <span class="truncate">{{ run.name }}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <el-tag
-                      :type="getRunStatusType(run.status)"
-                      size="small"
-                      class="run-status"
-                      :class="`status-${run.status}`"
-                    >
-                      {{ run.status }}
-                    </el-tag>
-                  </td>
-                  <td>
-                    {{ run.started }}
-                  </td>
-                  <td>
-                    {{ run.duration }}
-                  </td>
-                  <td class="run-actions">
-                    <div class="flex items-center justify-end gap-1">
-                      <m-button
-                        variant="text"
-                        size="xs"
-                        @click="viewRunDetails(run)"
+                    </td>
+                    <td>
+                      <el-tag
+                        :type="getRunStatusType(run.status)"
+                        size="small"
+                        class="run-status"
+                        :class="`status-${run.status}`"
                       >
-                        View
-                      </m-button>
-                      <m-button
-                        v-if="run.status === 'failed'"
-                        variant="text"
-                        size="xs"
-                        @click="retryRun(run)"
-                      >
-                        Retry
-                      </m-button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <div v-if="filteredWorkflowRuns.length === 0" class="empty-state">
-            <div class="empty-state-content">
-              <ChartNoDataIcon class="empty-state-icon" />
-              <p class="empty-state-title">No workflow runs found</p>
-              <p class="empty-state-description">
-                {{ workflowFilter === 'all' ? 'Start by creating your first workflow.' : `No ${workflowFilter} runs found.` }}
-              </p>
-              <m-button variant="primary" size="sm" @click="createWorkflow">
-                Create Workflow
-              </m-button>
+                        {{ run.status }}
+                      </el-tag>
+                    </td>
+                    <td>
+                      {{ run.started }}
+                    </td>
+                    <td>
+                      {{ run.duration }}
+                    </td>
+                    <td class="run-actions">
+                      <div class="flex items-center justify-end gap-1">
+                        <m-button
+                          variant="text"
+                          size="xs"
+                          @click="viewRunDetails(run)"
+                        >
+                          View
+                        </m-button>
+                        <m-button
+                          v-if="run.status === 'failed'"
+                          variant="text"
+                          size="xs"
+                          @click="retryRun(run)"
+                        >
+                          Retry
+                        </m-button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-        
-        <!-- 资源使用情况 -->
-        <div class="resource-usage">
-          <div class="section-header">
-            <h2 class="section-title">Resource Usage</h2>
-          </div>
-          
-          <div class="usage-metrics">
-            <div class="usage-metric">
-              <div class="metric-header">
-                <h4 class="metric-title">CPU Usage</h4>
-                <span class="metric-value">{{ resourceUsage.cpu }}%</span>
-              </div>
-              <div class="metric-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :class="{ 'warning': resourceUsage.cpu > 80, 'danger': resourceUsage.cpu > 95 }"
-                    :style="{ width: `${resourceUsage.cpu}%` }"
-                  />
+
+          <!-- 触发器列表 -->
+          <div class="resource-usage">
+            <div class="section-header">
+              <h2 class="section-title">Active Triggers</h2>
+              <router-link to="/triggers" class="view-all-link">
+                View All
+              </router-link>
+            </div>
+
+            <div v-if="upcomingTriggers.length === 0" class="empty-triggers">
+              <p class="text-gray-500 text-sm">No active triggers</p>
+            </div>
+
+            <div v-else class="triggers-list">
+              <div
+                v-for="trigger in upcomingTriggers"
+                :key="trigger.id"
+                class="trigger-item"
+              >
+                <div class="trigger-icon-wrapper" :class="`type-${trigger.type}`">
+                  <component :is="getTriggerIcon(trigger.type)" class="h-4 w-4" />
                 </div>
-              </div>
-            </div>
-            
-            <div class="usage-metric">
-              <div class="metric-header">
-                <h4 class="metric-title">Memory Usage</h4>
-                <span class="metric-value">{{ resourceUsage.memory }}%</span>
-              </div>
-              <div class="metric-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :class="{ 'warning': resourceUsage.memory > 80, 'danger': resourceUsage.memory > 95 }"
-                    :style="{ width: `${resourceUsage.memory}%` }"
-                  />
+                <div class="trigger-info">
+                  <h4 class="trigger-name">{{ trigger.name }}</h4>
+                  <p class="trigger-schedule">{{ trigger.schedule }}</p>
                 </div>
-              </div>
-            </div>
-            
-            <div class="usage-metric">
-              <div class="metric-header">
-                <h4 class="metric-title">Database Connections</h4>
-                <span class="metric-value">{{ resourceUsage.dbConnections }}/{{ resourceUsage.dbMaxConnections }}</span>
-              </div>
-              <div class="metric-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :class="{ 'warning': (resourceUsage.dbConnections / resourceUsage.dbMaxConnections * 100) > 80, 'danger': (resourceUsage.dbConnections / resourceUsage.dbMaxConnections * 100) > 95 }"
-                    :style="{ width: `${(resourceUsage.dbConnections / resourceUsage.dbMaxConnections * 100)}%` }"
-                  />
-                </div>
+                <el-tag
+                  :type="getTriggerStatusType(trigger.type)"
+                  size="small"
+                >
+                  {{ trigger.type }}
+                </el-tag>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    
-    <!-- 即将到期的触发器 -->
-    <div class="upcoming-triggers">
-      <div class="section-header">
-        <h2 class="section-title">Upcoming Triggers</h2>
-        <router-link to="/triggers" class="view-all-link">
-          View All
-        </router-link>
-      </div>
-      
-      <div class="triggers-list">
-        <div
-          v-for="trigger in upcomingTriggers"
-          :key="trigger.id"
-          class="trigger-card"
-        >
-          <div class="trigger-header">
-            <div class="trigger-icon-wrapper">
-              <component :is="getTriggerIcon(trigger.type)" class="h-5 w-5" />
-            </div>
-            <div class="trigger-info">
-              <h4 class="trigger-name">{{ trigger.name }}</h4>
-              <p class="trigger-workflow">{{ trigger.workflow }}</p>
-            </div>
-            <el-tag
-              :type="getTriggerStatusType(trigger.type)"
-              size="small"
-              class="trigger-type"
-            >
-              {{ trigger.type }}
-            </el-tag>
-          </div>
-          
-          <div class="trigger-details">
-            <div class="trigger-detail">
-              <CalendarIcon class="h-4 w-4" />
-              <span>{{ trigger.schedule }}</span>
-            </div>
-            <div class="trigger-detail">
-              <ClockIcon class="h-4 w-4" />
-              <span>Next run: {{ trigger.nextRun }}</span>
-            </div>
-          </div>
-          
-          <div class="trigger-actions">
-            <m-button variant="text" size="xs" @click="viewTrigger(trigger)">
-              View
-            </m-button>
-            <m-button variant="text" size="xs" @click="editTrigger(trigger)">
-              Edit
-            </m-button>
-          </div>
-        </div>
-      </div>
-      
-      <div v-if="upcomingTriggers.length === 0" class="empty-triggers">
-        <div class="empty-triggers-content">
-          <CalendarIcon class="empty-triggers-icon" />
-          <p class="empty-triggers-title">No upcoming triggers</p>
-          <p class="empty-triggers-description">
-            Create triggers to schedule your workflow executions.
-          </p>
-        </div>
-      </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Loading } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
+import { useDashboard } from '@/composables/useDashboard'
+import { runAPI } from '@/api/runs'
 import MButton from '@/components/ui/MButton.vue'
 import MStatCard from '@/components/ui/MStatCard.vue'
 
-// Icons (imported from Element Plus or custom)
+// Icons
 import {
   PlusIcon,
   ArrowsRightLeftIcon,
@@ -374,59 +304,38 @@ import {
   ChartBarIcon,
   PuzzleIcon,
   ClockIcon,
-  CalendarIcon,
   ChartNoDataIcon,
+  QueueListIcon,
+  LinkIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  ArrowPathIcon,
+  EnvelopeIcon,
+  PlayIcon,
 } from '@/components/icons'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const {
+  isLoading,
+  statistics,
+  recentActivity,
+  workflowRuns,
+  upcomingTriggers,
+  loadDashboardData,
+} = useDashboard()
 
-// Data
+// 用户信息
 const user = computed(() => ({
   displayName: authStore.displayName || 'Guest',
 }))
 
-const statistics = ref({
-  activeWorkflows: 24,
-  totalRuns: 1568,
-  successRate: 94,
-  avgExecutionTime: 2.3,
-})
-
-const recentActivity = ref([
-  { id: 1, type: 'success', message: 'Workflow "Order Processing" completed successfully', time: '5 min ago', status: 'completed' },
-  { id: 2, type: 'warning', message: 'Trigger "Daily Report" scheduled for tomorrow', time: '1 hour ago', status: 'scheduled' },
-  { id: 3, type: 'info', message: 'New user "john.doe@example.com" registered', time: '3 hours ago', status: 'created' },
-  { id: 4, type: 'error', message: 'Workflow "Data Sync" failed with timeout error', time: '5 hours ago', status: 'failed' },
-  { id: 5, type: 'success', message: 'API integration "Shopify" connected successfully', time: '1 day ago', status: 'connected' },
-])
-
-const workflowRuns = ref([
-  { id: 1, name: 'Order Processing', type: 'workflow', status: 'success', started: '5 min ago', duration: '1.2s' },
-  { id: 2, name: 'Daily Report', type: 'timer', status: 'running', started: '2 min ago', duration: '0:45' },
-  { id: 3, name: 'Data Sync', type: 'sync', status: 'failed', started: '5 hours ago', duration: '30.5s' },
-  { id: 4, name: 'Email Campaign', type: 'marketing', status: 'success', started: '1 day ago', duration: '5.3s' },
-  { id: 5, name: 'User Onboarding', type: 'workflow', status: 'success', started: '1 day ago', duration: '2.1s' },
-])
-
-const resourceUsage = ref({
-  cpu: 45,
-  memory: 68,
-  dbConnections: 12,
-  dbMaxConnections: 20,
-})
-
-const upcomingTriggers = ref([
-  { id: 1, name: 'Daily Sales Report', type: 'timer', workflow: 'Report Generator', schedule: 'Daily at 09:00', nextRun: 'in 8 hours' },
-  { id: 2, name: 'Weekly Backup', type: 'timer', workflow: 'Database Backup', schedule: 'Weekly on Monday', nextRun: 'in 1 day' },
-  { id: 3, name: 'Order Webhook', type: 'webhook', workflow: 'Order Processing', schedule: 'On order created', nextRun: 'Real-time' },
-  { id: 4, name: 'Inventory Sync', type: 'mq', workflow: 'Stock Sync', schedule: 'Every 2 hours', nextRun: 'in 1 hour' },
-])
-
-// State
+// 过滤器
 const workflowFilter = ref('all')
 
-// Computed
+// 过滤后的工作流运行
 const filteredWorkflowRuns = computed(() => {
   if (workflowFilter.value === 'all') {
     return workflowRuns.value
@@ -434,7 +343,12 @@ const filteredWorkflowRuns = computed(() => {
   return workflowRuns.value.filter(run => run.status === workflowFilter.value)
 })
 
-// Methods
+// 加载数据
+onMounted(() => {
+  loadDashboardData()
+})
+
+// 导航方法
 const navigateTo = (section: string) => {
   router.push(`/${section}`)
 }
@@ -443,49 +357,48 @@ const createWorkflow = () => {
   router.push('/workflows/create')
 }
 
-const viewRunDetails = (run: any) => {
-  console.log('View run details:', run)
+const viewRunDetails = async (run: any) => {
+  router.push(`/runs/${run.id}`)
 }
 
-const retryRun = (run: any) => {
-  console.log('Retry run:', run)
-}
-
-const viewTrigger = (trigger: any) => {
-  console.log('View trigger:', trigger)
-}
-
-const editTrigger = (trigger: any) => {
-  console.log('Edit trigger:', trigger)
-}
-
-const getActivityIcon = (type: string) => {
-  const icons: Record<string, string> = {
-    success: 'CheckCircleIcon',
-    error: 'XCircleIcon',
-    warning: 'ExclamationTriangleIcon',
-    info: 'InformationCircleIcon',
+const retryRun = async (run: any) => {
+  try {
+    await runAPI.retry(run.id)
+    // 重新加载数据
+    loadDashboardData()
+  } catch (error) {
+    console.error('Failed to retry run:', error)
   }
-  return icons[type] || 'InformationCircleIcon'
+}
+
+// 图标映射
+const getActivityIcon = (type: string) => {
+  const icons: Record<string, any> = {
+    success: CheckCircleIcon,
+    error: XCircleIcon,
+    warning: ExclamationTriangleIcon,
+    info: InformationCircleIcon,
+  }
+  return icons[type] || InformationCircleIcon
 }
 
 const getWorkflowIcon = (type: string) => {
-  const icons: Record<string, string> = {
-    workflow: 'ArrowsRightLeftIcon',
-    timer: 'ClockIcon',
-    sync: 'ArrowPathIcon',
-    marketing: 'EnvelopeIcon',
+  const icons: Record<string, any> = {
+    workflow: ArrowsRightLeftIcon,
+    timer: ClockIcon,
+    sync: ArrowPathIcon,
+    marketing: EnvelopeIcon,
   }
-  return icons[type] || 'ArrowsRightLeftIcon'
+  return icons[type] || ArrowsRightLeftIcon
 }
 
 const getTriggerIcon = (type: string) => {
-  const icons: Record<string, string> = {
-    timer: 'ClockIcon',
-    webhook: 'LinkIcon',
-    mq: 'QueueListIcon',
+  const icons: Record<string, any> = {
+    timer: ClockIcon,
+    webhook: LinkIcon,
+    mq: QueueListIcon,
   }
-  return icons[type] || 'ClockIcon'
+  return icons[type] || ClockIcon
 }
 
 const getStatusType = (status: string) => {
@@ -495,6 +408,7 @@ const getStatusType = (status: string) => {
     created: 'info',
     failed: 'danger',
     connected: 'success',
+    running: 'warning',
   }
   return types[status] || 'info'
 }
@@ -538,6 +452,11 @@ const getTriggerStatusType = (type: string) => {
 
 .dashboard-actions {
   @apply flex-shrink-0;
+}
+
+/* 加载状态 */
+.loading-container {
+  @apply flex items-center justify-center gap-2 py-12 text-gray-500;
 }
 
 /* 快捷操作卡片 */
@@ -642,6 +561,10 @@ const getTriggerStatusType = (type: string) => {
   @apply flex-shrink-0;
 }
 
+.empty-activity {
+  @apply bg-white border border-gray-200 rounded-lg p-8 text-center;
+}
+
 /* 工作流运行表格 */
 .workflow-runs {
   @apply bg-white border border-gray-200 rounded-lg p-5;
@@ -723,70 +646,33 @@ const getTriggerStatusType = (type: string) => {
   @apply text-sm text-gray-500;
 }
 
-/* 资源使用情况 */
+/* 触发器列表 */
 .resource-usage {
   @apply bg-white border border-gray-200 rounded-lg p-5;
 }
 
-.usage-metrics {
-  @apply space-y-4;
-}
-
-.usage-metric {
-  @apply space-y-2;
-}
-
-.metric-header {
-  @apply flex items-center justify-between;
-}
-
-.metric-title {
-  @apply text-sm font-medium text-gray-700;
-}
-
-.metric-value {
-  @apply text-sm font-semibold text-gray-900;
-}
-
-.progress-bar {
-  @apply h-2 bg-gray-200 rounded-full overflow-hidden;
-}
-
-.progress-fill {
-  @apply h-full bg-primary-500 rounded-full transition-all duration-300;
-}
-
-.progress-fill.warning {
-  @apply bg-warning-500;
-}
-
-.progress-fill.danger {
-  @apply bg-error-500;
-}
-
-/* 即将到期的触发器 */
-.upcoming-triggers {
-  @apply bg-white border border-gray-200 rounded-lg p-5;
-}
-
 .triggers-list {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  @apply space-y-3;
 }
 
-.trigger-card {
-  @apply border border-gray-200 rounded-lg p-4 hover:border-primary-300 hover:shadow-sm transition-all duration-200;
-}
-
-.trigger-header {
-  @apply flex items-start justify-between mb-3;
+.trigger-item {
+  @apply flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors;
 }
 
 .trigger-icon-wrapper {
-  @apply h-10 w-10 rounded-lg bg-primary-50 flex items-center justify-center mr-3;
+  @apply h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0;
 }
 
-.trigger-icon-wrapper svg {
-  @apply text-primary-600;
+.trigger-icon-wrapper.type-timer {
+  @apply bg-warning-50 text-warning-600;
+}
+
+.trigger-icon-wrapper.type-webhook {
+  @apply bg-primary-50 text-primary-600;
+}
+
+.trigger-icon-wrapper.type-mq {
+  @apply bg-success-50 text-success-600;
 }
 
 .trigger-info {
@@ -794,47 +680,15 @@ const getTriggerStatusType = (type: string) => {
 }
 
 .trigger-name {
-  @apply text-sm font-semibold text-gray-900 truncate;
+  @apply text-sm font-medium text-gray-900 truncate;
 }
 
-.trigger-workflow {
+.trigger-schedule {
   @apply text-xs text-gray-500 truncate;
 }
 
-.trigger-type {
-  @apply flex-shrink-0;
-}
-
-.trigger-details {
-  @apply space-y-2 mb-3;
-}
-
-.trigger-detail {
-  @apply flex items-center gap-2 text-xs text-gray-600;
-}
-
-.trigger-actions {
-  @apply flex gap-2;
-}
-
 .empty-triggers {
-  @apply py-8 text-center;
-}
-
-.empty-triggers-content {
-  @apply space-y-2;
-}
-
-.empty-triggers-icon {
-  @apply h-10 w-10 mx-auto text-gray-400;
-}
-
-.empty-triggers-title {
-  @apply text-sm font-medium text-gray-900;
-}
-
-.empty-triggers-description {
-  @apply text-sm text-gray-500;
+  @apply py-4 text-center;
 }
 
 /* 响应式调整 */
@@ -842,11 +696,11 @@ const getTriggerStatusType = (type: string) => {
   .dashboard-content {
     @apply gap-4;
   }
-  
+
   .statistics-grid {
     @apply gap-3;
   }
-  
+
   .quick-actions {
     @apply gap-3;
   }

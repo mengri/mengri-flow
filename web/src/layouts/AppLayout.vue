@@ -9,6 +9,17 @@ import { useAuth } from '@/composables/useAuth'
 import MengriTopbar from '@/components/ui/MengriTopbar.vue'
 import MengriSidebar from '@/components/ui/MengriSidebar.vue'
 
+// 图标导入
+import {
+  HomeIcon,
+  ArrowsRightLeftIcon,
+  ChartBarIcon,
+  PuzzleIcon,
+  CogIcon,
+  UsersIcon,
+  UserCircleIcon,
+} from '@/components/icons'
+
 const route = useRoute()
 const authStore = useAuthStore()
 const { handleLogout: authLogout } = useAuth()
@@ -48,20 +59,20 @@ const showFooter = computed(() => route.meta?.showFooter !== false)
 // 菜单项
 const menuItems = computed(() => {
   const items = [
-    { path: '/dashboard', label: 'Dashboard', icon: 'HomeIcon', badge: 0 },
-    { path: '/workflows', label: 'Workflows', icon: 'ArrowsRightLeftIcon', badge: 12 },
-    { path: '/templates', label: 'Templates', icon: 'TemplateIcon' },
-    { path: '/analytics', label: 'Analytics', icon: 'ChartBarIcon', badge: 3 },
+    { path: '/dashboard', label: 'Dashboard', icon: HomeIcon, badge: 0 },
+    { path: '/workflows', label: 'Workflows', icon: ArrowsRightLeftIcon, badge: 12 },
+    { path: '/resources', label: 'Resources', icon: PuzzleIcon },
+    { path: '/tools', label: 'Tools', icon: CogIcon },
   ]
   
   if (authStore.isAdmin) {
     items.push(
-      { path: '/admin/users', label: 'User Management', icon: 'UsersIcon' },
-      { path: '/admin/settings', label: 'System Settings', icon: 'CogIcon' }
+      { path: '/admin/users', label: 'User Management', icon: UsersIcon },
+      { path: '/admin/settings', label: 'System Settings', icon: CogIcon }
     )
   }
   
-  items.push({ path: '/account', label: 'Account', icon: 'UserCircleIcon' })
+  items.push({ path: '/account', label: 'Account', icon: UserCircleIcon })
   
   return items
 })
@@ -72,26 +83,17 @@ const navigation = computed(() => {
     {
       title: 'Workspace',
       items: [
-        { path: '/dashboard', label: 'Overview', icon: 'HomeIcon' },
-        { path: '/workflows', label: 'Workflows', icon: 'ArrowsRightLeftIcon' },
-        { 
-          path: '/automation', 
-          label: 'Automation', 
-          icon: 'CogIcon',
-          children: [
-            { path: '/automation/triggers', label: 'Triggers' },
-            { path: '/automation/templates', label: 'Templates' },
-            { path: '/automation/logs', label: 'Execution Logs' },
-          ]
-        },
+        { path: '/', label: 'Overview', icon: HomeIcon },
+        { path: '/flows', label: 'Workflows', icon: ArrowsRightLeftIcon },
+        { path: '/triggers', label: 'Triggers', icon: CogIcon },
+        { path: '/resources', label: 'Resources', icon: PuzzleIcon },
+        { path: '/tools', label: 'Tools', icon: CogIcon },
       ]
     },
     {
       title: 'Data & Analytics',
       items: [
-        { path: '/analytics', label: 'Analytics', icon: 'ChartBarIcon' },
-        { path: '/reports', label: 'Reports', icon: 'DocumentChartBarIcon' },
-        { path: '/integrations', label: 'Integrations', icon: 'PuzzleIcon' },
+        { path: '/runs', label: 'Runs', icon: ChartBarIcon },
       ]
     }
   ]
@@ -100,10 +102,8 @@ const navigation = computed(() => {
     sections.push({
       title: 'Administration',
       items: [
-        { path: '/admin/users', label: 'Users', icon: 'UsersIcon' },
-        { path: '/admin/roles', label: 'Roles & Permissions', icon: 'ShieldCheckIcon' },
-        { path: '/admin/audit', label: 'Audit Logs', icon: 'ClipboardDocumentListIcon' },
-        { path: '/admin/settings', label: 'System Settings', icon: 'Cog8ToothIcon' },
+        { path: '/admin/accounts', label: 'Users', icon: UsersIcon },
+        { path: '/account', label: 'Account', icon: UserCircleIcon },
       ]
     })
   }
@@ -216,7 +216,7 @@ onUnmounted(() => {
         
         <!-- 内容容器 -->
         <div class="content-container">
-          <slot />
+          <RouterView />
         </div>
         
         <!-- 页脚 -->

@@ -28,8 +28,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     loading.value = true
     try {
       const params = { page: 1, pageSize: 100 }
-      const result = await api.get<{ items: Workspace[]; total: number }>('/workspaces', { params })
-      workspaces.value = result.items
+      const result = await api.get<{ total: number; page: number; pageSize: number; list: Workspace[] }>('/workspaces', { params })
+      workspaces.value = result.list
       
       // 如果没有当前选中的工作空间，默认选择第一个
       if (!currentWorkspaceId.value && workspaces.value.length > 0) {
