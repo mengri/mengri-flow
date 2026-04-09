@@ -2,16 +2,27 @@ package main
 
 import (
 	"bufio"
+	"context"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"log"
 	"log/slog"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
-	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/text/language"
 	"mengri-flow/internal/domain/entity"
 	"mengri-flow/internal/domain/valueobject"
+	"mengri-flow/internal/executor"
 	"mengri-flow/internal/infra/auth"
 	"mengri-flow/internal/infra/cache"
 	"mengri-flow/internal/infra/config"
@@ -25,24 +36,60 @@ import (
 	"mengri-flow/internal/ports/http/router"
 	"mengri-flow/pkg/autowire"
 	"mengri-flow/pkg/logger"
-	"os"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 func main() {
+	// 解析命令行参数
+	var (
+		role          = flag.String("role", "console", "运行角色: console 或 executor")
+		cfgPath       = flag.String("config", "config.yaml", "配置文件路径")
+		etcdEndpoints = flag.String("etcd-endpoints", "", "etcd endpoints (executor角色时必需)")
+		etcdUsername  = flag.String("etcd-username", "", "etcd username (executor角色)")
+		etcdPassword  = flag.String("etcd-password", "", "etcd password (executor角色)")
+		clusterID     = flag.String("cluster-id", "", "cluster ID (executor角色时必需)")
+		nodeID        = flag.String("node-id", "", "executor node ID (executor角色，可选)")
+		executorPort  = flag.Int("executor-port", 0, "executor RESTful触发器端口 (executor角色，可选)")
+	)
+	flag.Parse()
 
-	cfgPath := "config.yaml"
+	// 加载环境变量
 	godotenv.Load()
 
 	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
-		cfgPath = envPath
+		*cfgPath = envPath
 	}
 
+	// 根据角色启动不同的服务
+	switch *role {
+	case "console":
+		runConsole(*cfgPath)
+	case "executor":
+		runExecutor(&ExecutorCLIConfig{
+			EtcdEndpoints: *etcdEndpoints,
+			EtcdUsername:  *etcdUsername,
+			EtcdPassword:  *etcdPassword,
+			ClusterID:     *clusterID,
+			NodeID:        *nodeID,
+			Port:          *executorPort,
+		})
+	default:
+		log.Fatalf("Invalid role: %s. Must be 'console' or 'executor'", *role)
+	}
+}
+
+// ExecutorCLIConfig 执行器命令行配置
+type ExecutorCLIConfig struct {
+	EtcdEndpoints string
+	EtcdUsername  string
+	EtcdPassword  string
+	ClusterID     string
+	NodeID        string
+	Port          int
+}
+
+// runConsole 启动控制台服务
+func runConsole(cfgPath string) {
 	cfg, err := config.Load(cfgPath)
 	if err != nil {
 		slog.Error("failed to load config", "error", err)
@@ -141,12 +188,85 @@ func main() {
 	r.Setup(engine)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
-	slog.Info("server starting", "addr", addr, "mode", cfg.Server.Mode)
+	slog.Info("server starting", "addr", addr, "mode", cfg.Server.Mode, "role", "console")
 
 	if err := engine.Run(addr); err != nil {
 		slog.Error("server failed to start", "error", err)
 		os.Exit(1)
 	}
+}
+
+// runExecutor 启动执行器服务
+func runExecutor(cliCfg *ExecutorCLIConfig) {
+	// 验证必需参数
+	if cliCfg.ClusterID == "" {
+		log.Fatal("cluster-id is required for executor role")
+	}
+
+	// 生成Node ID（如果不指定）
+	if cliCfg.NodeID == "" {
+		cliCfg.NodeID = generateNodeID()
+		log.Printf("Auto-generated node ID: %s", cliCfg.NodeID)
+	}
+
+	// 加载配置
+	executorCfg := &config.ExecutorConfig{
+		EtcdEndpoints: cliCfg.EtcdEndpoints,
+		EtcdUsername:  cliCfg.EtcdUsername,
+		EtcdPassword:  cliCfg.EtcdPassword,
+		ClusterID:     cliCfg.ClusterID,
+		NodeID:        cliCfg.NodeID,
+		LogLevel:      "info",
+	}
+
+	if cliCfg.EtcdEndpoints == "" {
+		log.Fatal("etcd-endpoints is required for executor role")
+	}
+
+	// 设置日志级别
+	logger.Setup(executorCfg.LogLevel, "json")
+
+	// 初始化Executor
+	exec := executor.NewExecutor(executorCfg)
+
+	// 启动
+	ctx := context.Background()
+	if err := exec.Start(ctx); err != nil {
+		log.Fatal("Failed to start executor:", err)
+	}
+
+	log.Printf("Executor %s started successfully for cluster %s", cliCfg.NodeID, cliCfg.ClusterID)
+
+	// 等待信号
+	waitForShutdownSignal()
+
+	// 优雅关闭
+	log.Printf("Shutting down executor...")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := exec.Stop(shutdownCtx); err != nil {
+		log.Fatal("Failed to stop executor:", err)
+	}
+
+	log.Printf("Executor stopped gracefully")
+}
+
+// generateNodeID 生成执行器节点ID
+func generateNodeID() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unknown"
+	}
+	return fmt.Sprintf("%s-%d", hostname, time.Now().Unix())
+}
+
+// waitForShutdownSignal 等待中断信号
+func waitForShutdownSignal() {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+	log.Printf("Received shutdown signal")
 }
 
 func ensureInitialAdminAccount(db *mysql.MysqlDb) error {

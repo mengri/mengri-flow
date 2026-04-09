@@ -77,11 +77,22 @@ swagger:
 	swag init -g cmd/server/main.go -o docs
 
 ## Docker
+## 构建Docker镜像（包含Console和Executor双角色）
 docker-build:
 	docker build -t $(APP_NAME) .
 
+## 运行Docker容器（默认Console角色）
 docker-run:
-	docker run -p 8080:8080 --env-file .env $(APP_NAME)
+	docker run -p 8080:8080 --env-file .env $(APP_NAME) --role=console
+
+## 运行Docker容器（Executor角色）
+docker-run-executor:
+	docker run -d --name $(APP_NAME)-executor \
+		--env-file .env \
+		$(APP_NAME) \
+		--role=executor \
+		--etcd-endpoints=etcd:2379 \
+		--cluster-id=cluster-prod-001
 
 ## 帮助
 help:
