@@ -23,12 +23,12 @@ type AccountAdminServiceImpl struct {
 	tokenRepo    repository.ActivationTokenRepository `autowired:""`
 	identityRepo repository.IdentityRepository        `autowired:""`
 	auditRepo    repository.AuditEventRepository      `autowired:""`
-	emailSender  repository.EmailSender               `autowired:""`
+	emailSender  repository.IEmailSender              `autowired:""`
 	txManager    repository.TransactionManager        `autowired:""`
 	cfg          *config.Config                       `autowired:""`
 }
 
-var _ AccountAdminService = (*AccountAdminServiceImpl)(nil)
+var _ IAccountAdminService = (*AccountAdminServiceImpl)(nil)
 
 // CreateAccount 管理员创建账号。
 func (s *AccountAdminServiceImpl) CreateAccount(ctx context.Context, req *dto.CreateAccountRequest, operatorID string) (*dto.AccountResponse, error) {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"mengri-flow/internal/app/dto"
+	"mengri-flow/pkg/autowire"
 )
 
 type IRunService interface {
@@ -14,4 +15,10 @@ type IRunService interface {
 	GetRunStats(ctx context.Context) (*dto.RunStatsResponse, error)
 }
 
-var _ IRunService = (*RunService)(nil)
+var _ IRunService = (*RunServiceImpl)(nil)
+
+func init() {
+	autowire.Auto(func() IRunService {
+		return new(RunServiceImpl)
+	})
+}

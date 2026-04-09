@@ -5,26 +5,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/domain/entity"
 	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/plugin"
+
+	"github.com/google/uuid"
 )
 
-type ResourceService struct {
-	resourceRepo   repository.ResourceRepository
+type ResourceServiceImpl struct {
+	resourceRepo   repository.ResourceRepository `autowired:""`
 	pluginRegistry *plugin.Registry
 }
 
-func NewResourceService(repo repository.ResourceRepository, registry *plugin.Registry) *ResourceService {
-	return &ResourceService{
-		resourceRepo:   repo,
-		pluginRegistry: registry,
-	}
-}
-
-func (s *ResourceService) CreateResource(ctx context.Context, req *dto.CreateResourceRequest) (*entity.Resource, error) {
+func (s *ResourceServiceImpl) CreateResource(ctx context.Context, req *dto.CreateResourceRequest) (*entity.Resource, error) {
 	resourceType := entity.ResourceType(req.Type)
 	plugin, ok := s.pluginRegistry.GetResource(string(resourceType))
 	if !ok {
@@ -54,7 +48,7 @@ func (s *ResourceService) CreateResource(ctx context.Context, req *dto.CreateRes
 	return resource, nil
 }
 
-func (s *ResourceService) UpdateResource(ctx context.Context, id string, req *dto.UpdateResourceRequest) (*entity.Resource, error) {
+func (s *ResourceServiceImpl) UpdateResource(ctx context.Context, id string, req *dto.UpdateResourceRequest) (*entity.Resource, error) {
 	resource, err := s.resourceRepo.FindByID(ctx, uuid.MustParse(id))
 	if err != nil {
 		return nil, err
@@ -88,15 +82,15 @@ func (s *ResourceService) UpdateResource(ctx context.Context, id string, req *dt
 	return resource, nil
 }
 
-func (s *ResourceService) DeleteResource(ctx context.Context, id string) error {
+func (s *ResourceServiceImpl) DeleteResource(ctx context.Context, id string) error {
 	return s.resourceRepo.Delete(ctx, uuid.MustParse(id))
 }
 
-func (s *ResourceService) GetResource(ctx context.Context, id string) (*entity.Resource, error) {
+func (s *ResourceServiceImpl) GetResource(ctx context.Context, id string) (*entity.Resource, error) {
 	return s.resourceRepo.FindByID(ctx, uuid.MustParse(id))
 }
 
-func (s *ResourceService) ListResources(ctx context.Context, workspaceID string, resourceType string, page int, pageSize int) ([]*entity.Resource, int64, error) {
+func (s *ResourceServiceImpl) ListResources(ctx context.Context, workspaceID string, resourceType string, page int, pageSize int) ([]*entity.Resource, int64, error) {
 	if resourceType != "" {
 		resources, err := s.resourceRepo.ListByType(ctx, entity.ResourceType(resourceType))
 		if err != nil {
@@ -113,7 +107,7 @@ func (s *ResourceService) ListResources(ctx context.Context, workspaceID string,
 	return resources, int64(len(resources)), nil
 }
 
-func (s *ResourceService) TestConnection(ctx context.Context, req *dto.TestConnectionRequest) error {
+func (s *ResourceServiceImpl) TestConnection(ctx context.Context, req *dto.TestConnectionRequest) error {
 	resourceType := entity.ResourceType(req.Type)
 	plugin, ok := s.pluginRegistry.GetResource(string(resourceType))
 	if !ok {

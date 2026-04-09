@@ -1,15 +1,22 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"mengri-flow/pkg/autowire"
 
-// IEnvironmentHandler 环境处理器接口
+	"github.com/gin-gonic/gin"
+)
+
+// EnvironmentHandler 环境管理 HTTP 处理器接口
 type IEnvironmentHandler interface {
-	CreateEnvironment(c *gin.Context)
 	ListEnvironments(c *gin.Context)
+	CreateEnvironment(c *gin.Context)
 	GetEnvironment(c *gin.Context)
 	UpdateEnvironment(c *gin.Context)
 	DeleteEnvironment(c *gin.Context)
 }
 
-// Ensure EnvironmentHandler implements IEnvironmentHandler
-var _ IEnvironmentHandler = (*EnvironmentHandler)(nil)
+func init() {
+	autowire.Auto(func() IEnvironmentHandler {
+		return &EnvironmentHandlerImpl{}
+	})
+}

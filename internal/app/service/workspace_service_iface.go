@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"mengri-flow/internal/app/dto"
+	"mengri-flow/pkg/autowire"
 )
 
 type IWorkspaceService interface {
@@ -18,3 +19,9 @@ type IWorkspaceService interface {
 }
 
 var _ IWorkspaceService = (*WorkspaceService)(nil)
+
+func init() {
+	autowire.Auto(func() IWorkspaceService {
+		return new(WorkspaceService)
+	})
+}

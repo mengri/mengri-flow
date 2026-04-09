@@ -1,15 +1,25 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"mengri-flow/pkg/autowire"
 
-// ITriggerHandler 触发器处理器接口
+	"github.com/gin-gonic/gin"
+)
+
+// TriggerHandler 触发器管理 HTTP 处理器接口
 type ITriggerHandler interface {
-	CreateTrigger(c *gin.Context)
 	ListTriggers(c *gin.Context)
+	CreateTrigger(c *gin.Context)
 	GetTrigger(c *gin.Context)
 	UpdateTrigger(c *gin.Context)
 	DeleteTrigger(c *gin.Context)
+	EnableTrigger(c *gin.Context)
+	DisableTrigger(c *gin.Context)
+	PublishToCluster(c *gin.Context)
 }
 
-// Ensure TriggerHandler implements ITriggerHandler
-var _ ITriggerHandler = (*TriggerHandler)(nil)
+func init() {
+	autowire.Auto(func() ITriggerHandler {
+		return &TriggerHandlerImpl{}
+	})
+}

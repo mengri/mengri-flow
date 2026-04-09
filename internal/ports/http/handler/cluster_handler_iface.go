@@ -1,16 +1,23 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"mengri-flow/pkg/autowire"
 
-// IClusterHandler 集群处理器接口
+	"github.com/gin-gonic/gin"
+)
+
+// ClusterHandler 集群管理 HTTP 处理器接口
 type IClusterHandler interface {
-	CreateCluster(c *gin.Context)
 	ListClusters(c *gin.Context)
+	CreateCluster(c *gin.Context)
 	GetClusterDetail(c *gin.Context)
 	UpdateCluster(c *gin.Context)
 	DeleteCluster(c *gin.Context)
 	TestEtcdConnection(c *gin.Context)
 }
 
-// Ensure ClusterHandler implements IClusterHandler
-var _ IClusterHandler = (*ClusterHandler)(nil)
+func init() {
+	autowire.Auto(func() IClusterHandler {
+		return &ClusterHandlerImpl{}
+	})
+}

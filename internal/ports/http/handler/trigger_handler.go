@@ -3,23 +3,18 @@ package handler
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/app/service"
 	"mengri-flow/pkg/response"
+
+	"github.com/gin-gonic/gin"
 )
 
-type TriggerHandler struct {
-	service service.ITriggerService
+type TriggerHandlerImpl struct {
+	service service.ITriggerService `autowired:""`
 }
 
-func NewTriggerHandler(svc service.ITriggerService) *TriggerHandler {
-	return &TriggerHandler{
-		service: svc,
-	}
-}
-
-func (h *TriggerHandler) CreateTrigger(c *gin.Context) {
+func (h *TriggerHandlerImpl) ListTriggers(c *gin.Context) {
 	var req dto.CreateTriggerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request")
@@ -36,7 +31,7 @@ func (h *TriggerHandler) CreateTrigger(c *gin.Context) {
 	response.Success(c, trigger)
 }
 
-func (h *TriggerHandler) ListTriggers(c *gin.Context) {
+func (h *TriggerHandlerImpl) CreateTrigger(c *gin.Context) {
 	flowID := c.Query("flowId")
 	status := c.Query("status")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -58,7 +53,7 @@ func (h *TriggerHandler) ListTriggers(c *gin.Context) {
 	response.Success(c, triggers)
 }
 
-func (h *TriggerHandler) GetTrigger(c *gin.Context) {
+func (h *TriggerHandlerImpl) GetTrigger(c *gin.Context) {
 	id := c.Param("id")
 
 	trigger, err := h.service.GetTrigger(c.Request.Context(), id)
@@ -70,7 +65,7 @@ func (h *TriggerHandler) GetTrigger(c *gin.Context) {
 	response.Success(c, trigger)
 }
 
-func (h *TriggerHandler) UpdateTrigger(c *gin.Context) {
+func (h *TriggerHandlerImpl) UpdateTrigger(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -89,7 +84,7 @@ func (h *TriggerHandler) UpdateTrigger(c *gin.Context) {
 	response.Success(c, trigger)
 }
 
-func (h *TriggerHandler) DeleteTrigger(c *gin.Context) {
+func (h *TriggerHandlerImpl) DeleteTrigger(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -101,7 +96,7 @@ func (h *TriggerHandler) DeleteTrigger(c *gin.Context) {
 	response.Success(c, gin.H{"message": "trigger deleted successfully"})
 }
 
-func (h *TriggerHandler) EnableTrigger(c *gin.Context) {
+func (h *TriggerHandlerImpl) EnableTrigger(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -113,7 +108,7 @@ func (h *TriggerHandler) EnableTrigger(c *gin.Context) {
 	response.Success(c, gin.H{"message": "trigger enabled successfully"})
 }
 
-func (h *TriggerHandler) DisableTrigger(c *gin.Context) {
+func (h *TriggerHandlerImpl) DisableTrigger(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -125,7 +120,7 @@ func (h *TriggerHandler) DisableTrigger(c *gin.Context) {
 	response.Success(c, gin.H{"message": "trigger disabled successfully"})
 }
 
-func (h *TriggerHandler) PublishToCluster(c *gin.Context) {
+func (h *TriggerHandlerImpl) PublishToCluster(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 

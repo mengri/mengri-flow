@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"mengri-flow/internal/app/dto"
+	"mengri-flow/pkg/autowire"
 )
 
 type IClusterService interface {
@@ -16,3 +17,9 @@ type IClusterService interface {
 }
 
 var _ IClusterService = (*ClusterService)(nil)
+
+func init() {
+	autowire.Auto(func() IClusterService {
+		return &ClusterService{}
+	})
+}

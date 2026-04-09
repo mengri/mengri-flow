@@ -7,13 +7,9 @@ import (
 	"mengri-flow/internal/app/dto"
 )
 
-type RunService struct{}
+type RunServiceImpl struct{}
 
-func NewRunService() *RunService {
-	return &RunService{}
-}
-
-func (s *RunService) ListRuns(ctx context.Context, req *dto.ListRunsRequest) (*dto.ListRunsResponse, error) {
+func (s *RunServiceImpl) ListRuns(ctx context.Context, req *dto.ListRunsRequest) (*dto.ListRunsResponse, error) {
 	// TODO: Implement run listing logic
 	return &dto.ListRunsResponse{
 		Total:    0,
@@ -23,22 +19,22 @@ func (s *RunService) ListRuns(ctx context.Context, req *dto.ListRunsRequest) (*d
 	}, nil
 }
 
-func (s *RunService) GetRunDetail(ctx context.Context, id string) (*dto.RunDetailResponse, error) {
+func (s *RunServiceImpl) GetRunDetail(ctx context.Context, id string) (*dto.RunDetailResponse, error) {
 	// TODO: Implement run detail retrieval logic
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (s *RunService) GetExecutionTimeline(ctx context.Context, runID string) ([]dto.ExecutionTimelineResponse, error) {
+func (s *RunServiceImpl) GetExecutionTimeline(ctx context.Context, runID string) ([]dto.ExecutionTimelineResponse, error) {
 	// TODO: Implement execution timeline retrieval logic
 	return []dto.ExecutionTimelineResponse{}, nil
 }
 
-func (s *RunService) RetryRun(ctx context.Context, runID string, operatorID string) (*dto.RunResponse, error) {
+func (s *RunServiceImpl) RetryRun(ctx context.Context, runID string, operatorID string) (*dto.RunResponse, error) {
 	// TODO: Implement run retry logic
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (s *RunService) GetRunStats(ctx context.Context) (*dto.RunStatsResponse, error) {
+func (s *RunServiceImpl) GetRunStats(ctx context.Context) (*dto.RunStatsResponse, error) {
 	// TODO: Implement run stats retrieval logic
 	return &dto.RunStatsResponse{
 		TotalRuns:   0,

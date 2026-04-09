@@ -1,15 +1,24 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"mengri-flow/pkg/autowire"
 
-// IWorkspaceHandler 工作空间处理器接口
+	"github.com/gin-gonic/gin"
+)
+
+// WorkspaceHandler 工作空间管理 HTTP 处理器接口
 type IWorkspaceHandler interface {
-	CreateWorkspace(c *gin.Context)
 	ListWorkspaces(c *gin.Context)
+	CreateWorkspace(c *gin.Context)
 	GetWorkspace(c *gin.Context)
 	UpdateWorkspace(c *gin.Context)
 	DeleteWorkspace(c *gin.Context)
+	AddMember(c *gin.Context)
+	RemoveMember(c *gin.Context)
 }
 
-// Ensure WorkspaceHandler implements IWorkspaceHandler
-var _ IWorkspaceHandler = (*WorkspaceHandler)(nil)
+func init() {
+	autowire.Auto(func() IWorkspaceHandler {
+		return &WorkspaceHandlerImpl{}
+	})
+}

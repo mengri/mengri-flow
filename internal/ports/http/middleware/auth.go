@@ -11,7 +11,7 @@ import (
 
 // Auth JWT 认证中间件。
 // 从 Authorization 头提取 Bearer token，解析并注入 accountId、role 到 gin.Context。
-func Auth(jwtMgr *auth.JWTManager) gin.HandlerFunc {
+func Auth(jwtMgr auth.IJWTManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 		if header == "" {

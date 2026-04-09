@@ -7,7 +7,7 @@ import (
 )
 
 // MeService 账号中心服务接口（用户自助操作）。
-type MeService interface {
+type IMeService interface {
 	GetProfile(ctx context.Context, accountID string) (*dto.ProfileResponse, error)
 	ListIdentities(ctx context.Context, accountID string) (*dto.IdentityListResponse, error)
 	ChangePassword(ctx context.Context, accountID string, req *dto.ChangePasswordRequest) (*dto.ChangePasswordResponse, error)
@@ -16,7 +16,7 @@ type MeService interface {
 }
 
 func init() {
-	autowire.Auto(func() MeService {
+	autowire.Auto(func() IMeService {
 		return &MeServiceImpl{}
 	})
 }

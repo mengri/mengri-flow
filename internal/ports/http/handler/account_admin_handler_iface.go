@@ -7,7 +7,7 @@ import (
 )
 
 // AccountAdminHandler 管理员账号管理 HTTP 处理器接口。
-type AccountAdminHandler interface {
+type IAccountAdminHandler interface {
 	Create(c *gin.Context)
 	List(c *gin.Context)
 	GetDetail(c *gin.Context)
@@ -17,7 +17,7 @@ type AccountAdminHandler interface {
 }
 
 func init() {
-	autowire.Auto(func() AccountAdminHandler {
+	autowire.Auto(func() IAccountAdminHandler {
 		return &AccountAdminHandlerImpl{}
 	})
 }

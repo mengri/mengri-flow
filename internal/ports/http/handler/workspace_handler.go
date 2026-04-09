@@ -3,23 +3,18 @@ package handler
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/app/service"
 	"mengri-flow/pkg/response"
+
+	"github.com/gin-gonic/gin"
 )
 
-type WorkspaceHandler struct {
-	service service.IWorkspaceService
+type WorkspaceHandlerImpl struct {
+	service service.IWorkspaceService `autowired:""`
 }
 
-func NewWorkspaceHandler(svc service.IWorkspaceService) *WorkspaceHandler {
-	return &WorkspaceHandler{
-		service: svc,
-	}
-}
-
-func (h *WorkspaceHandler) CreateWorkspace(c *gin.Context) {
+func (h *WorkspaceHandlerImpl) CreateWorkspace(c *gin.Context) {
 	var req dto.CreateWorkspaceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request")
@@ -36,7 +31,7 @@ func (h *WorkspaceHandler) CreateWorkspace(c *gin.Context) {
 	response.Success(c, workspace)
 }
 
-func (h *WorkspaceHandler) ListWorkspaces(c *gin.Context) {
+func (h *WorkspaceHandlerImpl) ListWorkspaces(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
 
@@ -50,7 +45,7 @@ func (h *WorkspaceHandler) ListWorkspaces(c *gin.Context) {
 	response.Success(c, workspaces)
 }
 
-func (h *WorkspaceHandler) GetWorkspace(c *gin.Context) {
+func (h *WorkspaceHandlerImpl) GetWorkspace(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -63,7 +58,7 @@ func (h *WorkspaceHandler) GetWorkspace(c *gin.Context) {
 	response.Success(c, workspace)
 }
 
-func (h *WorkspaceHandler) UpdateWorkspace(c *gin.Context) {
+func (h *WorkspaceHandlerImpl) UpdateWorkspace(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -82,7 +77,7 @@ func (h *WorkspaceHandler) UpdateWorkspace(c *gin.Context) {
 	response.Success(c, workspace)
 }
 
-func (h *WorkspaceHandler) DeleteWorkspace(c *gin.Context) {
+func (h *WorkspaceHandlerImpl) DeleteWorkspace(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -94,7 +89,7 @@ func (h *WorkspaceHandler) DeleteWorkspace(c *gin.Context) {
 	response.Success(c, gin.H{"message": "workspace deleted successfully"})
 }
 
-func (h *WorkspaceHandler) AddMember(c *gin.Context) {
+func (h *WorkspaceHandlerImpl) AddMember(c *gin.Context) {
 	workspaceID := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -113,7 +108,7 @@ func (h *WorkspaceHandler) AddMember(c *gin.Context) {
 	response.Success(c, member)
 }
 
-func (h *WorkspaceHandler) RemoveMember(c *gin.Context) {
+func (h *WorkspaceHandlerImpl) RemoveMember(c *gin.Context) {
 	workspaceID := c.Param("id")
 	memberID := c.Param("userId")
 	accountID := c.GetString("accountID")

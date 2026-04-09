@@ -1,8 +1,12 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"mengri-flow/pkg/autowire"
 
-// IRunHandler 运行记录处理器接口
+	"github.com/gin-gonic/gin"
+)
+
+// RunHandler 运行记录 HTTP 处理器接口
 type IRunHandler interface {
 	ListRuns(c *gin.Context)
 	GetRunDetail(c *gin.Context)
@@ -11,5 +15,8 @@ type IRunHandler interface {
 	GetRunStats(c *gin.Context)
 }
 
-// Ensure RunHandler implements IRunHandler
-var _ IRunHandler = (*RunHandler)(nil)
+func init() {
+	autowire.Auto(func() IRunHandler {
+		return &RunHandlerImpl{}
+	})
+}

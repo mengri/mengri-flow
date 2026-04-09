@@ -9,17 +9,11 @@ import (
 	"mengri-flow/pkg/response"
 )
 
-type EnvironmentHandler struct {
-	service service.IEnvironmentService
+type EnvironmentHandlerImpl struct {
+	service service.EnvironmentService `autowired:""`
 }
 
-func NewEnvironmentHandler(svc service.IEnvironmentService) *EnvironmentHandler {
-	return &EnvironmentHandler{
-		service: svc,
-	}
-}
-
-func (h *EnvironmentHandler) CreateEnvironment(c *gin.Context) {
+func (h *EnvironmentHandlerImpl) CreateEnvironment(c *gin.Context) {
 	var req dto.CreateEnvironmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request")
@@ -35,7 +29,7 @@ func (h *EnvironmentHandler) CreateEnvironment(c *gin.Context) {
 	response.Success(c, env)
 }
 
-func (h *EnvironmentHandler) ListEnvironments(c *gin.Context) {
+func (h *EnvironmentHandlerImpl) ListEnvironments(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
 
@@ -48,7 +42,7 @@ func (h *EnvironmentHandler) ListEnvironments(c *gin.Context) {
 	response.Success(c, envs)
 }
 
-func (h *EnvironmentHandler) GetEnvironment(c *gin.Context) {
+func (h *EnvironmentHandlerImpl) GetEnvironment(c *gin.Context) {
 	id := c.Param("id")
 
 	env, err := h.service.GetEnvironment(c.Request.Context(), id)
@@ -60,7 +54,7 @@ func (h *EnvironmentHandler) GetEnvironment(c *gin.Context) {
 	response.Success(c, env)
 }
 
-func (h *EnvironmentHandler) UpdateEnvironment(c *gin.Context) {
+func (h *EnvironmentHandlerImpl) UpdateEnvironment(c *gin.Context) {
 	id := c.Param("id")
 
 	var req dto.UpdateEnvironmentRequest
@@ -78,7 +72,7 @@ func (h *EnvironmentHandler) UpdateEnvironment(c *gin.Context) {
 	response.Success(c, env)
 }
 
-func (h *EnvironmentHandler) DeleteEnvironment(c *gin.Context) {
+func (h *EnvironmentHandlerImpl) DeleteEnvironment(c *gin.Context) {
 	id := c.Param("id")
 
 	if err := h.service.DeleteEnvironment(c.Request.Context(), id); err != nil {

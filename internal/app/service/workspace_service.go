@@ -5,15 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/app/dto"
+
+	"github.com/google/uuid"
 )
 
 type WorkspaceService struct{}
-
-func NewWorkspaceService() *WorkspaceService {
-	return &WorkspaceService{}
-}
 
 func (s *WorkspaceService) CreateWorkspace(ctx context.Context, req *dto.CreateWorkspaceRequest, ownerID string) (*dto.WorkspaceResponse, error) {
 	// TODO: Implement workspace creation logic

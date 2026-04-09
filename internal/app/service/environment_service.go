@@ -5,27 +5,24 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/app/dto"
+
+	"github.com/google/uuid"
 )
 
 type EnvironmentService struct{}
 
-func NewEnvironmentService() *EnvironmentService {
-	return &EnvironmentService{}
-}
-
 func (s *EnvironmentService) CreateEnvironment(ctx context.Context, req *dto.CreateEnvironmentRequest) (*dto.EnvironmentResponse, error) {
 	// TODO: Implement environment creation logic
 	return &dto.EnvironmentResponse{
-		ID:          uuid.New().String(),
-		Name:        req.Name,
-		Key:         req.Key,
-		Description: req.Description,
-		Color:       req.Color,
+		ID:           uuid.New().String(),
+		Name:         req.Name,
+		Key:          req.Key,
+		Description:  req.Description,
+		Color:        req.Color,
 		ClusterCount: 0,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}, nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"mengri-flow/internal/app/dto"
+	"mengri-flow/pkg/autowire"
 )
 
 type IToolService interface {
@@ -19,3 +20,9 @@ type IToolService interface {
 }
 
 var _ IToolService = (*ToolService)(nil)
+
+func init() {
+	autowire.Auto(func() IToolService {
+		return new(ToolService)
+	})
+}

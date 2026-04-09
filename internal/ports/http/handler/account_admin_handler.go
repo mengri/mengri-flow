@@ -13,10 +13,10 @@ import (
 
 // AccountAdminHandlerImpl 管理员账号管理 HTTP 处理器实现。
 type AccountAdminHandlerImpl struct {
-	adminService service.AccountAdminService `autowired:""`
+	adminService service.IAccountAdminService `autowired:""`
 }
 
-var _ AccountAdminHandler = (*AccountAdminHandlerImpl)(nil)
+var _ IAccountAdminHandler = (*AccountAdminHandlerImpl)(nil)
 
 // Create 管理员创建账号。
 // @Summary 创建账号

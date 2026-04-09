@@ -1,8 +1,12 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"mengri-flow/pkg/autowire"
 
-// IToolHandler 工具处理器接口
+	"github.com/gin-gonic/gin"
+)
+
+// ToolHandler 工具管理 HTTP 处理器接口
 type IToolHandler interface {
 	ListTools(c *gin.Context)
 	CreateTool(c *gin.Context)
@@ -15,5 +19,8 @@ type IToolHandler interface {
 	ListVersions(c *gin.Context)
 }
 
-// Ensure ToolHandler implements IToolHandler
-var _ IToolHandler = (*ToolHandler)(nil)
+func init() {
+	autowire.Auto(func() IToolHandler {
+		return &ToolHandlerImpl{}
+	})
+}

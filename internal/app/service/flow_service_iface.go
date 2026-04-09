@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"mengri-flow/internal/app/dto"
+	"mengri-flow/pkg/autowire"
 )
 
 type IFlowService interface {
@@ -19,3 +20,9 @@ type IFlowService interface {
 }
 
 var _ IFlowService = (*FlowService)(nil)
+
+func init() {
+	autowire.Auto(func() IFlowService {
+		return new(FlowService)
+	})
+}

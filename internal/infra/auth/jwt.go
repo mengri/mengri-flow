@@ -17,8 +17,8 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// JWTManager JWT 签发与验证管理器。
-type JWTManager struct {
+// JWTManagerImpl JWT 签发与验证管理器实现
+type JWTManagerImpl struct {
 	secret             []byte
 	accessTokenExpiry  time.Duration
 	refreshTokenExpiry time.Duration
@@ -27,8 +27,8 @@ type JWTManager struct {
 // GenerateJWTManager 创建 JWT 管理器。
 func GenerateJWTManager(cfg *config.JWTConfig) {
 
-	autowire.Auto(func() *JWTManager {
-		return &JWTManager{
+	autowire.Auto(func() IJWTManager {
+		return &JWTManagerImpl{
 			secret:             []byte(cfg.Secret),
 			accessTokenExpiry:  time.Duration(cfg.AccessTokenExpiry) * time.Second,
 			refreshTokenExpiry: time.Duration(cfg.RefreshTokenExpiry) * time.Second,
@@ -37,7 +37,7 @@ func GenerateJWTManager(cfg *config.JWTConfig) {
 }
 
 // GenerateAccessToken 签发 AccessToken。
-func (m *JWTManager) GenerateAccessToken(accountID, role string) (string, error) {
+func (m *JWTManagerImpl) GenerateAccessToken(accountID, role string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		AccountID: accountID,
@@ -53,7 +53,7 @@ func (m *JWTManager) GenerateAccessToken(accountID, role string) (string, error)
 }
 
 // GenerateRefreshToken 签发 RefreshToken。
-func (m *JWTManager) GenerateRefreshToken(accountID, role string) (string, error) {
+func (m *JWTManagerImpl) GenerateRefreshToken(accountID, role string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		AccountID: accountID,
@@ -69,7 +69,7 @@ func (m *JWTManager) GenerateRefreshToken(accountID, role string) (string, error
 }
 
 // ParseToken 解析并验证 JWT token。
-func (m *JWTManager) ParseToken(tokenStr string) (*Claims, error) {
+func (m *JWTManagerImpl) ParseToken(tokenStr string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
@@ -88,11 +88,11 @@ func (m *JWTManager) ParseToken(tokenStr string) (*Claims, error) {
 }
 
 // AccessTokenExpiry 返回 AccessToken 过期秒数。
-func (m *JWTManager) AccessTokenExpiry() int {
+func (m *JWTManagerImpl) AccessTokenExpiry() int {
 	return int(m.accessTokenExpiry.Seconds())
 }
 
 // RefreshTokenExpiry 返回 RefreshToken 过期时长。
-func (m *JWTManager) RefreshTokenExpiry() time.Duration {
+func (m *JWTManagerImpl) RefreshTokenExpiry() time.Duration {
 	return m.refreshTokenExpiry
 }

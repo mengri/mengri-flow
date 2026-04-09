@@ -7,7 +7,7 @@ import (
 )
 
 // AuthHandler 认证 HTTP 处理器接口。
-type AuthHandler interface {
+type IAuthHandler interface {
 	ValidateActivation(c *gin.Context)
 	ConfirmActivation(c *gin.Context)
 	LoginByPassword(c *gin.Context)
@@ -20,7 +20,7 @@ type AuthHandler interface {
 }
 
 func init() {
-	autowire.Auto(func() AuthHandler {
+	autowire.Auto(func() IAuthHandler {
 		return &AuthHandlerImpl{}
 	})
 }

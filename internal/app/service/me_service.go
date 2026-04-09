@@ -32,7 +32,7 @@ type MeServiceImpl struct {
 	smsCfg       *config.SMSConfig               `autowired:""`
 }
 
-var _ MeService = (*MeServiceImpl)(nil)
+var _ IMeService = (*MeServiceImpl)(nil)
 
 // GetProfile 获取当前用户资料。
 func (s *MeServiceImpl) GetProfile(ctx context.Context, accountID string) (*dto.ProfileResponse, error) {
@@ -345,6 +345,3 @@ func (s *MeServiceImpl) UnbindIdentity(ctx context.Context, accountID string, id
 		return nil
 	})
 }
-
-
-

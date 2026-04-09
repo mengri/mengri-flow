@@ -5,15 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/app/dto"
+
+	"github.com/google/uuid"
 )
 
 type FlowService struct{}
-
-func NewFlowService() *FlowService {
-	return &FlowService{}
-}
 
 func (s *FlowService) CreateFlow(ctx context.Context, req *dto.CreateFlowRequest, creatorID string) (*dto.FlowResponse, error) {
 	// TODO: Implement flow creation logic

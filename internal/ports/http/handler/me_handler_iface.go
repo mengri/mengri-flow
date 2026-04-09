@@ -7,7 +7,7 @@ import (
 )
 
 // MeHandler 账号中心 HTTP 处理器接口。
-type MeHandler interface {
+type IMeHandler interface {
 	GetProfile(c *gin.Context)
 	ListIdentities(c *gin.Context)
 	ChangePassword(c *gin.Context)
@@ -16,7 +16,7 @@ type MeHandler interface {
 }
 
 func init() {
-	autowire.Auto(func() MeHandler {
+	autowire.Auto(func() IMeHandler {
 		return &MeHandlerImpl{}
 	})
 }

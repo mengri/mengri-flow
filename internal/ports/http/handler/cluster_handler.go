@@ -3,23 +3,18 @@ package handler
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/app/service"
 	"mengri-flow/pkg/response"
+
+	"github.com/gin-gonic/gin"
 )
 
-type ClusterHandler struct {
-	service service.IClusterService
+type ClusterHandlerImpl struct {
+	service service.IClusterService `autowired:""`
 }
 
-func NewClusterHandler(svc service.IClusterService) *ClusterHandler {
-	return &ClusterHandler{
-		service: svc,
-	}
-}
-
-func (h *ClusterHandler) CreateCluster(c *gin.Context) {
+func (h *ClusterHandlerImpl) CreateCluster(c *gin.Context) {
 	var req dto.CreateClusterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request")
@@ -35,7 +30,7 @@ func (h *ClusterHandler) CreateCluster(c *gin.Context) {
 	response.Success(c, cluster)
 }
 
-func (h *ClusterHandler) ListClusters(c *gin.Context) {
+func (h *ClusterHandlerImpl) ListClusters(c *gin.Context) {
 	environmentID := c.Query("environmentId")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
@@ -49,7 +44,7 @@ func (h *ClusterHandler) ListClusters(c *gin.Context) {
 	response.Success(c, clusters)
 }
 
-func (h *ClusterHandler) GetClusterDetail(c *gin.Context) {
+func (h *ClusterHandlerImpl) GetClusterDetail(c *gin.Context) {
 	id := c.Param("id")
 
 	cluster, err := h.service.GetClusterDetail(c.Request.Context(), id)
@@ -61,7 +56,7 @@ func (h *ClusterHandler) GetClusterDetail(c *gin.Context) {
 	response.Success(c, cluster)
 }
 
-func (h *ClusterHandler) UpdateCluster(c *gin.Context) {
+func (h *ClusterHandlerImpl) UpdateCluster(c *gin.Context) {
 	id := c.Param("id")
 
 	var req dto.UpdateClusterRequest
@@ -79,7 +74,7 @@ func (h *ClusterHandler) UpdateCluster(c *gin.Context) {
 	response.Success(c, cluster)
 }
 
-func (h *ClusterHandler) DeleteCluster(c *gin.Context) {
+func (h *ClusterHandlerImpl) DeleteCluster(c *gin.Context) {
 	id := c.Param("id")
 
 	if err := h.service.DeleteCluster(c.Request.Context(), id); err != nil {
@@ -90,7 +85,7 @@ func (h *ClusterHandler) DeleteCluster(c *gin.Context) {
 	response.Success(c, gin.H{"message": "cluster deleted successfully"})
 }
 
-func (h *ClusterHandler) TestEtcdConnection(c *gin.Context) {
+func (h *ClusterHandlerImpl) TestEtcdConnection(c *gin.Context) {
 	var req dto.TestEtcdConnectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request")

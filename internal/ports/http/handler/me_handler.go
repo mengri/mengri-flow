@@ -14,10 +14,10 @@ import (
 
 // MeHandlerImpl 账号中心 HTTP 处理器实现。
 type MeHandlerImpl struct {
-	meService service.MeService `autowired:""`
+	meService service.IMeService `autowired:""`
 }
 
-var _ MeHandler = (*MeHandlerImpl)(nil)
+var _ IMeHandler = (*MeHandlerImpl)(nil)
 
 // GetProfile 获取当前用户资料。
 // @Summary 获取资料

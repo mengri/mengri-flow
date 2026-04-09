@@ -5,15 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/app/dto"
+
+	"github.com/google/uuid"
 )
 
 type TriggerService struct{}
-
-func NewTriggerService() *TriggerService {
-	return &TriggerService{}
-}
 
 func (s *TriggerService) CreateTrigger(ctx context.Context, req *dto.CreateTriggerRequest, creatorID string) (*dto.TriggerResponse, error) {
 	// TODO: Implement trigger creation logic

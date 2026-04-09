@@ -3,23 +3,18 @@ package handler
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/app/service"
 	"mengri-flow/pkg/response"
+
+	"github.com/gin-gonic/gin"
 )
 
-type FlowHandler struct {
-	service service.IFlowService
+type FlowHandlerImpl struct {
+	service service.IFlowService `autowired:""`
 }
 
-func NewFlowHandler(svc service.IFlowService) *FlowHandler {
-	return &FlowHandler{
-		service: svc,
-	}
-}
-
-func (h *FlowHandler) CreateFlow(c *gin.Context) {
+func (h *FlowHandlerImpl) ListFlows(c *gin.Context) {
 	var req dto.CreateFlowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request")
@@ -36,7 +31,7 @@ func (h *FlowHandler) CreateFlow(c *gin.Context) {
 	response.Success(c, flow)
 }
 
-func (h *FlowHandler) ListFlows(c *gin.Context) {
+func (h *FlowHandlerImpl) CreateFlow(c *gin.Context) {
 	workspaceID := c.Query("workspaceId")
 	status := c.Query("status")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -58,7 +53,7 @@ func (h *FlowHandler) ListFlows(c *gin.Context) {
 	response.Success(c, flows)
 }
 
-func (h *FlowHandler) GetFlow(c *gin.Context) {
+func (h *FlowHandlerImpl) GetFlow(c *gin.Context) {
 	id := c.Param("id")
 
 	flow, err := h.service.GetFlow(c.Request.Context(), id)
@@ -70,7 +65,7 @@ func (h *FlowHandler) GetFlow(c *gin.Context) {
 	response.Success(c, flow)
 }
 
-func (h *FlowHandler) UpdateFlow(c *gin.Context) {
+func (h *FlowHandlerImpl) UpdateFlow(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -89,7 +84,7 @@ func (h *FlowHandler) UpdateFlow(c *gin.Context) {
 	response.Success(c, flow)
 }
 
-func (h *FlowHandler) DeleteFlow(c *gin.Context) {
+func (h *FlowHandlerImpl) DeleteFlow(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -101,7 +96,7 @@ func (h *FlowHandler) DeleteFlow(c *gin.Context) {
 	response.Success(c, gin.H{"message": "flow deleted successfully"})
 }
 
-func (h *FlowHandler) TestFlow(c *gin.Context) {
+func (h *FlowHandlerImpl) TestFlow(c *gin.Context) {
 	var req dto.TestFlowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request")
@@ -116,7 +111,7 @@ func (h *FlowHandler) TestFlow(c *gin.Context) {
 	response.Success(c, gin.H{"message": "flow test completed"})
 }
 
-func (h *FlowHandler) PublishFlow(c *gin.Context) {
+func (h *FlowHandlerImpl) PublishFlow(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 
@@ -134,7 +129,7 @@ func (h *FlowHandler) PublishFlow(c *gin.Context) {
 	response.Success(c, gin.H{"message": "flow published successfully"})
 }
 
-func (h *FlowHandler) ListVersions(c *gin.Context) {
+func (h *FlowHandlerImpl) ListVersions(c *gin.Context) {
 	id := c.Param("id")
 
 	versions, err := h.service.ListVersions(c.Request.Context(), id)
@@ -146,7 +141,7 @@ func (h *FlowHandler) ListVersions(c *gin.Context) {
 	response.Success(c, gin.H{"versions": versions})
 }
 
-func (h *FlowHandler) RollbackVersion(c *gin.Context) {
+func (h *FlowHandlerImpl) RollbackVersion(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
 

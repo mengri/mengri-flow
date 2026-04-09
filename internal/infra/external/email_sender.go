@@ -22,20 +22,23 @@ type SMTPEmailSender struct {
 	baseURL string
 }
 
-var _ repository.EmailSender = (*SMTPEmailSender)(nil)
+var _ repository.IEmailSender = (*SMTPEmailSender)(nil)
 
 // GenSMTPEmailSender 创建 SMTP 邮件发送器。
 func GenSMTPEmailSender(emailCfg *config.EmailConfig) {
-	emailSender := &SMTPEmailSender{
-		host:    emailCfg.SMTP.Host,
-		port:    emailCfg.SMTP.Port,
-		user:    emailCfg.SMTP.Username,
-		pass:    emailCfg.SMTP.Password,
-		from:    emailCfg.SMTP.From,
-		subject: emailCfg.Activation.Subject,
-		baseURL: emailCfg.Activation.BaseURL,
-	}
-	autowire.Auto(func() repository.EmailSender { return emailSender })
+
+	autowire.Auto(func() repository.IEmailSender {
+		emailSender := &SMTPEmailSender{
+			host:    emailCfg.SMTP.Host,
+			port:    emailCfg.SMTP.Port,
+			user:    emailCfg.SMTP.Username,
+			pass:    emailCfg.SMTP.Password,
+			from:    emailCfg.SMTP.From,
+			subject: emailCfg.Activation.Subject,
+			baseURL: emailCfg.Activation.BaseURL,
+		}
+		return emailSender
+	})
 
 }
 

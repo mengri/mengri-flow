@@ -24,19 +24,19 @@ import (
 
 // AuthServiceImpl 认证应用服务实现。
 type AuthServiceImpl struct {
-	accountRepo  repository.AccountRepository         `autowired:""`
-	credRepo     repository.CredentialRepository      `autowired:""`
-	tokenRepo    repository.ActivationTokenRepository `autowired:""`
-	sessionStore repository.SessionStore              `autowired:""`
-	auditRepo    repository.AuditEventRepository      `autowired:""`
-	identityRepo repository.IdentityRepository        `autowired:""`
-	otpStore     repository.OTPStore                  `autowired:""`
-	smsSender    repository.SMSSender                 `autowired:""`
-	oauthProviders map[string]repository.OAuthProvider `autowired:""`
-	txManager    repository.TransactionManager        `autowired:""`
-	jwtManager   *auth.JWTManager                     `autowired:""`
-	cfg          *config.AuthConfig                   `autowired:""`
-	smsCfg       *config.SMSConfig                    `autowired:""`
+	accountRepo    repository.AccountRepository         `autowired:""`
+	credRepo       repository.CredentialRepository      `autowired:""`
+	tokenRepo      repository.ActivationTokenRepository `autowired:""`
+	sessionStore   repository.SessionStore              `autowired:""`
+	auditRepo      repository.AuditEventRepository      `autowired:""`
+	identityRepo   repository.IdentityRepository        `autowired:""`
+	otpStore       repository.OTPStore                  `autowired:""`
+	smsSender      repository.SMSSender                 `autowired:""`
+	oauthProviders map[string]repository.OAuthProvider  `autowired:""`
+	txManager      repository.TransactionManager        `autowired:""`
+	jwtManager     auth.IJWTManager                     `autowired:""`
+	cfg            *config.AuthConfig                   `autowired:""`
+	smsCfg         *config.SMSConfig                    `autowired:""`
 }
 
 var _ AuthService = (*AuthServiceImpl)(nil)
@@ -579,4 +579,3 @@ func (s *AuthServiceImpl) HandleOAuthCallback(ctx context.Context, provider, cod
 		Account:      &loginResp.Account,
 	}, nil
 }
-

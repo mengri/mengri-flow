@@ -5,20 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/app/dto"
-	"mengri-flow/internal/infra/config"
+
+	"github.com/google/uuid"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ClusterService struct {
-	etcdConfig config.EtcdConfig
-}
-
-func NewClusterService(etcdConfig config.EtcdConfig) *ClusterService {
-	return &ClusterService{
-		etcdConfig: etcdConfig,
-	}
 }
 
 func (s *ClusterService) CreateCluster(ctx context.Context, req *dto.CreateClusterRequest) (*dto.ClusterResponse, error) {
@@ -70,7 +63,7 @@ func (s *ClusterService) TestEtcdConnection(ctx context.Context, req *dto.TestEt
 		Password:    req.Password,
 		DialTimeout: 5 * time.Second,
 	}
-	
+
 	client, err := clientv3.New(cfg)
 	if err != nil {
 		return &dto.TestEtcdConnectionResponse{

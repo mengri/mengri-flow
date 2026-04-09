@@ -7,7 +7,7 @@ import (
 )
 
 // AccountAdminService 管理员账号管理服务接口。
-type AccountAdminService interface {
+type IAccountAdminService interface {
 	CreateAccount(ctx context.Context, req *dto.CreateAccountRequest, operatorID string) (*dto.AccountResponse, error)
 	GetAccountDetail(ctx context.Context, accountID string) (*dto.AccountDetailResponse, error)
 	ListAccounts(ctx context.Context, req *dto.ListAccountsRequest) (*dto.ListAccountsResponse, error)
@@ -17,7 +17,7 @@ type AccountAdminService interface {
 }
 
 func init() {
-	autowire.Auto(func() AccountAdminService {
+	autowire.Auto(func() IAccountAdminService {
 		return &AccountAdminServiceImpl{}
 	})
 }

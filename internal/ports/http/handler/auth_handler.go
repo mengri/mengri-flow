@@ -16,7 +16,7 @@ type AuthHandlerImpl struct {
 	authService service.AuthService `autowired:""`
 }
 
-var _ AuthHandler = (*AuthHandlerImpl)(nil)
+var _ IAuthHandler = (*AuthHandlerImpl)(nil)
 
 // ValidateActivation 激活链接预校验。
 // @Summary 校验激活令牌

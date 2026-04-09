@@ -4,35 +4,18 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/app/service"
 	"mengri-flow/pkg/response"
+
+	"github.com/gin-gonic/gin"
 )
 
-type ResourceHandler struct {
-	resourceService *service.ResourceService
+type ResourceHandlerImpl struct {
+	resourceService service.IResourceService `autowired:""`
 }
 
-func NewResourceHandler(svc *service.ResourceService) *ResourceHandler {
-	return &ResourceHandler{
-		resourceService: svc,
-	}
-}
-
-func (h *ResourceHandler) RegisterRoutes(router *gin.RouterGroup) {
-	resources := router.Group("/resources")
-	{
-		resources.POST("", h.CreateResource)
-		resources.GET("/:id", h.GetResource)
-		resources.PUT("/:id", h.UpdateResource)
-		resources.DELETE("/:id", h.DeleteResource)
-		resources.GET("", h.ListResources)
-		resources.POST("/test", h.TestConnection)
-	}
-}
-
-func (h *ResourceHandler) CreateResource(c *gin.Context) {
+func (h *ResourceHandlerImpl) CreateResource(c *gin.Context) {
 	var req dto.CreateResourceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid request", err)
@@ -60,7 +43,7 @@ func (h *ResourceHandler) CreateResource(c *gin.Context) {
 	response.Success(c, resp)
 }
 
-func (h *ResourceHandler) UpdateResource(c *gin.Context) {
+func (h *ResourceHandlerImpl) UpdateResource(c *gin.Context) {
 	id := c.Param("id")
 	var req dto.UpdateResourceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -89,7 +72,7 @@ func (h *ResourceHandler) UpdateResource(c *gin.Context) {
 	response.Success(c, resp)
 }
 
-func (h *ResourceHandler) DeleteResource(c *gin.Context) {
+func (h *ResourceHandlerImpl) DeleteResource(c *gin.Context) {
 	id := c.Param("id")
 
 	if err := h.resourceService.DeleteResource(c.Request.Context(), id); err != nil {
@@ -100,7 +83,7 @@ func (h *ResourceHandler) DeleteResource(c *gin.Context) {
 	response.Success(c, gin.H{"message": "resource deleted"})
 }
 
-func (h *ResourceHandler) GetResource(c *gin.Context) {
+func (h *ResourceHandlerImpl) GetResource(c *gin.Context) {
 	id := c.Param("id")
 
 	resource, err := h.resourceService.GetResource(c.Request.Context(), id)
@@ -124,7 +107,7 @@ func (h *ResourceHandler) GetResource(c *gin.Context) {
 	response.Success(c, resp)
 }
 
-func (h *ResourceHandler) ListResources(c *gin.Context) {
+func (h *ResourceHandlerImpl) ListResources(c *gin.Context) {
 	workspaceID := c.Query("workspaceId")
 	if workspaceID == "" {
 		response.Error(c, http.StatusBadRequest, "workspaceId is required", nil)
@@ -166,7 +149,7 @@ func (h *ResourceHandler) ListResources(c *gin.Context) {
 	response.Success(c, resp)
 }
 
-func (h *ResourceHandler) TestConnection(c *gin.Context) {
+func (h *ResourceHandlerImpl) TestConnection(c *gin.Context) {
 	var req dto.TestConnectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid request", err)

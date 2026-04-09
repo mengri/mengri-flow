@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"mengri-flow/internal/app/dto"
+	"mengri-flow/pkg/autowire"
 )
 
 type ITriggerService interface {
@@ -18,3 +19,9 @@ type ITriggerService interface {
 }
 
 var _ ITriggerService = (*TriggerService)(nil)
+
+func init() {
+	autowire.Auto(func() ITriggerService {
+		return new(TriggerService)
+	})
+}

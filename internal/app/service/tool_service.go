@@ -5,19 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/app/dto"
-	"mengri-flow/internal/infra/plugin"
+
+	"github.com/google/uuid"
 )
 
 type ToolService struct {
-	pluginRegistry *plugin.Registry
-}
-
-func NewToolService(registry *plugin.Registry) *ToolService {
-	return &ToolService{
-		pluginRegistry: registry,
-	}
 }
 
 func (s *ToolService) CreateTool(ctx context.Context, req *dto.CreateToolRequest) (*dto.ToolResponse, error) {
