@@ -16,8 +16,8 @@ import (
 	domainErr "mengri-flow/internal/domain/errors"
 	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/auth"
-	"mengri-flow/internal/infra/cache"
 	"mengri-flow/internal/infra/config"
+	"mengri-flow/internal/infra/external/oauth"
 
 	"github.com/google/uuid"
 )
@@ -32,11 +32,13 @@ type AuthServiceImpl struct {
 	identityRepo   repository.IdentityRepository        `autowired:""`
 	otpStore       repository.OTPStore                  `autowired:""`
 	smsSender      repository.SMSSender                 `autowired:""`
-	oauthProviders map[string]repository.OAuthProvider  `autowired:""`
+	oauthProviders oauth.IOAuthProviders                `autowired:""`
 	txManager      repository.TransactionManager        `autowired:""`
 	jwtManager     auth.IJWTManager                     `autowired:""`
 	cfg            *config.AuthConfig                   `autowired:""`
 	smsCfg         *config.SMSConfig                    `autowired:""`
+	stateStore     repository.OAuthStateStore           `autowired:""`
+	bindStore      repository.BindTicketStore           `autowired:""`
 }
 
 var _ AuthService = (*AuthServiceImpl)(nil)
@@ -478,14 +480,13 @@ func (s *AuthServiceImpl) LoginBySMS(ctx context.Context, req *dto.SMSLoginReque
 
 // GetOAuthURL 获取第三方授权地址。
 func (s *AuthServiceImpl) GetOAuthURL(ctx context.Context, provider, scene, redirectURI string) (*dto.OAuthURLResponse, error) {
-	oauthProvider, ok := s.oauthProviders[provider]
+	oauthProvider, ok := s.oauthProviders.GetProvider(provider)
 	if !ok {
 		return nil, domainErr.ErrOAuthProviderNotSupported
 	}
 
 	// 生成并存储 state（CSRF 防护）
-	stateStore := cache.NewOAuthStateStore(nil) // 这里需要 redis client，实际应该在构造时注入
-	state, err := stateStore.Generate(ctx)
+	state, err := s.stateStore.Generate(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("generate oauth state: %w", err)
 	}
@@ -502,12 +503,11 @@ func (s *AuthServiceImpl) GetOAuthURL(ctx context.Context, provider, scene, redi
 // HandleOAuthCallback 处理第三方回调。
 func (s *AuthServiceImpl) HandleOAuthCallback(ctx context.Context, provider, code, state string) (*dto.OAuthCallbackResponse, error) {
 	// 1. 验证 state
-	stateStore := cache.NewOAuthStateStore(nil) // 需要 redis client
-	if err := stateStore.Validate(ctx, state); err != nil {
+	if err := s.stateStore.Validate(ctx, state); err != nil {
 		return nil, domainErr.ErrOAuthStateInvalid
 	}
 
-	oauthProvider, ok := s.oauthProviders[provider]
+	oauthProvider, ok := s.oauthProviders.GetProvider(provider)
 	if !ok {
 		return nil, domainErr.ErrOAuthProviderNotSupported
 	}
@@ -522,9 +522,8 @@ func (s *AuthServiceImpl) HandleOAuthCallback(ctx context.Context, provider, cod
 	// 3. 查找是否已绑定
 	identity, err := s.identityRepo.GetByProviderID(ctx, entity.LoginType(provider+"_oauth"), userInfo.ProviderUserID)
 	if err != nil {
-		// 未绑定，生成 bind ticket
-		bindStore := cache.NewBindTicketStore(nil) // 需要 redis client
-		bindTicket, err := bindStore.Generate(ctx, &cache.BindTicketData{
+
+		bindTicket, err := s.bindStore.Generate(ctx, &repository.BindTicketData{
 			Provider:   provider,
 			ExternalID: userInfo.ProviderUserID,
 			Nickname:   userInfo.DisplayName,

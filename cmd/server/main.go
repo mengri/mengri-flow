@@ -14,12 +14,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/joho/godotenv"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/redis/go-redis/v9"
-	"golang.org/x/text/language"
 	"mengri-flow/internal/domain/entity"
 	"mengri-flow/internal/domain/valueobject"
 	"mengri-flow/internal/executor"
@@ -36,6 +30,13 @@ import (
 	"mengri-flow/internal/ports/http/router"
 	"mengri-flow/pkg/autowire"
 	"mengri-flow/pkg/logger"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/joho/godotenv"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/redis/go-redis/v9"
+	"golang.org/x/text/language"
 	"gorm.io/gorm"
 )
 
@@ -248,7 +249,7 @@ func runConsole(cfgPath string) {
 	}
 
 	// --- Cache Stores ---
-	cache.GenSecurityTicketStore(rdb, cfg.Auth.SecurityTicketTTL)
+	cache.GenSecurityTicketStore(cfg.Auth.SecurityTicketTTL)
 
 	// --- OAuth Providers ---
 	oauth.InitOAuthProviders(&cfg.OAuth)

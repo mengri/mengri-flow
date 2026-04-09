@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"fmt"
+	"mengri-flow/pkg/autowire"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -13,9 +14,10 @@ type RateLimiter struct {
 	rdb *redis.Client
 }
 
-// NewRateLimiter 创建速率限制器。
-func NewRateLimiter(rdb *redis.Client) *RateLimiter {
-	return &RateLimiter{rdb: rdb}
+func init() {
+	autowire.Auto(func() *RateLimiter {
+		return &RateLimiter{}
+	})
 }
 
 // Allow 检查是否允许操作。

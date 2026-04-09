@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"mengri-flow/internal/domain/repository"
 	"mengri-flow/pkg/autowire"
 	"time"
 
@@ -13,16 +14,16 @@ import (
 
 // SecurityTicketStore 安全票据 Redis 存储。
 type SecurityTicketStore struct {
-	rdb *redis.Client
+	rdb *redis.Client `autowired:""`
 	ttl time.Duration
 }
 
 // GenSecurityTicketStore 创建安全票据存储。
-func GenSecurityTicketStore(rdb *redis.Client, ttlSeconds int) {
+func GenSecurityTicketStore(ttlSeconds int) {
 
-	autowire.Auto(func() *SecurityTicketStore {
+	autowire.Auto(func() repository.SecurityTicketStore {
 		return &SecurityTicketStore{
-			rdb: rdb,
+
 			ttl: time.Duration(ttlSeconds) * time.Second,
 		}
 	})

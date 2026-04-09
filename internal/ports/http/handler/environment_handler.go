@@ -3,14 +3,15 @@ package handler
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"mengri-flow/internal/app/dto"
 	"mengri-flow/internal/app/service"
 	"mengri-flow/pkg/response"
+
+	"github.com/gin-gonic/gin"
 )
 
 type EnvironmentHandlerImpl struct {
-	service service.EnvironmentService `autowired:""`
+	service service.IEnvironmentService `autowired:""`
 }
 
 func (h *EnvironmentHandlerImpl) CreateEnvironment(c *gin.Context) {

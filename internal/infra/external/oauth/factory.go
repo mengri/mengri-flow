@@ -6,6 +6,19 @@ import (
 	"mengri-flow/pkg/autowire"
 )
 
+type IOAuthProviders interface {
+	GetProvider(provider string) (repository.OAuthProvider, bool)
+}
+type OAuthProviders struct {
+	providers map[string]repository.OAuthProvider
+}
+
+// GetProvider implements [IOAuthProviders].
+func (o *OAuthProviders) GetProvider(provider string) (repository.OAuthProvider, bool) {
+	p, ok := o.providers[provider]
+	return p, ok
+}
+
 // InitOAuthProviders 初始化并注册所有 OAuth 提供商
 func InitOAuthProviders(oauthCfg *config.OAuthConfig) {
 	providers := make(map[string]repository.OAuthProvider)
@@ -24,9 +37,11 @@ func InitOAuthProviders(oauthCfg *config.OAuthConfig) {
 	// }
 
 	// 注册到 autowire
-	if len(providers) > 0 {
-		autowire.Auto(func() map[string]repository.OAuthProvider {
-			return providers
-		})
-	}
+
+	autowire.Auto(func() IOAuthProviders {
+		return &OAuthProviders{
+			providers: providers,
+		}
+	})
+
 }

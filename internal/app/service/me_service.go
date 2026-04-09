@@ -11,7 +11,6 @@ import (
 	domainErr "mengri-flow/internal/domain/errors"
 	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/auth"
-	"mengri-flow/internal/infra/cache"
 	"mengri-flow/internal/infra/config"
 
 	"github.com/google/uuid"
@@ -26,8 +25,8 @@ type MeServiceImpl struct {
 	auditRepo    repository.AuditEventRepository `autowired:""`
 	otpStore     repository.OTPStore             `autowired:""`
 	txManager    repository.TransactionManager   `autowired:""`
-	ticketStore  *cache.SecurityTicketStore      `autowired:""`
-	bindStore    *cache.BindTicketStore          `autowired:""`
+	ticketStore  repository.SecurityTicketStore  `autowired:""`
+	bindStore    repository.BindTicketStore      `autowired:""`
 	cfg          *config.AuthConfig              `autowired:""`
 	smsCfg       *config.SMSConfig               `autowired:""`
 }

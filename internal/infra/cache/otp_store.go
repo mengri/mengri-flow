@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"mengri-flow/internal/domain/repository"
+	"mengri-flow/pkg/autowire"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -11,15 +12,16 @@ import (
 
 // RedisOTPStore 是 OTPStore 的 Redis 实现。
 type RedisOTPStore struct {
-	rdb *redis.Client
+	rdb *redis.Client `autowired:""`
+}
+
+func init() {
+	autowire.Auto(func() repository.OTPStore {
+		return &RedisOTPStore{}
+	})
 }
 
 var _ repository.OTPStore = (*RedisOTPStore)(nil)
-
-// NewRedisOTPStore 创建 OTP 存储。
-func NewRedisOTPStore(rdb *redis.Client) *RedisOTPStore {
-	return &RedisOTPStore{rdb: rdb}
-}
 
 func otpKey(scene, target string) string {
 	return fmt.Sprintf("otp:%s:%s", scene, target)

@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"mengri-flow/internal/domain/repository"
+	"mengri-flow/pkg/autowire"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -12,16 +14,16 @@ import (
 
 // OAuthStateStore OAuth state 参数 Redis 存储（CSRF 防护）。
 type OAuthStateStore struct {
-	rdb *redis.Client
+	rdb *redis.Client `autowired:""`
 	ttl time.Duration
 }
 
-// NewOAuthStateStore 创建 OAuth state 存储。
-func NewOAuthStateStore(rdb *redis.Client) *OAuthStateStore {
-	return &OAuthStateStore{
-		rdb: rdb,
-		ttl: 5 * time.Minute,
-	}
+func init() {
+	autowire.Auto(func() repository.OAuthStateStore {
+		return &OAuthStateStore{
+			ttl: 5 * time.Minute,
+		}
+	})
 }
 
 func oauthStateKey(state string) string {

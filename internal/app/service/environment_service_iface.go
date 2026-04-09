@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"mengri-flow/internal/app/dto"
+	"mengri-flow/pkg/autowire"
 )
 
 type IEnvironmentService interface {
@@ -15,3 +16,9 @@ type IEnvironmentService interface {
 }
 
 var _ IEnvironmentService = (*EnvironmentService)(nil)
+
+func init() {
+	autowire.Auto(func() IEnvironmentService {
+		return &EnvironmentService{}
+	})
+}

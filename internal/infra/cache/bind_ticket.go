@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"mengri-flow/internal/domain/repository"
+	"mengri-flow/pkg/autowire"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -21,16 +23,16 @@ type BindTicketData struct {
 
 // BindTicketStore 第三方绑定票据 Redis 存储。
 type BindTicketStore struct {
-	rdb *redis.Client
+	rdb *redis.Client `autowired:""`
 	ttl time.Duration
 }
 
-// NewBindTicketStore 创建绑定票据存储。
-func NewBindTicketStore(rdb *redis.Client) *BindTicketStore {
-	return &BindTicketStore{
-		rdb: rdb,
-		ttl: 5 * time.Minute,
-	}
+func init() {
+	autowire.Auto(func() repository.BindTicketStore {
+		return &BindTicketStore{
+			ttl: 5 * time.Minute,
+		}
+	})
 }
 
 func bindTicketKey(ticket string) string {
@@ -38,7 +40,7 @@ func bindTicketKey(ticket string) string {
 }
 
 // Generate 生成绑定票据并存入 Redis。
-func (s *BindTicketStore) Generate(ctx context.Context, data *BindTicketData) (string, error) {
+func (s *BindTicketStore) Generate(ctx context.Context, data *repository.BindTicketData) (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", fmt.Errorf("generate bind ticket: %w", err)
@@ -57,7 +59,7 @@ func (s *BindTicketStore) Generate(ctx context.Context, data *BindTicketData) (s
 }
 
 // Validate 验证并消费绑定票据（一次性使用），返回关联数据。
-func (s *BindTicketStore) Validate(ctx context.Context, ticket string) (*BindTicketData, error) {
+func (s *BindTicketStore) Validate(ctx context.Context, ticket string) (*repository.BindTicketData, error) {
 	key := bindTicketKey(ticket)
 
 	val, err := s.rdb.Get(ctx, key).Result()
@@ -71,7 +73,7 @@ func (s *BindTicketStore) Validate(ctx context.Context, ticket string) (*BindTic
 	// 一次性使用
 	s.rdb.Del(ctx, key)
 
-	var data BindTicketData
+	var data repository.BindTicketData
 	if err := json.Unmarshal([]byte(val), &data); err != nil {
 		return nil, fmt.Errorf("unmarshal bind ticket data: %w", err)
 	}
