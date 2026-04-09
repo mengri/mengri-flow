@@ -15,23 +15,6 @@ type TriggerHandlerImpl struct {
 }
 
 func (h *TriggerHandlerImpl) ListTriggers(c *gin.Context) {
-	var req dto.CreateTriggerRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "invalid request")
-		return
-	}
-
-	accountID := c.GetString("accountID")
-	trigger, err := h.service.CreateTrigger(c.Request.Context(), &req, accountID)
-	if err != nil {
-		handleError(c, err)
-		return
-	}
-
-	response.Success(c, trigger)
-}
-
-func (h *TriggerHandlerImpl) CreateTrigger(c *gin.Context) {
 	flowID := c.Query("flowId")
 	status := c.Query("status")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -51,6 +34,23 @@ func (h *TriggerHandlerImpl) CreateTrigger(c *gin.Context) {
 	}
 
 	response.Success(c, triggers)
+}
+
+func (h *TriggerHandlerImpl) CreateTrigger(c *gin.Context) {
+	var req dto.CreateTriggerRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "invalid request")
+		return
+	}
+
+	accountID := c.GetString("accountID")
+	trigger, err := h.service.CreateTrigger(c.Request.Context(), &req, accountID)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	response.Success(c, trigger)
 }
 
 func (h *TriggerHandlerImpl) GetTrigger(c *gin.Context) {

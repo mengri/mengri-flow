@@ -14,7 +14,7 @@ type FlowHandlerImpl struct {
 	service service.IFlowService `autowired:""`
 }
 
-func (h *FlowHandlerImpl) ListFlows(c *gin.Context) {
+func (h *FlowHandlerImpl) CreateFlow(c *gin.Context) {
 	var req dto.CreateFlowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request")
@@ -31,7 +31,7 @@ func (h *FlowHandlerImpl) ListFlows(c *gin.Context) {
 	response.Success(c, flow)
 }
 
-func (h *FlowHandlerImpl) CreateFlow(c *gin.Context) {
+func (h *FlowHandlerImpl) ListFlows(c *gin.Context) {
 	workspaceID := c.Query("workspaceId")
 	status := c.Query("status")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))

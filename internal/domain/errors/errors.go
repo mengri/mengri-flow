@@ -6,11 +6,11 @@ import "errors"
 
 var (
 	// 通用错误
-	ErrNotFound     = errors.New("resource not found")
-	ErrUnauthorized = errors.New("unauthorized")
-	ErrForbidden    = errors.New("forbidden")
-	ErrConflict     = errors.New("resource already exists")
-
+	ErrNotFound         = errors.New("resource not found")
+	ErrUnauthorized     = errors.New("unauthorized")
+	ErrForbidden        = errors.New("forbidden")
+	ErrConflict         = errors.New("resource already exists")
+	ErrInvalidOperation = errors.New("invalid operation")
 	// 字段校验错误
 	ErrInvalidUsername = errors.New("invalid username: must be 2-50 characters")
 	ErrInvalidEmail    = errors.New("invalid email address")

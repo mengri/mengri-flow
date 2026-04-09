@@ -134,14 +134,14 @@ func (m *TriggerManager) createTriggerHandler(trigger *entity.Trigger) plugin.Tr
 		log.Printf("Trigger %s executed", triggerID)
 
 		// 1. 输入映射
-		flowInput := m.applyInputMapping(input, trigger.InputMapping)
+		flowInput := m.applyInputMapping(input, convertToInterfaceMap(trigger.InputMapping))
 		log.Printf("Mapped input for trigger %s: %v", triggerID, flowInput)
 
 		// 2. 查询流程
 		flow, err := m.flowEngine.GetFlow(trigger.FlowID.String())
 		if err != nil {
 			log.Printf("Failed to get flow %s: %v", trigger.FlowID, err)
-			return m.handleError(err, trigger.ErrorHandling)
+			return m.handleError(err, convertErrorHandlingToInterface(trigger.ErrorHandling))
 		}
 
 		log.Printf("Executing flow %s for trigger %s", flow.ID, triggerID)
@@ -156,18 +156,39 @@ func (m *TriggerManager) createTriggerHandler(trigger *entity.Trigger) plugin.Tr
 		output, err := m.flowEngine.ExecuteFlow(ctxContext, flow, flowInput)
 		if err != nil {
 			log.Printf("Flow execution failed for trigger %s: %v", triggerID, err)
-			return m.handleError(err, trigger.ErrorHandling)
+			return m.handleError(err, convertErrorHandlingToInterface(trigger.ErrorHandling))
 		}
 
 		log.Printf("Flow executed successfully for trigger %s", triggerID)
 
 		// 4. 输出映射
-		response := m.applyOutputMapping(output, trigger.OutputMapping)
+		response := m.applyOutputMapping(output, convertToInterfaceMap(trigger.OutputMapping))
 
 		return &plugin.TriggerResult{
 			Success: true,
 			Data:    response,
 		}, nil
+	}
+}
+
+// convertToInterfaceMap 将 map[string]string 转换为 map[string]interface{}
+func convertToInterfaceMap(m map[string]string) map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	result := make(map[string]interface{}, len(m))
+	for k, v := range m {
+		result[k] = v
+	}
+	return result
+}
+
+// convertErrorHandlingToInterface 将 ErrorHandling 结构体转换为 map[string]interface{}
+func convertErrorHandlingToInterface(eh entity.ErrorHandling) map[string]interface{} {
+	return map[string]interface{}{
+		"strategy":            eh.Strategy,
+		"retryOnFailure":      eh.RetryOnFailure,
+		"customErrorFormat":   eh.CustomErrorFormat,
 	}
 }
 

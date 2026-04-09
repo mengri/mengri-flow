@@ -31,18 +31,41 @@ type Trigger struct {
 	Name           string
 	Type           TriggerType
 	FlowID         uuid.UUID
+	FlowVersion    int
+	ClusterID      uuid.UUID
+	InputMapping   map[string]string
+	OutputMapping  map[string]string
+	ErrorHandling  ErrorHandling
 	Config         map[string]interface{}
-	InputMapping   map[string]interface{}
-	OutputMapping  map[string]interface{}
-	ErrorHandling  map[string]interface{}
+	WorkspaceID    uuid.UUID
 	Status         TriggerStatus
 	LastExecutedAt *time.Time
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
 
+// ErrorHandling 错误处理配置
+type ErrorHandling struct {
+	Strategy         string
+	CustomErrorFormat map[string]interface{}
+	RetryOnFailure   bool
+}
+
 // NewTrigger 创建一个新的触发器
 func NewTrigger(name string, triggerType TriggerType, flowID uuid.UUID, config map[string]interface{}) (*Trigger, error) {
+	return NewTriggerWithOptions(name, triggerType, flowID, config, nil, nil, nil)
+}
+
+// NewTriggerWithOptions 创建一个新的触发器（带完整选项）
+func NewTriggerWithOptions(
+	name string,
+	triggerType TriggerType,
+	flowID uuid.UUID,
+	config map[string]interface{},
+	clusterID *uuid.UUID,
+	workspaceID *uuid.UUID,
+	errorHandling *ErrorHandling,
+) (*Trigger, error) {
 	if name == "" {
 		return nil, fmt.Errorf("trigger name cannot be empty")
 	}
@@ -52,7 +75,7 @@ func NewTrigger(name string, triggerType TriggerType, flowID uuid.UUID, config m
 	}
 
 	now := time.Now()
-	return &Trigger{
+	trigger := &Trigger{
 		ID:        uuid.New(),
 		Name:      name,
 		Type:      triggerType,
@@ -61,7 +84,25 @@ func NewTrigger(name string, triggerType TriggerType, flowID uuid.UUID, config m
 		Status:    TriggerStatusActive,
 		CreatedAt: now,
 		UpdatedAt: now,
-	}, nil
+	}
+
+	if clusterID != nil {
+		trigger.ClusterID = *clusterID
+	}
+	if workspaceID != nil {
+		trigger.WorkspaceID = *workspaceID
+	}
+	if errorHandling != nil {
+		trigger.ErrorHandling = *errorHandling
+	} else {
+		// 默认错误处理配置
+		trigger.ErrorHandling = ErrorHandling{
+			Strategy:       "default",
+			RetryOnFailure: false,
+		}
+	}
+
+	return trigger, nil
 }
 
 // Update 更新触发器信息
@@ -100,6 +141,11 @@ func validateTriggerType(triggerType TriggerType) error {
 	default:
 		return fmt.Errorf("invalid trigger type: %s", triggerType)
 	}
+}
+
+// ValidateTriggerType 验证触发器类型（公共函数）
+func ValidateTriggerType(triggerType TriggerType) error {
+	return validateTriggerType(triggerType)
 }
 
 func validateTriggerStatus(status TriggerStatus) error {

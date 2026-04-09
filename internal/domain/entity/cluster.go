@@ -18,19 +18,23 @@ const (
 
 // Cluster 表示一个集群
 type Cluster struct {
-	ID             uuid.UUID
-	Name           string
-	EnvironmentID  uuid.UUID
-	EtcdEndpoints  []string
-	EtcdUsername   string
-	EtcdPassword   string // 加密存储
-	EtcdPrefix     string
-	Description    string
-	Status         ClusterStatus
-	ExecutorCount  int
-	LastHeartbeat  *time.Time
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID            uuid.UUID
+	Name          string
+	EnvironmentID uuid.UUID
+	EtcdEndpoints []string
+	EtcdUsername  string
+	EtcdPassword  string // 加密存储
+	EtcdPrefix    string
+	Description   string
+	Status        ClusterStatus
+	ExecutorCount int
+	LastHeartbeat *time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+func (c *Cluster) IsActive() bool {
+	return c.Status == ClusterStatusActive
 }
 
 // NewCluster 创建一个新的集群
@@ -45,19 +49,19 @@ func NewCluster(name string, environmentID uuid.UUID, endpoints []string, userna
 
 	now := time.Now()
 	return &Cluster{
-		ID:             uuid.New(),
-		Name:           name,
-		EnvironmentID:  environmentID,
-		EtcdEndpoints:  endpoints,
-		EtcdUsername:   username,
-		EtcdPassword:   password, // 应在服务层加密
-		EtcdPrefix:     prefix,
-		Description:    description,
-		Status:         ClusterStatusActive,
-		ExecutorCount:  0,
-		LastHeartbeat:  nil,
-		CreatedAt:      now,
-		UpdatedAt:      now,
+		ID:            uuid.New(),
+		Name:          name,
+		EnvironmentID: environmentID,
+		EtcdEndpoints: endpoints,
+		EtcdUsername:  username,
+		EtcdPassword:  password, // 应在服务层加密
+		EtcdPrefix:    prefix,
+		Description:   description,
+		Status:        ClusterStatusActive,
+		ExecutorCount: 0,
+		LastHeartbeat: nil,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}, nil
 }
 

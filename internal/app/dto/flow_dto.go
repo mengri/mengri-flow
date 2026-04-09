@@ -52,8 +52,8 @@ type ListFlowsRequest struct {
 }
 
 type ListFlowsResponse struct {
-	Total    int64         `json:"total"`
-	Page     int           `json:"page"`
-	PageSize int           `json:"pageSize"`
-	List     []FlowResponse `json:"list"`
+	Total    int64           `json:"total"`
+	Page     int             `json:"page"`
+	PageSize int             `json:"pageSize"`
+	List     []*FlowResponse `json:"list"`
 }

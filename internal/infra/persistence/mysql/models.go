@@ -7,9 +7,13 @@ import (
 	clusterRepository "mengri-flow/internal/infra/persistence/mysql/cluster_repository"
 	credentialRepository "mengri-flow/internal/infra/persistence/mysql/credential_repository"
 	environmentRepository "mengri-flow/internal/infra/persistence/mysql/environment_repository"
+	flowRepository "mengri-flow/internal/infra/persistence/mysql/flow_repository"
 	identityRepository "mengri-flow/internal/infra/persistence/mysql/identity_repository"
 	resourceRepository "mengri-flow/internal/infra/persistence/mysql/resource_repository"
 	sessionRepository "mengri-flow/internal/infra/persistence/mysql/session_repository"
+	toolRepository "mengri-flow/internal/infra/persistence/mysql/tool_repository"
+	triggerRepository "mengri-flow/internal/infra/persistence/mysql/trigger_repository"
+	workspaceRepository "mengri-flow/internal/infra/persistence/mysql/workspace_repository"
 )
 
 func init() {
@@ -24,4 +28,8 @@ func init() {
 	clusterRepository.Auto(event)
 	environmentRepository.Auto(event)
 	resourceRepository.Auto(event)
+	toolRepository.Auto(event)
+	workspaceRepository.Auto(event)
+	flowRepository.Auto(event)
+	triggerRepository.Auto(event)
 }

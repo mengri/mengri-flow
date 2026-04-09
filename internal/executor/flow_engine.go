@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"strings"
 	"sync"
 
@@ -210,12 +211,10 @@ func (e *FlowEngine) executeToolNode(ctx context.Context, node *Node, contextDat
 func (e *FlowEngine) executeTool(ctx context.Context, tool *entity.Tool, resource *entity.Resource, input map[string]interface{}) map[string]interface{} {
 	// 简化实现：直接返回输入作为输出
 	// 实际应该调用插件的 ExecuteTool 方法
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	// 合并工具配置和输入
-	for k, v := range tool.Config {
-		result[k] = v
-	}
+	maps.Copy(result, tool.Config)
 	for k, v := range input {
 		result[k] = v
 	}
