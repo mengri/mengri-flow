@@ -41,3 +41,4 @@ web/dist/*
 docker-compose.override.yml
 /cmd/server/server
 /server
+/dist/
