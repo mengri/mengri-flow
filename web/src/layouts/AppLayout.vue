@@ -7,7 +7,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
 
 // 组件导入
-import MengriTopbar from '@/components/ui/MengriTopbar.vue'
 import MengriSidebar from '@/components/ui/MengriSidebar.vue'
 
 // 图标导入
@@ -21,6 +20,10 @@ import {
   UserCircleIcon,
 } from '@/components/icons'
 
+// 窗口尺寸
+const { width } = useWindowSize()
+const isMobile = computed(() => width.value < 768)
+
 const { t } = useI18n()
 
 const route = useRoute()
@@ -29,10 +32,6 @@ const { handleLogout: authLogout } = useAuth()
 
 // 响应式状态
 const showSidebar = ref(true)
-
-// 窗口尺寸
-const { width } = useWindowSize()
-const isMobile = computed(() => width.value < 768)
 
 // 面包屑导航
 const breadcrumbs = computed(() => {
@@ -58,27 +57,6 @@ const breadcrumbs = computed(() => {
 const pageTitle = computed(() => route.meta?.title || getRouteTitle(route.path))
 const pageSubtitle = computed(() => route.meta?.subtitle || '')
 const showFooter = computed(() => route.meta?.showFooter !== false)
-
-// 菜单项
-const menuItems = computed(() => {
-  const items = [
-    { path: '/dashboard', label: t('nav.dashboard'), icon: HomeIcon, badge: 0 },
-    { path: '/workflows', label: t('nav.flows'), icon: ArrowsRightLeftIcon, badge: 12 },
-    { path: '/resources', label: t('nav.resources'), icon: PuzzleIcon },
-    { path: '/tools', label: t('nav.tools'), icon: CogIcon },
-  ]
-
-  if (authStore.isAdmin) {
-    items.push(
-      { path: '/admin/users', label: t('nav.account'), icon: UsersIcon },
-      { path: '/admin/settings', label: t('common.settings'), icon: CogIcon }
-    )
-  }
-
-  items.push({ path: '/account', label: t('nav.account'), icon: UserCircleIcon })
-
-  return items
-})
 
 // 侧边栏导航配置
 const navigation = computed(() => {
@@ -171,15 +149,6 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen flex flex-col bg-gray-50">
-    <!-- 顶部导航栏 -->
-    <MengriTopbar
-      :menu-items="menuItems"
-      :show-mobile-menu-toggle="isMobile"
-      :show-search="true"
-      @toggle-sidebar="toggleSidebar"
-      @logout="handleLogout"
-    />
-    
     <div class="flex flex-1 overflow-hidden">
       <!-- 侧边栏导航 -->
       <transition name="slide-left">
@@ -249,9 +218,9 @@ onUnmounted(() => {
 /* 移动端侧边栏样式 */
 .mobile-sidebar {
   position: fixed;
-  top: 64px;
+  top: 0;
   left: 0;
-  height: calc(100vh - 64px);
+  height: 100vh;
   z-index: 40;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }

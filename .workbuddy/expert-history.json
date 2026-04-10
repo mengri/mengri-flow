@@ -117,7 +117,18 @@
         "usedAt": 1775793428830,
         "industryId": "all"
       }
+    ],
+    "e06ced5b63884a9dac64a03a4c2261ec": [
+      {
+        "expertId": "UserExperienceArchitect",
+        "name": "Tom",
+        "profession": "用户体验架构师",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/01-Design/UserExperienceArchitect/UserExperienceArchitect.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/01-Design/UserExperienceArchitect/UserExperienceArchitect_zh.md",
+        "usedAt": 1775805016036,
+        "industryId": "all"
+      }
     ]
   },
-  "lastUpdated": 1775793481307
+  "lastUpdated": 1775805168204
 }
