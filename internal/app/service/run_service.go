@@ -44,5 +44,8 @@ func (s *RunServiceImpl) GetRunStats(ctx context.Context) (*dto.RunStatsResponse
 		TodayRuns:   0,
 		WeekRuns:    0,
 		MonthRuns:   0,
+		SuccessRate: 0,
+		AvgDuration: 0,
+		Trend:       []dto.RunStatsTrendItem{},
 	}, nil
 }

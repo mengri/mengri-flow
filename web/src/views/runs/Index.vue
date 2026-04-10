@@ -53,14 +53,28 @@
 
     <!-- 图表 -->
     <div class="charts">
-      <el-card class="chart-card">
-        <template #header>
-          <span>运行趋势（7天）</span>
-        </template>
-        <div class="chart-placeholder">
-          <el-empty description="图表功能待实现" />
-        </div>
-      </el-card>
+      <el-row :gutter="20">
+        <el-col :span="16">
+          <el-card class="chart-card">
+            <template #header>
+              <span>运行趋势（7天）</span>
+            </template>
+            <div class="chart-container">
+              <canvas ref="trendChartRef"></canvas>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8">
+          <el-card class="chart-card">
+            <template #header>
+              <span>状态分布</span>
+            </template>
+            <div class="chart-container chart-container--small">
+              <canvas ref="statusChartRef"></canvas>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
     </div>
 
     <!-- 表格 -->
@@ -120,13 +134,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Chart, registerables } from 'chart.js'
 import { runAPI } from '@/api/runs'
-import type { Run } from '@/types/run'
+import type { Run, RunStats } from '@/types/run'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { formatDate, formatDuration, statusTagType, statusText } from '@/utils/request'
+
+Chart.register(...registerables)
 
 const router = useRouter()
 const workspaceStore = useWorkspaceStore()
@@ -134,6 +151,12 @@ const workspaceStore = useWorkspaceStore()
 const loading = ref(false)
 const runs = ref<Run[]>([])
 const stats = ref<any[]>([])
+const runStats = ref<RunStats | null>(null)
+
+const trendChartRef = ref<HTMLCanvasElement>()
+const statusChartRef = ref<HTMLCanvasElement>()
+let trendChart: Chart | null = null
+let statusChart: Chart | null = null
 
 const filters = reactive({
   search: '',
@@ -169,18 +192,106 @@ async function loadStats() {
     const data = await runAPI.getStats({
       workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
     })
-    
-    // 构建统计卡片数据
+    runStats.value = data
+
     stats.value = [
       { title: '总运行次数', value: data.totalRuns, change: 0 },
       { title: '成功率', value: `${data.successRate}%`, change: 0 },
-      { title: '平均耗时', value: `${formatDuration(data.avgDuration)}`, change: 0 },
+      { title: '平均耗时', value: formatDuration(data.avgDuration), change: 0 },
       { title: '今日运行', value: data.todayRuns, change: 0 },
     ]
+
+    await nextTick()
+    renderTrendChart(data.trend ?? [])
+    renderStatusChart(data)
   } catch (error) {
     console.error('加载统计失败', error)
   }
 }
+
+function renderTrendChart(trend: Array<{ date: string; success: number; failed: number }>) {
+  if (!trendChartRef.value) return
+
+  if (trendChart) {
+    trendChart.destroy()
+  }
+
+  const labels = trend.map((item) => item.date)
+  trendChart = new Chart(trendChartRef.value, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '成功',
+          data: trend.map((item) => item.success),
+          borderColor: '#67c23a',
+          backgroundColor: 'rgba(103, 194, 58, 0.1)',
+          fill: true,
+          tension: 0.4,
+        },
+        {
+          label: '失败',
+          data: trend.map((item) => item.failed),
+          borderColor: '#f56c6c',
+          backgroundColor: 'rgba(245, 108, 108, 0.1)',
+          fill: true,
+          tension: 0.4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+      },
+    },
+  })
+}
+
+function renderStatusChart(stats: RunStats) {
+  if (!statusChartRef.value) return
+
+  if (statusChart) {
+    statusChart.destroy()
+  }
+
+  const failed = stats.totalRuns - stats.todayRuns > 0
+    ? Math.round((1 - stats.successRate / 100) * stats.totalRuns)
+    : 0
+  const success = stats.totalRuns - failed
+
+  statusChart = new Chart(statusChartRef.value, {
+    type: 'doughnut',
+    data: {
+      labels: ['成功', '失败'],
+      datasets: [
+        {
+          data: [success, failed],
+          backgroundColor: ['#67c23a', '#f56c6c'],
+          borderWidth: 0,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' },
+      },
+      cutout: '65%',
+    },
+  })
+}
+
+onBeforeUnmount(() => {
+  trendChart?.destroy()
+  statusChart?.destroy()
+})
 
 function handleSearch() {
   pagination.page = 1
@@ -265,8 +376,12 @@ onMounted(() => {
   height: 300px;
 }
 
-.chart-placeholder {
-  height: 100%;
+.chart-container {
+  height: calc(100% - 60px);
+  position: relative;
+}
+
+.chart-container--small {
   display: flex;
   align-items: center;
   justify-content: center;

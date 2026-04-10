@@ -42,13 +42,22 @@ type RetryRunRequest struct {
 }
 
 type RunStatsResponse struct {
-	TotalRuns      int64 `json:"totalRuns"`
-	SuccessRuns    int64 `json:"successRuns"`
-	FailedRuns     int64 `json:"failedRuns"`
-	RunningRuns    int64 `json:"runningRuns"`
-	TodayRuns      int64 `json:"todayRuns"`
-	WeekRuns       int64 `json:"weekRuns"`
-	MonthRuns      int64 `json:"monthRuns"`
+	TotalRuns   int64                `json:"totalRuns"`
+	SuccessRuns int64                `json:"successRuns"`
+	FailedRuns  int64                `json:"failedRuns"`
+	RunningRuns int64                `json:"runningRuns"`
+	TodayRuns   int64                `json:"todayRuns"`
+	WeekRuns    int64                `json:"weekRuns"`
+	MonthRuns   int64                `json:"monthRuns"`
+	SuccessRate float64              `json:"successRate"`
+	AvgDuration int64                `json:"avgDuration"`
+	Trend       []RunStatsTrendItem  `json:"trend"`
+}
+
+type RunStatsTrendItem struct {
+	Date    string `json:"date"`
+	Success int64  `json:"success"`
+	Failed  int64  `json:"failed"`
 }
 
 type ListRunsRequest struct {
