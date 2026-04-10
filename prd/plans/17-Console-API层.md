@@ -184,9 +184,9 @@ func SetupRouter(
 // @name Authorization
 package docs
 ```
-- [ ] 为所有API添加Swagger注解
-- [ ] 生成swagger.json和swagger.yaml
-- [ ] 在 `/swagger` 路径提供文档界面
+- [x] 为所有API添加Swagger注解
+- [x] 生成swagger.json和swagger.yaml
+- [x] 在 `/swagger` 路径提供文档界面
 
 ### 17.3 中间件实现
 **文件：`internal/ports/http/middleware/logger.go`**
@@ -370,13 +370,13 @@ docker-build:
 ```
 
 ## 验收标准
-- [ ] 所有路由正确注册
-- [ ] 中间件（日志、恢复、CORS、认证）正常工作
-- [ ] Swagger文档可访问且完整
-- [ ] 配置加载正确
-- [ ] 服务可正常启动
-- [ ] 错误处理统一
-- [ ] 构建脚本正确
+- [x] 所有路由正确注册
+- [x] 中间件（日志、恢复、CORS、认证）正常工作
+- [x] Swagger文档可访问且完整
+- [x] 配置加载正确
+- [x] 服务可正常启动
+- [x] 错误处理统一
+- [x] 构建脚本正确
 
 ## 参考文档
 - `AGENTS.md` - Build & Run
