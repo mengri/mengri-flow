@@ -14,12 +14,21 @@ export function useAuth() {
     try {
       await authStore.login(account, password)
       ElMessage.success('Login successful')
-      
+
       // 登录后加载工作空间列表
-      await workspaceStore.loadWorkspaces()
-      
-      // 管理员跳后台，普通用户跳个人中心
-      if (authStore.isAdmin) {
+      const status = await workspaceStore.loadWorkspaces()
+
+      if (status === 'none') {
+        // 无已选中的 workspace，跳转到选择页
+        await router.push('/select-workspace')
+        return true
+      }
+
+      // 优先跳转到 redirect 指定的页面，否则根据角色跳转
+      const redirect = router.currentRoute.value.query.redirect as string
+      if (redirect) {
+        await router.push(redirect)
+      } else if (authStore.isAdmin) {
         await router.push('/admin/accounts')
       } else {
         await router.push('/')
@@ -34,6 +43,7 @@ export function useAuth() {
 
   /** 登出并跳转到登录页 */
   async function handleLogout(): Promise<void> {
+    workspaceStore.clearCurrentWorkspace()
     await authStore.logout()
     ElMessage.success('Logged out')
     await router.push('/login')

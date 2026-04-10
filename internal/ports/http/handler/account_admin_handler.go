@@ -180,7 +180,7 @@ func (h *AccountAdminHandlerImpl) ListAuditEvents(c *gin.Context) {
 
 // getAccountID 从 gin.Context 获取当前登录用户 ID。
 func getAccountID(c *gin.Context) string {
-	val, _ := c.Get("accountId")
+	val, _ := c.Get("accountID")
 	id, _ := val.(string)
 	return id
 }

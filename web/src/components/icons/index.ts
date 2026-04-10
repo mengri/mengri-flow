@@ -134,4 +134,5 @@ export {
   Play as PlayIcon,
   LinkEl as LinkIcon,
   ChartNoDataIcon as NoDataIcon,
+  Folder as FolderIcon,
 }

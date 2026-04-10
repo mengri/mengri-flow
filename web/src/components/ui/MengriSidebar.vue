@@ -2,25 +2,22 @@
   <aside :class="['sidebar', { expanded: isExpanded, collapsed: isCollapsed }]">
     <!-- 侧边栏头部 -->
     <div class="sidebar-header">
-      <div class="sidebar-brand" v-if="isExpanded">
-        <span class="brand-text">Navigation</span>
-      </div>
+      <router-link v-if="isExpanded" to="/" class="sidebar-brand">
+        <AppLogo size="md" />
+      </router-link>
+
+      <router-link v-else to="/" class="sidebar-brand-collapsed">
+        <AppLogo size="sm" />
+      </router-link>
       
       <button
+        v-if="isExpanded"
         class="sidebar-toggle"
         @click="toggleCollapse"
-        :aria-label="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        :aria-label="'Collapse sidebar'"
       >
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
-            v-if="isCollapsed"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M13 5l7 7-7 7M5 5l7 7-7 7"
-          />
-          <path
-            v-else
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
@@ -154,7 +151,7 @@
     <!-- 侧边栏底部 -->
     <div v-if="isExpanded" class="sidebar-footer">
       <!-- 工作空间切换 -->
-      <div class="workspace-selector">
+      <div v-if="workspaces.length > 0" class="workspace-selector">
         <button
           class="workspace-button"
           @click="toggleWorkspaceMenu"
@@ -167,7 +164,7 @@
           </span>
           <span class="workspace-info">
             <span class="workspace-name">{{ currentWorkspace.name }}</span>
-            <span class="workspace-type">{{ currentWorkspace.type }}</span>
+            <span class="workspace-type">{{ currentWorkspace.status }}</span>
           </span>
           <svg class="workspace-chevron h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -207,25 +204,13 @@
                 </span>
                 <span class="workspace-item-info">
                   <span class="workspace-item-name">{{ workspace.name }}</span>
-                  <span class="workspace-item-type">{{ workspace.type }}</span>
+                  <span class="workspace-item-type">{{ workspace.status }}</span>
                 </span>
                 <span v-if="workspace.id === currentWorkspace.id" class="workspace-item-check">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                   </svg>
                 </span>
-              </button>
-            </div>
-            
-            <div class="workspace-menu-footer">
-              <button class="workspace-add-button" @click="addWorkspace">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <span>Add Workspace</span>
-              </button>
-              <button class="workspace-manage-button" @click="manageWorkspaces">
-                <span>Manage Workspaces</span>
               </button>
             </div>
           </div>
@@ -265,6 +250,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
+import AppLogo from '@/components/ui/AppLogo.vue'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 // Props
 const props = defineProps<{
@@ -284,11 +271,6 @@ const props = defineProps<{
       action?: () => void
     }>
   }>
-  workspace?: {
-    id: string
-    name: string
-    type: string
-  }
 }>()
 
 // Emits
@@ -296,11 +278,14 @@ const emit = defineEmits<{
   'open-settings': []
   'toggle': [collapsed: boolean]
   'item-click': [item: any]
-  'workspace-change': [workspace: any]
+  'workspace-change': [workspaceId: string]
 }>()
 
 // Route
 const route = useRoute()
+
+// Stores
+const workspaceStore = useWorkspaceStore()
 
 // Reactive state
 const isCollapsed = ref(false)
@@ -314,8 +299,10 @@ const { width } = useWindowSize()
 const isMobile = computed(() => width.value < 768)
 const isExpanded = computed(() => !isCollapsed.value)
 
+const workspaces = computed(() => workspaceStore.workspaces)
+
 const currentWorkspace = computed(() =>
-  props.workspace || { id: 'default', name: 'Default Workspace', type: 'Personal' }
+  workspaceStore.currentWorkspace || { id: '', name: 'No Workspace', type: '' }
 )
 
 // Methods
@@ -359,28 +346,25 @@ const toggleWorkspaceMenu = () => {
 }
 
 const switchWorkspace = (workspace: any) => {
-  emit('workspace-change', workspace)
+  workspaceStore.setCurrentWorkspace(workspace.id)
+  emit('workspace-change', workspace.id)
   showWorkspaceMenu.value = false
 }
 
 const addWorkspace = () => {
-  // 这里可以添加工作空间的逻辑
-  console.log('Add workspace')
   showWorkspaceMenu.value = false
 }
 
 const manageWorkspaces = () => {
-  // 这里可以管理工作空间的逻辑
-  console.log('Manage workspaces')
   showWorkspaceMenu.value = false
 }
 
 const showHelp = () => {
-  // 这里可以显示帮助文档的逻辑
   console.log('Show help')
 }
 
 const getInitials = (name: string) => {
+  if (!name) return ''
   return name
     .split(' ')
     .map(part => part[0])
@@ -388,15 +372,6 @@ const getInitials = (name: string) => {
     .toUpperCase()
     .substring(0, 2)
 }
-
-// Mock workspaces for demo
-const workspaces = ref([
-  { id: 'default', name: 'Default Workspace', type: 'Personal' },
-  { id: 'team-1', name: 'Marketing Team', type: 'Team' },
-  { id: 'team-2', name: 'Development', type: 'Team' },
-  { id: 'project-1', name: 'Q4 Campaign', type: 'Project' },
-  { id: 'project-2', name: 'Website Redesign', type: 'Project' },
-])
 
 // Event handlers
 const handleClickOutside = (event: MouseEvent) => {
@@ -445,11 +420,11 @@ onUnmounted(() => {
 }
 
 .sidebar-brand {
-  @apply truncate;
+  @apply flex items-center gap-2.5 truncate no-underline hover:no-underline;
 }
 
-.brand-text {
-  @apply text-sm font-semibold text-gray-700 uppercase tracking-wide;
+.sidebar-brand-collapsed {
+  @apply flex items-center justify-center w-full no-underline hover:no-underline;
 }
 
 .sidebar-toggle {
@@ -692,10 +667,25 @@ onUnmounted(() => {
 .sidebar.collapsed .nav-chevron,
 .sidebar.collapsed .nav-action,
 .sidebar.collapsed .section-title,
-.sidebar.collapsed .sidebar-brand,
 .sidebar.collapsed .sidebar-actions,
 .sidebar.collapsed .sidebar-footer {
   @apply hidden !important;
+}
+
+.sidebar.collapsed .sidebar-brand {
+  @apply hidden !important;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  @apply hidden !important;
+}
+
+.sidebar.collapsed .sidebar-brand-collapsed {
+  @apply flex !important;
+}
+
+.sidebar.collapsed .sidebar-header {
+  @apply justify-center;
 }
 
 .sidebar.collapsed .nav-link {

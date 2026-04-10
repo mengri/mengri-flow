@@ -10,7 +10,7 @@ import (
 )
 
 // Auth JWT 认证中间件。
-// 从 Authorization 头提取 Bearer token，解析并注入 accountId、role 到 gin.Context。
+// 从 Authorization 头提取 Bearer token，解析并注入 accountID、role 到 gin.Context。
 func Auth(jwtMgr auth.IJWTManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
@@ -35,7 +35,7 @@ func Auth(jwtMgr auth.IJWTManager) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("accountId", claims.AccountID)
+		c.Set("accountID", claims.AccountID)
 		c.Set("role", claims.Role)
 		c.Next()
 	}

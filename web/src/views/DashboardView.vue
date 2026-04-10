@@ -348,13 +348,20 @@ onMounted(() => {
   loadDashboardData()
 })
 
-// 导航方法
+// 导航方法 - key 到实际路由的映射
+const routeMap: Record<string, string> = {
+  workflows: '/flows',
+  templates: '/flows',
+  analytics: '/runs',
+  integrations: '/resources',
+}
+
 const navigateTo = (section: string) => {
-  router.push(`/${section}`)
+  router.push(routeMap[section] || `/${section}`)
 }
 
 const createWorkflow = () => {
-  router.push('/workflows/create')
+  router.push('/flows/new')
 }
 
 const viewRunDetails = async (run: any) => {

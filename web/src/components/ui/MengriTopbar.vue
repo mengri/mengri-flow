@@ -17,23 +17,7 @@
         
         <div class="logo-wrapper">
           <router-link to="/" class="logo-link">
-            <div class="logo-icon">
-              <svg class="h-8 w-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="var(--color-primary-500)" />
-                    <stop offset="100%" stop-color="var(--color-secondary-500)" />
-                  </linearGradient>
-                </defs>
-                <path d="M16 2L2 8L16 14L30 8L16 2Z" fill="url(#logo-gradient)" />
-                <path d="M30 8L16 14V30L30 24V8Z" fill="var(--color-primary-400)" />
-                <path d="M2 8L16 14V30L2 24V8Z" fill="var(--color-secondary-400)" />
-              </svg>
-            </div>
-            <div class="logo-text">
-              <span class="logo-text-primary">Mengri</span>
-              <span class="logo-text-secondary">Flow</span>
-            </div>
+            <AppLogo size="md" />
           </router-link>
         </div>
         
@@ -330,6 +314,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import AppLogo from '@/components/ui/AppLogo.vue'
 import {
   CheckCircleIcon,
   InformationCircleIcon,
@@ -536,23 +521,7 @@ onUnmounted(() => {
 }
 
 .logo-link {
-  @apply flex items-center gap-3 no-underline hover:no-underline;
-}
-
-.logo-icon {
-  @apply transition-transform duration-300 hover:scale-110;
-}
-
-.logo-text {
-  @apply hidden md:flex flex-col leading-tight;
-}
-
-.logo-text-primary {
-  @apply text-gray-900 font-bold text-xl;
-}
-
-.logo-text-secondary {
-  @apply text-primary-600 font-semibold text-lg;
+  @apply flex items-center no-underline hover:no-underline;
 }
 
 /* 主导航样式 */

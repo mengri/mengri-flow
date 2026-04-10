@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -15,6 +16,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false },
   },
   {
+    path: '/select-workspace',
+    name: 'SelectWorkspace',
+    component: () => import('@/views/workspaces/Select.vue'),
+    meta: { requiresAuth: true, skipWorkspaceCheck: true },
+  },
+  {
     path: '/',
     component: () => import('@/layouts/AppLayout.vue'),
     meta: { requiresAuth: true },
@@ -28,6 +35,11 @@ const routes: RouteRecordRaw[] = [
         path: '/account',
         name: 'Account',
         component: () => import('@/views/account/index.vue'),
+      },
+      {
+        path: '/workspaces',
+        name: 'Workspaces',
+        component: () => import('@/views/workspaces/Index.vue'),
       },
       {
         path: '/admin/accounts',
@@ -126,14 +138,37 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
-  
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
-  } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
+
+  // 已登录用户访问登录/激活页，重定向到首页
+  if ((to.path === '/login' || to.path === '/activation') && authStore.isAuthenticated) {
     next('/')
-  } else {
-    next()
+    return
   }
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next({ path: '/login', query: { redirect: to.fullPath } })
+    return
+  }
+
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    next('/')
+    return
+  }
+
+  // 已登录但未选择工作空间 → 拦截到选择页（/select-workspace 自身除外）
+  if (authStore.isAuthenticated && !to.meta.skipWorkspaceCheck) {
+    const workspaceStore = useWorkspaceStore()
+    if (workspaceStore.workspaces.length === 0 || !workspaceStore.hasCurrentWorkspace) {
+      // 仅在 workspace 已加载过（非初始化阶段）才拦截
+      // 初始化阶段由 App.vue 处理
+      if (!workspaceStore.loading) {
+        next({ path: '/select-workspace', query: { redirect: to.fullPath } })
+        return
+      }
+    }
+  }
+
+  next()
 })
 
 export default router

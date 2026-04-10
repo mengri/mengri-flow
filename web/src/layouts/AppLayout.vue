@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -18,6 +18,7 @@ import {
   CogIcon,
   UsersIcon,
   UserCircleIcon,
+  FolderIcon,
 } from '@/components/icons'
 
 // 窗口尺寸
@@ -27,6 +28,7 @@ const isMobile = computed(() => width.value < 768)
 const { t } = useI18n()
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const { handleLogout: authLogout } = useAuth()
 
@@ -69,6 +71,12 @@ const navigation = computed(() => {
         { path: '/triggers', label: t('nav.triggers'), icon: CogIcon },
         { path: '/resources', label: t('nav.resources'), icon: PuzzleIcon },
         { path: '/tools', label: t('nav.tools'), icon: CogIcon },
+      ]
+    },
+    {
+      title: t('common.settings'),
+      items: [
+        { path: '/workspaces', label: t('nav.manageWorkspaces'), icon: FolderIcon },
       ]
     },
     {
@@ -115,9 +123,10 @@ const openSettings = () => {
   console.log('Open settings dialog')
 }
 
-const switchWorkspace = (workspace: any) => {
-  console.log('Switch to workspace:', workspace)
-  // 切换工作空间的逻辑
+const switchWorkspace = (workspaceId: string) => {
+  // workspaceStore.setCurrentWorkspace 已在 MengriSidebar 内调用
+  // 这里刷新当前路由以重新加载数据
+  router.go(0)
 }
 
 const getRouteTitle = (path: string): string => {

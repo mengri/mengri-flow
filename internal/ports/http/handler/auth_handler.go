@@ -236,7 +236,7 @@ func (h *AuthHandlerImpl) RefreshToken(c *gin.Context) {
 // @Success 200 {object} response.Response
 // @Router /api/v1/auth/logout [post]
 func (h *AuthHandlerImpl) Logout(c *gin.Context) {
-	accountID, _ := c.Get("accountId")
+	accountID, _ := c.Get("accountID")
 	accID, _ := accountID.(string)
 
 	// 尝试从请求体获取 refreshToken
