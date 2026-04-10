@@ -98,7 +98,7 @@ export function securityVerify(data: SecurityVerifyRequest) {
 
 /** 登录历史 */
 export function getLoginHistory() {
-  return api.get<LoginHistoryItem[]>(
+  return api.get<AuditEventListResponse>(
     '/me/security/logins',
   )
 }

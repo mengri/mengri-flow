@@ -3,9 +3,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
-import { useAuth } from '@/composables/useAuth'
 import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 // 组件导入
@@ -15,12 +13,10 @@ import MengriSidebar from '@/components/ui/MengriSidebar.vue'
 import {
   HomeIcon,
   ArrowsRightLeftIcon,
-  ChartBarIcon,
+  QueueListIcon,
+  PlayIcon,
   PuzzleIcon,
-  CogIcon,
-  UsersIcon,
-  UserCircleIcon,
-  FolderIcon,
+  WrenchScrewdriverIcon,
 } from '@/components/icons'
 
 // 窗口尺寸
@@ -31,9 +27,7 @@ const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
-const authStore = useAuthStore()
 const workspaceStore = useWorkspaceStore()
-const { handleLogout: authLogout } = useAuth()
 const {
   dashboardPath,
   flowsPath,
@@ -46,25 +40,46 @@ const {
 // 响应式状态
 const showSidebar = ref(true)
 
-// 面包屑导航 - 顶级为空间名，概览页面为 空间名/概览
+// 面包屑导航 - 所有页面都显示面包屑
 const breadcrumbs = computed(() => {
   const workspaceName = workspaceStore.currentWorkspace?.name || ''
   const crumbs: Array<{ path: string; label: string; isLast?: boolean }> = []
 
-  // 顶级：空间名称（链接到仪表板/概览）
-  const workspaceId = route.params.workspaceId as string
-  const wsBasePath = workspaceId ? `/workspace/${workspaceId}` : dashboardPath()
-
-  // 判断是否为工作区内的路由
   const pathArray = route.path.split('/').filter(Boolean)
+
+  // === 非工作区路由 ===
   const isWorkspaceRoute = pathArray[0] === 'workspace'
 
   if (!isWorkspaceRoute) {
-    // 非工作区路由不显示面包屑
+    // 设置相关路由
+    if (route.path.startsWith('/admin')) {
+      crumbs.push(
+        { path: '/admin/accounts', label: t('common.settings') },
+        { path: '/admin/accounts', label: t('nav.account'), isLast: route.path === '/admin/accounts' },
+      )
+      return crumbs
+    }
+    if (route.path.startsWith('/workspaces')) {
+      crumbs.push(
+        { path: '/workspaces', label: t('common.settings') },
+        { path: '/workspaces', label: t('nav.manageWorkspaces'), isLast: true },
+      )
+      return crumbs
+    }
+    if (route.path.startsWith('/account')) {
+      crumbs.push(
+        { path: '/account', label: 'Profile', isLast: true },
+      )
+      return crumbs
+    }
     return crumbs
   }
 
-  // 如果在仪表板（概览）页面，只显示 "空间名 / 概览"
+  // === 工作区内路由 ===
+  const workspaceId = route.params.workspaceId as string
+  const wsBasePath = workspaceId ? `/workspace/${workspaceId}` : dashboardPath()
+
+  // 如果在仪表板（概览）页面
   if (pathArray.length <= 2 || (pathArray.length === 3 && pathArray[2] === '')) {
     crumbs.push(
       { path: wsBasePath, label: workspaceName },
@@ -73,10 +88,9 @@ const breadcrumbs = computed(() => {
     return crumbs
   }
 
-  // 其他页面：空间名 / 功能名 / ...
+  // 其他工作区页面
   crumbs.push({ path: wsBasePath, label: workspaceName })
 
-  // pathArray: ['workspace', '<wsId>', 'flows', '123', ...]
   const segmentLabels: Record<string, string> = {
     flows: t('nav.flows'),
     triggers: t('nav.triggers'),
@@ -91,7 +105,6 @@ const breadcrumbs = computed(() => {
   for (let i = 2; i < pathArray.length; i++) {
     currentPath += `/${pathArray[i]}`
     const isLast = i === pathArray.length - 1
-    // 优先使用路由 meta.title，其次使用映射表，最后使用原始值
     const label = (route.matched[i]?.meta?.title as string)
       || segmentLabels[pathArray[i]]
       || pathArray[i].charAt(0).toUpperCase() + pathArray[i].slice(1)
@@ -110,44 +123,24 @@ const breadcrumbs = computed(() => {
 const showFooter = computed(() => route.meta?.showFooter !== false)
 
 // 侧边栏导航配置
-const navigation = computed(() => {
-  const sections = [
-    {
-      title: t('nav.workspace'),
-      items: [
-        { path: dashboardPath(), label: t('nav.dashboard'), icon: HomeIcon },
-        { path: flowsPath(), label: t('nav.flows'), icon: ArrowsRightLeftIcon },
-        { path: triggersPath(), label: t('nav.triggers'), icon: CogIcon },
-        { path: resourcesPath(), label: t('nav.resources'), icon: PuzzleIcon },
-        { path: toolsPath(), label: t('nav.tools'), icon: CogIcon },
-      ]
-    },
-    {
-      title: t('common.settings'),
-      items: [
-        { path: '/workspaces', label: t('nav.manageWorkspaces'), icon: FolderIcon },
-      ]
-    },
-    {
-      title: t('nav.runs'),
-      items: [
-        { path: runsPath(), label: t('nav.runList'), icon: ChartBarIcon },
-      ]
-    }
-  ]
-
-  if (authStore.isAdmin) {
-    sections.push({
-      title: t('common.settings'),
-      items: [
-        { path: '/admin/accounts', label: t('nav.account'), icon: UsersIcon },
-        { path: '/account', label: t('nav.accountSettings'), icon: UserCircleIcon },
-      ]
-    })
-  }
-
-  return sections
-})
+const navigation = computed(() => [
+  {
+    title: t('nav.navigation'),
+    items: [
+      { path: dashboardPath(), label: t('nav.dashboard'), icon: HomeIcon },
+      { path: resourcesPath(), label: t('nav.resources'), icon: PuzzleIcon },
+      { path: flowsPath(), label: t('nav.flows'), icon: ArrowsRightLeftIcon },
+    ],
+  },
+  {
+    title: t('nav.integration'),
+    items: [
+      { path: triggersPath(), label: t('nav.triggers'), icon: PlayIcon },
+      { path: toolsPath(), label: t('nav.tools'), icon: WrenchScrewdriverIcon },
+      { path: runsPath(), label: t('nav.runList'), icon: QueueListIcon },
+    ],
+  },
+])
 
 // 当前年份（用于页脚）
 const currentYear = computed(() => new Date().getFullYear())
@@ -161,14 +154,6 @@ const onSidebarToggle = (collapsed: boolean) => {
   if (isMobile.value) {
     showSidebar.value = !collapsed
   }
-}
-
-const handleLogout = () => {
-  authLogout()
-}
-
-const openSettings = () => {
-  console.log('Open settings dialog')
 }
 
 const switchWorkspace = (workspaceId: string) => {
@@ -188,7 +173,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50">
+  <div class="h-screen flex flex-col bg-gray-50 overflow-hidden">
     <div class="flex flex-1 overflow-hidden">
       <!-- 侧边栏导航 -->
       <transition name="slide-left">
@@ -197,15 +182,13 @@ onUnmounted(() => {
           :navigation="navigation"
           :class="{ 'mobile-sidebar': isMobile }"
           @toggle="onSidebarToggle"
-          @open-settings="openSettings"
-          @workspace-change="switchWorkspace"
         />
       </transition>
       
-      <!-- 主要内容区 -->
-      <main class="flex-1 overflow-auto p-4 md:p-6">
-        <!-- 面包屑导航 -->
-        <div v-if="breadcrumbs.length > 0" class="mb-6">
+      <!-- 右侧区域 -->
+      <div class="flex-1 flex flex-col overflow-hidden" :class="{ 'main-with-sidebar': showSidebar || !isMobile }">
+        <!-- 面包屑导航 - 固定顶部不滚动 -->
+        <div v-if="breadcrumbs.length > 0" class="breadcrumb-bar">
           <nav class="flex items-center space-x-1.5 text-sm">
             <template v-for="(crumb, index) in breadcrumbs" :key="crumb.path">
               <span v-if="index > 0" class="text-gray-300 select-none">/</span>
@@ -220,34 +203,53 @@ onUnmounted(() => {
             </template>
           </nav>
         </div>
-        
-        <!-- 内容容器 -->
-        <div class="content-container">
-          <RouterView />
+
+        <!-- 滚动包裹层：负责滚动，无 padding/margin -->
+        <div class="main-scroll-area">
+          <!-- 内容容器：padding 在这里 -->
+          <div class="content-container p-4 md:p-6">
+            <RouterView />
+          </div>
         </div>
-        
-        <!-- 页脚 -->
-        <footer v-if="showFooter" class="mt-12 pt-6 border-t border-gray-200">
-          <div class="flex flex-col md:flex-row justify-between items-center">
-            <div class="text-sm text-gray-600 mb-4 md:mb-0">
-              <span class="font-semibold text-gray-900">Mengri Flow</span> © {{ currentYear }}. All rights reserved.
-            </div>
-            <div class="flex items-center space-x-6">
-              <a href="/privacy" class="text-sm text-gray-600 hover:text-gray-900">{{ t('common.settings') }}</a>
-              <a href="/terms" class="text-sm text-gray-600 hover:text-gray-900">{{ t('common.help') }}</a>
-              <a href="/contact" class="text-sm text-gray-600 hover:text-gray-900">Contact</a>
-            </div>
+
+        <!-- 页脚 - 固定底部不参与滚动 -->
+        <footer v-if="showFooter" class="footer-bar">
+          <div class="text-sm text-gray-600">
+            <span class="font-semibold text-gray-900">Mengri Flow</span> © {{ currentYear }}. All rights reserved.
           </div>
         </footer>
-      </main>
+      </div>
     </div>
     
   </div>
 </template>
 
 <style scoped>
+/* 滚动包裹层：始终显示滚动条轨道，避免内容宽度抖动 */
+.main-scroll-area {
+  flex: 1;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 .content-container {
-  @apply max-w-full mx-auto;
+  @apply max-w-7xl mx-auto;
+}
+
+/* 面包屑导航栏 - 白色底色 */
+.breadcrumb-bar {
+  @apply px-4 md:px-6 py-3 bg-white border-b border-gray-200 flex-shrink-0;
+}
+
+/* 页脚 - 固定底部不滚动 */
+.footer-bar {
+  @apply px-4 md:px-6 py-3 bg-white border-t border-gray-200 flex-shrink-0;
+  text-align: right;
+}
+
+/* 有侧边栏时内容区左边距 */
+.main-with-sidebar {
+  margin-left: 16rem;
 }
 
 /* 移动端侧边栏样式 */

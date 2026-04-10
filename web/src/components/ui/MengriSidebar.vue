@@ -1,65 +1,37 @@
 <template>
-  <aside :class="['sidebar', { expanded: isExpanded, collapsed: isCollapsed }]">
-    <!-- 侧边栏头部 -->
+  <aside class="sidebar">
+    <!-- 头部：空间切换 -->
     <div class="sidebar-header">
-      <router-link v-if="isExpanded" :to="dashboardPath()" class="sidebar-brand">
-        <AppLogo size="md" />
-      </router-link>
-
-      <router-link v-else :to="dashboardPath()" class="sidebar-brand-collapsed">
-        <AppLogo size="sm" />
-      </router-link>
-      
-      <button
-        v-if="isExpanded"
-        class="sidebar-toggle"
-        @click="toggleCollapse"
-        :aria-label="'Collapse sidebar'"
-      >
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-          />
+      <button class="ws-switch-btn" @click="showWorkspacePanel = true">
+        <span class="ws-switch-avatar">{{ getInitials(currentWorkspace.name) }}</span>
+        <span class="ws-switch-info">
+          <span class="ws-switch-name">{{ currentWorkspace.name }}</span>
+          <span class="ws-switch-hint">{{ t('nav.switchWorkspace') }}</span>
+        </span>
+        <svg class="ws-switch-arrow h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
       </button>
     </div>
-    
-    <!-- 侧边栏导航 -->
+
+    <!-- 导航菜单 -->
     <nav class="sidebar-nav">
       <div class="nav-section" v-for="(section, index) in navigation" :key="index">
-        <div v-if="section.title && isExpanded" class="section-title">
+        <div v-if="section.title" class="section-title">
           {{ section.title }}
         </div>
-        
         <ul class="nav-items">
           <li
             v-for="item in section.items"
             :key="item.path"
             class="nav-item"
-            :class="{
-              'nav-item-active': isActive(item),
-              'nav-item-has-child': item.children,
-              'nav-item-collapsed': isCollapsed,
-            }"
+            :class="{ 'nav-item-active': isActive(item) }"
           >
-            <!-- 顶级菜单项 -->
-            <component
-              :is="item.children ? 'div' : 'router-link'"
-              :to="item.children ? undefined : item.path"
-              :class="[
-                'nav-link',
-                {
-                  'has-children': item.children,
-                  'has-action': item.action,
-                  'has-badge': item.badge,
-                },
-              ]"
-              @click="item.children ? toggleSubMenu(item) : undefined"
+            <router-link
+              :to="item.path"
+              class="nav-link"
+              @click="closeOnMobile"
             >
-              <!-- 图标 -->
               <span class="nav-icon-wrapper">
                 <component
                   v-if="item.icon"
@@ -69,192 +41,147 @@
                 />
                 <span v-else class="nav-icon-placeholder"></span>
               </span>
-              
-              <!-- 标签文本 -->
-              <transition name="slide-fade" mode="out-in">
-                <span v-if="isExpanded" class="nav-label">
-                  {{ item.label }}
-                </span>
-              </transition>
-              
-              <!-- 徽章 -->
-              <transition name="fade">
-                <span v-if="item.badge && isExpanded" class="nav-badge">
-                  {{ item.badge }}
-                </span>
-              </transition>
-              
-              <!-- 子菜单指示器 -->
-              <span
-                v-if="item.children && isExpanded"
-                class="nav-chevron"
-                :class="{ 'rotate-90': isSubMenuOpen(item) }"
-              >
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
-              
-              <!-- 动作按钮 -->
-              <button
-                v-if="item.action && isExpanded"
-                class="nav-action"
-                @click.stop="handleAction(item.action)"
-                :aria-label="`${item.label} action`"
-              >
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-            </component>
-            
-            <!-- 子菜单 -->
-            <transition name="expand">
-              <div
-                v-if="item.children && isSubMenuOpen(item) && isExpanded"
-                class="submenu"
-              >
-                <ul class="submenu-items">
-                  <li
-                    v-for="child in item.children"
-                    :key="child.path"
-                    class="submenu-item"
-                    :class="{ 'submenu-item-active': $route.path === child.path }"
-                  >
-                    <router-link
-                      :to="child.path"
-                      class="submenu-link"
-                      @click="closeOnMobile"
-                    >
-                      <span class="submenu-icon">
-                        <component
-                          v-if="child.icon"
-                          :is="child.icon"
-                          class="h-4 w-4"
-                        />
-                        <span v-else class="submenu-dot"></span>
-                      </span>
-                      <span class="submenu-label">{{ child.label }}</span>
-                      <span v-if="child.badge" class="submenu-badge">
-                        {{ child.badge }}
-                      </span>
-                    </router-link>
-                  </li>
-                </ul>
-              </div>
-            </transition>
+              <span class="nav-label">{{ item.label }}</span>
+              <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
+            </router-link>
           </li>
         </ul>
       </div>
     </nav>
-    
-    <!-- 侧边栏底部 -->
-    <div v-if="isExpanded" class="sidebar-footer">
-      <!-- 工作空间切换 -->
-      <div v-if="workspaces.length > 0" class="workspace-selector">
+
+    <!-- 分割线 -->
+    <div class="sidebar-divider"></div>
+
+    <!-- 底部：个人资料 + 设置 -->
+    <div class="sidebar-footer">
+      <!-- 个人资料 -->
+      <router-link to="/account" class="profile-link" @click="closeOnMobile">
+        <span class="profile-avatar">
+          <img
+            v-if="user.avatar"
+            :src="user.avatar"
+            :alt="user.displayName"
+            class="avatar-img"
+          />
+          <span v-else class="avatar-placeholder">{{ getUserInitials(user.displayName) }}</span>
+        </span>
+        <span class="profile-info">
+          <span class="profile-name">{{ user.displayName }}</span>
+          <span v-if="user.role" class="profile-role">{{ user.role }}</span>
+        </span>
+      </router-link>
+
+      <!-- 设置按钮（沉底） -->
+      <div class="settings-area">
         <button
-          class="workspace-button"
-          @click="toggleWorkspaceMenu"
-          :aria-label="`Switch workspace: ${currentWorkspace.name}`"
-          aria-haspopup="true"
-          :aria-expanded="showWorkspaceMenu"
+          ref="settingsBtnRef"
+          class="settings-btn"
+          @click="openSettingsMenu"
+          :class="{ 'settings-btn-open': showSettingsMenu }"
         >
-          <span class="workspace-avatar">
-            {{ getInitials(currentWorkspace.name) }}
-          </span>
-          <span class="workspace-info">
-            <span class="workspace-name">{{ currentWorkspace.name }}</span>
-            <span class="workspace-type">{{ currentWorkspace.status }}</span>
-          </span>
-          <svg class="workspace-chevron h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          <svg class="settings-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-        </button>
-        
-        <!-- 工作空间菜单 -->
-        <transition name="slide-down">
-          <div
-            v-if="showWorkspaceMenu"
-            class="workspace-menu"
-            ref="workspaceMenu"
+          <span class="settings-label">{{ t('common.settings') }}</span>
+          <svg
+            class="settings-chevron h-4 w-4"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor"
           >
-            <div class="workspace-menu-header">
-              <h4 class="workspace-menu-title">Switch Workspace</h4>
-              <button
-                class="workspace-menu-close"
-                @click="showWorkspaceMenu = false"
-                aria-label="Close workspace menu"
-              >
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div class="workspace-list">
-              <button
-                v-for="workspace in workspaces"
-                :key="workspace.id"
-                class="workspace-item"
-                :class="{ 'workspace-item-active': workspace.id === currentWorkspace.id }"
-                @click="switchWorkspace(workspace)"
-              >
-                <span class="workspace-item-avatar">
-                  {{ getInitials(workspace.name) }}
-                </span>
-                <span class="workspace-item-info">
-                  <span class="workspace-item-name">{{ workspace.name }}</span>
-                  <span class="workspace-item-type">{{ workspace.status }}</span>
-                </span>
-                <span v-if="workspace.id === currentWorkspace.id" class="workspace-item-check">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              </button>
-            </div>
-          </div>
-        </transition>
-      </div>
-      
-      <!-- 帮助和设置 -->
-      <div class="sidebar-actions">
-        <button
-          class="sidebar-action"
-          @click="showHelp"
-          aria-label="Help"
-        >
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
-          <span v-if="isExpanded" class="sidebar-action-label">Help</span>
-        </button>
-        
-        <button
-          class="sidebar-action"
-          @click="$emit('open-settings')"
-          aria-label="Settings"
-        >
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span v-if="isExpanded" class="sidebar-action-label">Settings</span>
         </button>
       </div>
     </div>
+
+    <!-- 设置面板：Teleport 到 body，完全脱离 sidebar 布局 -->
+    <Teleport to="body">
+      <transition name="fade">
+        <div
+          v-if="showSettingsMenu"
+          class="settings-panel"
+          :style="settingsPanelStyle"
+        >
+          <div class="settings-panel-header">
+            <span class="settings-panel-title">{{ t('common.settings') }}</span>
+          </div>
+          <div class="settings-panel-list">
+            <router-link
+              to="/workspaces"
+              class="settings-panel-item"
+              @click="showSettingsMenu = false; closeOnMobile()"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+              </svg>
+              <span>{{ t('nav.manageWorkspaces') }}</span>
+            </router-link>
+            <router-link
+              v-if="authStore.isAdmin"
+              to="/admin/accounts"
+              class="settings-panel-item"
+              @click="showSettingsMenu = false; closeOnMobile()"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+              </svg>
+              <span>{{ t('nav.account') }}</span>
+            </router-link>
+          </div>
+        </div>
+      </transition>
+    </Teleport>
+
+    <!-- 紧贴侧边栏右侧弹出：空间列表 -->
+    <transition name="slide-panel">
+      <div v-if="showWorkspacePanel" class="ws-panel">
+        <div class="ws-panel-header">
+          <h3 class="ws-panel-title">{{ t('nav.workspace') }}</h3>
+          <button class="ws-panel-close" @click="showWorkspacePanel = false">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="ws-panel-list">
+          <button
+            v-for="workspace in workspaces"
+            :key="workspace.id"
+            class="ws-panel-item"
+            :class="{ 'ws-panel-item-active': workspace.id === currentWorkspace.id }"
+            @click="switchWorkspace(workspace)"
+          >
+            <span class="ws-panel-item-avatar">{{ getInitials(workspace.name) }}</span>
+            <div class="ws-panel-item-info">
+              <span class="ws-panel-item-name">{{ workspace.name }}</span>
+              <span class="ws-panel-item-desc">{{ workspace.description || '' }}</span>
+            </div>
+            <svg v-if="workspace.id === currentWorkspace.id" class="ws-panel-item-check h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        </div>
+        <div class="ws-panel-footer">
+          <button class="ws-panel-manage" @click="goToWorkspaces">
+            {{ t('nav.manageWorkspaces') }}
+          </button>
+        </div>
+      </div>
+    </transition>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
-import AppLogo from '@/components/ui/AppLogo.vue'
+import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
-// Props
 const props = defineProps<{
   navigation: Array<{
     title?: string
@@ -263,75 +190,61 @@ const props = defineProps<{
       label: string
       icon?: any
       badge?: number | string
-      children?: Array<{
-        path: string
-        label: string
-        icon?: any
-        badge?: number | string
-      }>
-      action?: () => void
     }>
   }>
 }>()
 
-// Emits
 const emit = defineEmits<{
-  'open-settings': []
   'toggle': [collapsed: boolean]
-  'item-click': [item: any]
-  'workspace-change': [workspaceId: string]
 }>()
 
-// Route
 const route = useRoute()
 const router = useRouter()
-
-// Stores
+const { t } = useI18n()
+const { width } = useWindowSize()
+const authStore = useAuthStore()
 const workspaceStore = useWorkspaceStore()
 const { dashboardPath } = useWorkspaceRoute()
 
-// Reactive state
-const isCollapsed = ref(false)
-const openSubMenus = ref<Set<string>>(new Set())
-const showWorkspaceMenu = ref(false)
-
-// Window size
-const { width } = useWindowSize()
-
-// Computed
 const isMobile = computed(() => width.value < 768)
-const isExpanded = computed(() => !isCollapsed.value)
+const showWorkspacePanel = ref(false)
+const showSettingsMenu = ref(false)
+const settingsBtnRef = ref<HTMLElement | null>(null)
+
+const settingsPanelStyle = reactive({
+  left: '256px',
+  top: 'auto',
+  bottom: '40px',
+})
+
+const openSettingsMenu = () => {
+  showSettingsMenu.value = !showSettingsMenu.value
+  if (!showSettingsMenu.value) return
+  const btn = settingsBtnRef.value
+  if (!btn) return
+  const sidebar = btn.closest('.sidebar') as HTMLElement
+  const rect = btn.getBoundingClientRect()
+  const sidebarRect = sidebar?.getBoundingClientRect()
+  // 面板紧贴侧边栏右边缘，不包含按钮内边距
+  settingsPanelStyle.left = `${sidebarRect ? sidebarRect.right : rect.right}px`
+  settingsPanelStyle.top = 'auto'
+  settingsPanelStyle.bottom = `${window.innerHeight - rect.bottom}px`
+}
 
 const workspaces = computed(() => workspaceStore.workspaces)
-
 const currentWorkspace = computed(() =>
-  workspaceStore.currentWorkspace || { id: '', name: 'No Workspace', type: '' }
+  workspaceStore.currentWorkspace || { id: '', name: 'No Workspace' }
 )
 
-// Methods
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value
-  emit('toggle', isCollapsed.value)
-}
+const user = computed(() => ({
+  displayName: authStore.displayName || 'User',
+  avatar: null,
+  role: authStore.isAdmin ? 'Administrator' : 'User',
+}))
 
 const isActive = (item: any) => {
   if (route.path === item.path) return true
-  if (item.children) {
-    return item.children.some((child: any) => route.path === child.path)
-  }
-  return false
-}
-
-const isSubMenuOpen = (item: any) => {
-  return openSubMenus.value.has(item.path)
-}
-
-const toggleSubMenu = (item: any) => {
-  if (openSubMenus.value.has(item.path)) {
-    openSubMenus.value.delete(item.path)
-  } else {
-    openSubMenus.value.add(item.path)
-  }
+  return route.path.startsWith(item.path + '/')
 }
 
 const closeOnMobile = () => {
@@ -340,61 +253,40 @@ const closeOnMobile = () => {
   }
 }
 
-const handleAction = (action: () => void) => {
-  action()
-}
-
-const toggleWorkspaceMenu = () => {
-  showWorkspaceMenu.value = !showWorkspaceMenu.value
-}
-
 const switchWorkspace = (workspace: any) => {
   workspaceStore.setCurrentWorkspace(workspace.id)
-  // 导航到新空间
   router.push(`/workspace/${workspace.id}`)
-  showWorkspaceMenu.value = false
+  showWorkspacePanel.value = false
 }
 
-const addWorkspace = () => {
-  showWorkspaceMenu.value = false
-}
-
-const manageWorkspaces = () => {
-  showWorkspaceMenu.value = false
-}
-
-const showHelp = () => {
-  console.log('Show help')
+const goToWorkspaces = () => {
+  showWorkspacePanel.value = false
+  router.push('/workspaces')
 }
 
 const getInitials = (name: string) => {
   if (!name) return ''
-  return name
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2)
+  return name.split(' ').map(p => p[0]).join('').toUpperCase().substring(0, 2)
 }
 
-// Event handlers
-const handleClickOutside = (event: MouseEvent) => {
-  const workspaceMenu = document.querySelector('.workspace-menu')
-  
-  if (showWorkspaceMenu.value && workspaceMenu && 
-      !workspaceMenu.contains(event.target as Node)) {
-    showWorkspaceMenu.value = false
+const getUserInitials = (name: string) => {
+  if (!name) return ''
+  return name.split(' ').map(p => p[0]).join('').toUpperCase().substring(0, 2)
+}
+
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  // 关闭设置子菜单
+  if (showSettingsMenu.value && !target.closest('.settings-area') && !target.closest('.settings-panel')) {
+    showSettingsMenu.value = false
+  }
+  // 关闭空间面板（点击侧边栏外部）
+  if (showWorkspacePanel.value && !target.closest('.sidebar') && !target.closest('.ws-panel')) {
+    showWorkspacePanel.value = false
   }
 }
 
-// Lifecycle
 onMounted(() => {
-  // 移动端默认折叠
-  if (isMobile.value) {
-    isCollapsed.value = true
-  }
-  
-  // 监听点击外部事件
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -405,51 +297,62 @@ onUnmounted(() => {
 
 <style scoped>
 .sidebar {
-  @apply flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ease-in-out;
-  width: var(--sidebar-width, 16rem);
-  min-height: calc(100vh - 4rem);
-}
-
-.sidebar.collapsed {
-  width: 4rem;
-}
-
-.sidebar.expanded {
+  @apply flex flex-col bg-white border-r border-gray-200;
   width: 16rem;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  overflow-y: auto;
 }
 
-/* 侧边栏头部 */
+/* === 头部：空间切换 === */
 .sidebar-header {
-  @apply flex items-center justify-between h-16 px-4 border-b border-gray-200;
+  @apply flex items-center px-4 h-16 border-b border-gray-200;
 }
 
-.sidebar-brand {
-  @apply flex items-center gap-2.5 truncate no-underline hover:no-underline;
+.ws-switch-btn {
+  @apply flex items-center w-full px-3 py-2 rounded-lg text-left transition-colors;
+  @apply hover:bg-gray-100;
 }
 
-.sidebar-brand-collapsed {
-  @apply flex items-center justify-center w-full no-underline hover:no-underline;
+.ws-switch-avatar {
+  @apply flex-shrink-0 h-9 w-9 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500;
+  @apply flex items-center justify-center text-white font-semibold text-sm;
 }
 
-.sidebar-toggle {
-  @apply p-1 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100;
+.ws-switch-info {
+  @apply ml-3 flex-1 min-w-0;
 }
 
-/* 侧边栏导航 */
+.ws-switch-name {
+  @apply block text-sm font-semibold text-gray-900 truncate;
+}
+
+.ws-switch-hint {
+  @apply block text-xs text-gray-500 truncate;
+}
+
+.ws-switch-arrow {
+  @apply flex-shrink-0 ml-1 text-gray-400;
+}
+
+/* === 导航菜单 === */
 .sidebar-nav {
-  @apply flex-1 py-4 overflow-y-auto;
+  @apply flex-1 py-3 overflow-y-auto;
 }
 
 .nav-section {
-  @apply mb-6;
+  @apply mb-4;
 }
 
 .section-title {
-  @apply px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wide;
+  @apply px-5 mb-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide;
 }
 
 .nav-items {
-  @apply space-y-1;
+  @apply space-y-0.5;
 }
 
 .nav-item {
@@ -457,16 +360,12 @@ onUnmounted(() => {
 }
 
 .nav-link {
-  @apply flex items-center px-4 py-2.5 text-sm font-medium rounded-r-lg transition-colors duration-200;
-  @apply text-gray-700 hover:text-gray-900 hover:bg-gray-100;
+  @apply flex items-center px-5 py-2 text-sm font-medium transition-colors duration-150;
+  @apply text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-r-lg;
 }
 
 .nav-item-active > .nav-link {
-  @apply bg-primary-50 text-primary-700 border-l-2 border-primary-500;
-}
-
-.nav-item-active > .nav-link:hover {
-  @apply bg-primary-100;
+  @apply bg-primary-50 text-primary-700;
 }
 
 .nav-icon-wrapper {
@@ -490,302 +389,239 @@ onUnmounted(() => {
 }
 
 .nav-badge {
-  @apply ml-auto mr-2 px-2 py-0.5 text-xs font-semibold rounded-full;
+  @apply ml-auto mr-3 px-2 py-0.5 text-xs font-semibold rounded-full;
+  @apply bg-gray-100 text-gray-800;
 }
 
 .nav-item-active > .nav-link .nav-badge {
   @apply bg-primary-100 text-primary-800;
 }
 
-.nav-item:not(.nav-item-active) > .nav-link .nav-badge {
-  @apply bg-gray-100 text-gray-800;
+/* === 分割线 === */
+.sidebar-divider {
+  @apply mx-4 border-t border-gray-100;
 }
 
-.nav-chevron {
-  @apply ml-1 transition-transform duration-200;
-}
-
-.nav-chevron.rotate-90 {
-  transform: rotate(90deg);
-}
-
-.nav-action {
-  @apply ml-1 p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200;
-}
-
-/* 子菜单样式 */
-.submenu {
-  @apply mt-0.5 overflow-hidden;
-}
-
-.submenu-items {
-  @apply ml-9 space-y-0.5 border-l border-gray-200;
-}
-
-.submenu-item {
-  @apply relative;
-}
-
-.submenu-link {
-  @apply flex items-center py-1.5 pl-4 pr-3 text-sm rounded-lg transition-colors duration-200;
-  @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100;
-}
-
-.submenu-item-active .submenu-link {
-  @apply text-primary-600 bg-primary-50 font-medium;
-}
-
-.submenu-icon {
-  @apply mr-2 flex-shrink-0;
-}
-
-.submenu-dot {
-  @apply h-1.5 w-1.5 rounded-full bg-current;
-}
-
-.submenu-label {
-  @apply truncate;
-}
-
-.submenu-badge {
-  @apply ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-800;
-}
-
-.submenu-item-active .submenu-badge {
-  @apply bg-primary-100 text-primary-800;
-}
-
-/* 侧边栏底部 */
+/* === 底部 === */
 .sidebar-footer {
-  @apply border-t border-gray-200 p-4;
+  @apply p-2 mt-auto;
 }
 
-.workspace-selector {
-  @apply relative mb-4;
+/* 个人资料 */
+.profile-link {
+  @apply flex items-center px-3 py-2 rounded-lg text-left no-underline transition-colors;
+  @apply text-gray-700 hover:bg-gray-50 hover:no-underline;
 }
 
-.workspace-button {
-  @apply flex items-center w-full p-2 rounded-lg hover:bg-gray-100;
+.profile-avatar {
+  @apply flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400;
+  @apply flex items-center justify-center text-white font-medium text-xs;
+  @apply overflow-hidden;
 }
 
-.workspace-avatar {
-  @apply flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-semibold text-sm;
+.avatar-img {
+  @apply h-full w-full object-cover;
 }
 
-.workspace-info {
-  @apply ml-3 text-left flex-1 min-w-0;
+.avatar-placeholder {
+  @apply text-white;
 }
 
-.workspace-name {
-  @apply block text-sm font-medium text-gray-900 truncate;
-}
-
-.workspace-type {
-  @apply block text-xs text-gray-500;
-}
-
-.workspace-chevron {
-  @apply flex-shrink-0 ml-1 text-gray-400;
-}
-
-.workspace-menu {
-  @apply absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-10;
-}
-
-.workspace-menu-header {
-  @apply px-4 py-3 border-b border-gray-200 flex items-center justify-between;
-}
-
-.workspace-menu-title {
-  @apply text-sm font-semibold text-gray-900;
-}
-
-.workspace-menu-close {
-  @apply p-1 text-gray-400 hover:text-gray-600;
-}
-
-.workspace-list {
-  @apply max-h-48 overflow-y-auto py-1;
-}
-
-.workspace-item {
-  @apply flex items-center w-full px-4 py-2.5 text-sm hover:bg-gray-50;
-}
-
-.workspace-item-active {
-  @apply bg-primary-50;
-}
-
-.workspace-item-avatar {
-  @apply flex-shrink-0 h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-medium text-xs;
-}
-
-.workspace-item-active .workspace-item-avatar {
-  @apply bg-primary-100 text-primary-700;
-}
-
-.workspace-item-info {
+.profile-info {
   @apply ml-3 flex-1 min-w-0;
 }
 
-.workspace-item-name {
-  @apply block text-gray-900 truncate;
+.profile-name {
+  @apply block text-sm font-medium text-gray-900 truncate;
 }
 
-.workspace-item-type {
-  @apply block text-xs text-gray-500;
+.profile-role {
+  @apply block text-xs text-gray-500 truncate;
 }
 
-.workspace-item-check {
-  @apply flex-shrink-0 ml-2 text-primary-600;
+/* 设置按钮 - 不用 relative，让面板定位到 sidebar */
+.settings-area {
+  @apply mt-0.5;
 }
 
-.workspace-menu-footer {
-  @apply px-4 py-3 border-t border-gray-200 space-y-2;
+.settings-btn {
+  @apply flex items-center w-full px-3 py-2 rounded-lg text-sm transition-colors;
+  @apply text-gray-500 hover:text-gray-700 hover:bg-gray-50;
 }
 
-.workspace-add-button {
-  @apply flex items-center justify-center w-full gap-2 px-3 py-2 text-sm text-primary-600 hover:text-primary-800 hover:bg-primary-50 rounded;
+.settings-btn-open {
+  @apply text-gray-700 bg-gray-50;
 }
 
-.workspace-manage-button {
-  @apply w-full text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded px-3 py-2;
+.settings-icon {
+  @apply h-5 w-5;
 }
 
-/* 侧边栏动作按钮 */
-.sidebar-actions {
-  @apply flex space-x-2;
+.settings-label {
+  @apply ml-3 flex-1 text-left;
 }
 
-.sidebar-action {
-  @apply flex items-center justify-center gap-2 flex-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded;
+.settings-chevron {
+  @apply text-gray-400;
 }
 
-.sidebar-action-label {
-  @apply truncate;
+/* 设置面板样式移到非 scoped style（Teleport 到 body） */
+
+
+
+
+
+/* === 紧贴侧边栏右侧弹出：空间列表 === */
+.ws-panel {
+  @apply absolute bg-white shadow-xl z-50 flex flex-col;
+  left: 100%; /* 紧贴侧边栏右边缘 */
+  top: 0;
+  width: 18rem;
+  max-height: 100vh;
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
 }
 
-/* 折叠状态下的样式 */
-.sidebar.collapsed .nav-label,
-.sidebar.collapsed .nav-badge,
-.sidebar.collapsed .nav-chevron,
-.sidebar.collapsed .nav-action,
-.sidebar.collapsed .section-title,
-.sidebar.collapsed .sidebar-actions,
-.sidebar.collapsed .sidebar-footer {
-  @apply hidden !important;
+.ws-panel-header {
+  @apply flex items-center justify-between px-6 py-5 border-b border-gray-100;
 }
 
-.sidebar.collapsed .sidebar-brand {
-  @apply hidden !important;
+.ws-panel-title {
+  @apply text-lg font-semibold text-gray-900;
 }
 
-.sidebar.collapsed .sidebar-toggle {
-  @apply hidden !important;
+.ws-panel-close {
+  @apply p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100;
 }
 
-.sidebar.collapsed .sidebar-brand-collapsed {
-  @apply flex !important;
+.ws-panel-list {
+  @apply flex-1 overflow-y-auto py-2;
 }
 
-.sidebar.collapsed .sidebar-header {
-  @apply justify-center;
+.ws-panel-item {
+  @apply flex items-center w-full px-6 py-3 text-left transition-colors;
+  @apply hover:bg-gray-50;
 }
 
-.sidebar.collapsed .nav-link {
-  @apply justify-center px-0;
+.ws-panel-item-active {
+  @apply bg-primary-50;
 }
 
-.sidebar.collapsed .nav-link .nav-icon-wrapper {
-  @apply ml-0;
+.ws-panel-item-avatar {
+  @apply flex-shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500;
+  @apply flex items-center justify-center text-white font-semibold text-sm;
 }
 
-.sidebar.collapsed .nav-item-active > .nav-link {
-  @apply border-l-0 bg-primary-50;
+.ws-panel-item-active .ws-panel-item-avatar {
+  @apply from-primary-600 to-secondary-600;
 }
 
-/* 工具提示 - 折叠状态下的悬停提示 */
-.sidebar.collapsed .nav-link::after {
-  content: attr(data-tooltip);
-  @apply absolute left-full ml-2 px-2 py-1 text-xs font-medium bg-gray-900 text-white rounded whitespace-nowrap opacity-0 transition-opacity duration-200 pointer-events-none;
-  top: 50%;
-  transform: translateY(-50%);
+.ws-panel-item-info {
+  @apply ml-3 flex-1 min-w-0;
 }
 
-.sidebar.collapsed .nav-link:hover::after {
-  @apply opacity-100;
+.ws-panel-item-name {
+  @apply block text-sm font-medium text-gray-900 truncate;
 }
 
-/* 动画效果 */
-.slide-fade-enter-active {
-  transition: all 0.3s ease;
+.ws-panel-item-desc {
+  @apply block text-xs text-gray-500 truncate mt-0.5;
 }
 
-.slide-fade-leave-active {
-  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+.ws-panel-item-check {
+  @apply flex-shrink-0;
 }
 
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  transform: translateX(-10px);
+.ws-panel-footer {
+  @apply px-6 py-4 border-t border-gray-100;
+}
+
+.ws-panel-manage {
+  @apply w-full px-4 py-2.5 text-sm font-medium text-gray-600 rounded-lg;
+  @apply hover:bg-gray-100 hover:text-gray-900 transition-colors;
+}
+
+/* === 动画 === */
+.slide-panel-enter-active,
+.slide-panel-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.slide-panel-enter-from,
+.slide-panel-leave-to {
   opacity: 0;
 }
 
-.expand-enter-active {
-  transition: height 0.3s ease;
-  overflow: hidden;
+.slide-panel-enter-to,
+.slide-panel-leave-from {
+  opacity: 1;
 }
 
-.expand-leave-active {
-  transition: height 0.2s cubic-bezier(0.65, 0.05, 0.36, 1);
-  overflow: hidden;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  height: 0 !important;
-}
-
-.slide-down-enter-active {
-  transition: all 0.2s ease;
-}
-
-.slide-down-leave-active {
-  transition: all 0.2s cubic-bezier(0.65, 0.05, 0.36, 1);
-}
-
-.slide-down-enter-from,
-.slide-down-leave-to {
-  transform: translateY(10px);
-  opacity: 0;
-}
-
-/* 响应式调整 */
+/* === 响应式 === */
 @media (max-width: 767px) {
   .sidebar {
     position: fixed;
-    top: 4rem;
+    top: 0;
     left: 0;
-    height: calc(100vh - 4rem);
-    z-index: 30;
-    box-shadow: var(--shadow-lg);
+    height: 100vh;
+    z-index: 40;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   }
-  
-  .sidebar.collapsed {
-    transform: translateX(-100%);
-    width: 16rem;
-  }
-  
-  .sidebar.expanded {
-    transform: translateX(0);
-  }
-  
-  .sidebar-toggle {
-    @apply hidden;
-  }
-  
-  .workspace-selector {
-    @apply hidden;
-  }
+}
+</style>
+
+<!-- 非 scoped 样式：Teleport 到 body 的元素无法被 scoped 选中 -->
+<style>
+.settings-panel {
+  position: fixed;
+  z-index: 999;
+  background: white;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  width: 13.5rem;
+}
+
+.settings-panel-header {
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.settings-panel-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-panel-list {
+  padding: 0.25rem 0;
+}
+
+.settings-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.settings-panel-item:hover {
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

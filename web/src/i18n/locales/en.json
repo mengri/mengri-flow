@@ -51,7 +51,10 @@
     "workspace": "Workspace",
     "switchWorkspace": "Switch Workspace",
     "addWorkspace": "Add Workspace",
-    "manageWorkspaces": "Manage Workspaces"
+    "manageWorkspaces": "Manage Workspaces",
+    "navigation": "Navigation",
+    "integration": "Integration",
+    "system": "System"
   },
   "auth": {
     "loginTitle": "Sign in to your account",

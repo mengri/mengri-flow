@@ -192,7 +192,12 @@ export interface AuditEventFilter {
   pageSize?: number
 }
 
-export interface AuditEventListResponse extends PaginatedResponse<AuditEventItem> {}
+export interface AuditEventListResponse {
+  items: AuditEventItem[]
+  total: number
+  page: number
+  pageSize: number
+}
 
 // --- 登录历史 ---
 

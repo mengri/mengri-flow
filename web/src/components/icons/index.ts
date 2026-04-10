@@ -54,6 +54,7 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  WrenchScrewdriver,
 } from './Heroicons'
 
 // Re-export all
@@ -134,5 +135,6 @@ export {
   Play as PlayIcon,
   LinkEl as LinkIcon,
   ChartNoDataIcon as NoDataIcon,
+  WrenchScrewdriver as WrenchScrewdriverIcon,
   Folder as FolderIcon,
 }

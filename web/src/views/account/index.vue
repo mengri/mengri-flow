@@ -3,7 +3,7 @@ import { ref, reactive, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { getProfile, listMyIdentities, changePassword, getLoginHistory } from '@/api/account'
-import type { ProfileResponse, IdentityListResponse, LoginHistoryItem } from '@/types'
+import type { ProfileResponse, IdentityListResponse, AuditEventItem } from '@/types'
 
 const activeTab = ref('profile')
 
@@ -108,13 +108,14 @@ async function onChangePassword() {
 }
 
 // --- Login History ---
-const loginHistory = ref<LoginHistoryItem[]>([])
+const loginHistory = ref<AuditEventItem[] | null>(null)
 const historyLoading = ref(false)
 
 async function fetchLoginHistory() {
   historyLoading.value = true
   try {
-    loginHistory.value = await getLoginHistory()
+    const result = await getLoginHistory()
+    loginHistory.value = result?.items ?? []
   } finally {
     historyLoading.value = false
   }
@@ -272,9 +273,9 @@ const statusTagType: Record<string, string> = {
       </el-tab-pane>
 
       <!-- Login History Tab -->
-      <el-tab-pane label="Login History" name="history">
+      <el-tab-pane label="Login History" name="history" lazy>
         <el-card v-loading="historyLoading" shadow="never">
-          <el-table :data="loginHistory" stripe>
+          <el-table v-if="loginHistory" :data="loginHistory" stripe>
             <el-table-column label="Event" prop="eventType" width="160" />
             <el-table-column label="Result" prop="result" width="100">
               <template #default="{ row }">
@@ -290,7 +291,7 @@ const statusTagType: Record<string, string> = {
             <el-table-column label="User Agent" prop="ua" show-overflow-tooltip />
             <el-table-column label="Time" prop="createdAt" width="180" />
           </el-table>
-          <div v-if="loginHistory.length === 0" class="text-center py-4 text-gray-400">
+          <div v-if="loginHistory && loginHistory.length === 0" class="text-center py-4 text-gray-400">
             No login history
           </div>
         </el-card>

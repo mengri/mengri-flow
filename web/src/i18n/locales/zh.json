@@ -51,7 +51,10 @@
     "workspace": "工作空间",
     "switchWorkspace": "切换工作空间",
     "addWorkspace": "添加工作空间",
-    "manageWorkspaces": "管理工作空间"
+    "manageWorkspaces": "管理工作空间",
+    "navigation": "导航",
+    "integration": "集成",
+    "system": "系统"
   },
   "auth": {
     "loginTitle": "登录到您的账号",
