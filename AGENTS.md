@@ -194,3 +194,30 @@ When creating a new feature, generate all layers:
 6. `internal/ports/http/handler/<name>_handler.go` + `_iface.go` — Gin handlers + autowire
 7. `web/src/types/<name>.ts`, `api/<name>.ts`, `composables/use<Name>.ts`,
    `stores/<name>.ts`, `views/<name>/index.vue`
+
+## Interface & Implementation Naming Conventions
+
+### Service Layer (Application Layer)
+- **Interface naming**: `I` + FeatureName + `Service` (e.g., `IToolService`)
+- **Interface file**: `<feature>_service_iface.go`
+- **Implementation naming**: `<feature>ServiceImpl` (unexported, lowercase) (e.g., `toolServiceImpl`)
+- **Implementation file**: `<feature>_service.go`
+
+### Handler Layer (HTTP Port Layer)
+- **Interface naming**: `I` + FeatureName + `Handler` (e.g., `IToolHandler`)
+- **Interface file**: `<feature>_handler_iface.go`
+- **Implementation naming**: `<feature>HandlerImpl` (unexported, lowercase) (e.g., `toolHandlerImpl`)
+- **Implementation file**: `<feature>_handler.go`
+
+### Repository Layer (Domain Layer)
+- **Interface naming**: FeatureName + `Repository` (no `I` prefix) (e.g., `ToolRepository`)
+- **Interface file**: `<feature>_repository.go` (no separate `_iface.go` file)
+- **Interface location**: `internal/domain/repository/`
+- **Implementation naming**: FeatureName + `RepositoryImpl` (e.g., `ToolRepositoryImpl`)
+- **Implementation location**: `internal/infra/persistence/mysql/<feature>_repository/`
+
+### General Rules
+1. All implementations should be **unexported** (start with lowercase letter)
+2. Interface files use `*_iface.go` suffix (except for Repository layer)
+3. Implementation classes end with `Impl`
+4. Use `autowire` framework for dependency injection

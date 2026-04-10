@@ -71,7 +71,7 @@
             <input
               type="search"
               v-model="searchQuery"
-              placeholder="Search..."
+              :placeholder="t('common.search')"
               class="search-input"
               @input="handleSearch"
               @focus="isSearchFocused = true"
@@ -143,13 +143,13 @@
             ref="notificationsDropdown"
           >
             <div class="notifications-header">
-              <h3 class="notifications-title">Notifications</h3>
+              <h3 class="notifications-title">{{ t('common.notification') }}</h3>
               <button
                 v-if="unreadCount > 0"
                 class="mark-all-read"
                 @click="markAllAsRead"
               >
-                Mark all as read
+                {{ t('common.more') }}
               </button>
             </div>
             
@@ -186,17 +186,20 @@
             
             <div class="notifications-footer">
               <router-link to="/notifications" class="view-all">
-                View all notifications
+                {{ t('common.more') }}
               </router-link>
             </div>
           </div>
         </div>
         
+        <!-- 语言切换 -->
+        <LanguageSwitcher />
+        
         <!-- 主题切换 -->
         <button
           class="theme-toggle"
           @click="toggleTheme"
-          aria-label="Toggle theme"
+          :aria-label="$t('common.settings')"
         >
           <svg v-if="theme === 'light'" class="theme-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
@@ -274,21 +277,21 @@
                 <svg class="menu-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span>Profile</span>
+                <span>{{ t('common.profile') }}</span>
               </router-link>
-              
+
               <router-link
                 to="/settings"
                 class="user-menu-item"
                 @click="showUserMenu = false"
               >
                 <svg class="menu-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426 -1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543 .826-3.31 2.37-2.37 .996 .608 2.296 .07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>Settings</span>
+                <span>{{ t('common.settings') }}</span>
               </router-link>
-              
+
               <router-link
                 v-if="user.isAdmin"
                 to="/admin"
@@ -300,9 +303,9 @@
                 </svg>
                 <span>Admin Center</span>
               </router-link>
-              
+
               <div class="menu-divider" />
-              
+
               <button
                 class="user-menu-item logout-item"
                 @click="handleLogout"
@@ -310,7 +313,7 @@
                 <svg class="menu-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <span>Logout</span>
+                <span>{{ t('common.logout') }}</span>
               </button>
             </div>
           </div>
@@ -323,8 +326,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, type VNode } from 'vue'
 import { useWindowSize, useEventListener } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import {
   CheckCircleIcon,
   InformationCircleIcon,
@@ -364,9 +369,10 @@ const emit = defineEmits<{
   'logout': []
 }>()
 
-// Store
+// Store & i18n
 const authStore = useAuthStore()
 const { handleLogout: authLogout } = useAuth()
+const { t } = useI18n()
 
 // Reactive state
 const searchQuery = ref('')

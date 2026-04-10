@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
 
@@ -20,6 +21,8 @@ import {
   UserCircleIcon,
 } from '@/components/icons'
 
+const { t } = useI18n()
+
 const route = useRoute()
 const authStore = useAuthStore()
 const { handleLogout: authLogout } = useAuth()
@@ -34,20 +37,20 @@ const isMobile = computed(() => width.value < 768)
 // 面包屑导航
 const breadcrumbs = computed(() => {
   const pathArray = route.path.split('/').filter(Boolean)
-  const crumbs = [{ path: '/', label: 'Home' }]
-  
+  const crumbs = [{ path: '/', label: t('nav.dashboard') }]
+
   let currentPath = ''
   pathArray.forEach((segment, index) => {
     currentPath += `/${segment}`
-    const routeName = route.matched[index + 1]?.meta?.title || 
+    const routeName = route.matched[index + 1]?.meta?.title ||
                      segment.charAt(0).toUpperCase() + segment.slice(1)
-    
+
     crumbs.push({
       path: currentPath,
       label: (routeName as string) || segment,
     })
   })
-  
+
   return crumbs
 })
 
@@ -59,21 +62,21 @@ const showFooter = computed(() => route.meta?.showFooter !== false)
 // 菜单项
 const menuItems = computed(() => {
   const items = [
-    { path: '/dashboard', label: 'Dashboard', icon: HomeIcon, badge: 0 },
-    { path: '/workflows', label: 'Workflows', icon: ArrowsRightLeftIcon, badge: 12 },
-    { path: '/resources', label: 'Resources', icon: PuzzleIcon },
-    { path: '/tools', label: 'Tools', icon: CogIcon },
+    { path: '/dashboard', label: t('nav.dashboard'), icon: HomeIcon, badge: 0 },
+    { path: '/workflows', label: t('nav.flows'), icon: ArrowsRightLeftIcon, badge: 12 },
+    { path: '/resources', label: t('nav.resources'), icon: PuzzleIcon },
+    { path: '/tools', label: t('nav.tools'), icon: CogIcon },
   ]
-  
+
   if (authStore.isAdmin) {
     items.push(
-      { path: '/admin/users', label: 'User Management', icon: UsersIcon },
-      { path: '/admin/settings', label: 'System Settings', icon: CogIcon }
+      { path: '/admin/users', label: t('nav.account'), icon: UsersIcon },
+      { path: '/admin/settings', label: t('common.settings'), icon: CogIcon }
     )
   }
-  
-  items.push({ path: '/account', label: 'Account', icon: UserCircleIcon })
-  
+
+  items.push({ path: '/account', label: t('nav.account'), icon: UserCircleIcon })
+
   return items
 })
 
@@ -81,33 +84,33 @@ const menuItems = computed(() => {
 const navigation = computed(() => {
   const sections = [
     {
-      title: 'Workspace',
+      title: t('nav.workspace'),
       items: [
-        { path: '/', label: 'Overview', icon: HomeIcon },
-        { path: '/flows', label: 'Workflows', icon: ArrowsRightLeftIcon },
-        { path: '/triggers', label: 'Triggers', icon: CogIcon },
-        { path: '/resources', label: 'Resources', icon: PuzzleIcon },
-        { path: '/tools', label: 'Tools', icon: CogIcon },
+        { path: '/', label: t('nav.dashboard'), icon: HomeIcon },
+        { path: '/flows', label: t('nav.flows'), icon: ArrowsRightLeftIcon },
+        { path: '/triggers', label: t('nav.triggers'), icon: CogIcon },
+        { path: '/resources', label: t('nav.resources'), icon: PuzzleIcon },
+        { path: '/tools', label: t('nav.tools'), icon: CogIcon },
       ]
     },
     {
-      title: 'Data & Analytics',
+      title: t('nav.runs'),
       items: [
-        { path: '/runs', label: 'Runs', icon: ChartBarIcon },
+        { path: '/runs', label: t('nav.runList'), icon: ChartBarIcon },
       ]
     }
   ]
-  
+
   if (authStore.isAdmin) {
     sections.push({
-      title: 'Administration',
+      title: t('common.settings'),
       items: [
-        { path: '/admin/accounts', label: 'Users', icon: UsersIcon },
-        { path: '/account', label: 'Account', icon: UserCircleIcon },
+        { path: '/admin/accounts', label: t('nav.account'), icon: UsersIcon },
+        { path: '/account', label: t('nav.accountSettings'), icon: UserCircleIcon },
       ]
     })
   }
-  
+
   return sections
 })
 
@@ -141,15 +144,15 @@ const switchWorkspace = (workspace: any) => {
 
 const getRouteTitle = (path: string): string => {
   const titleMap: Record<string, string> = {
-    '/dashboard': 'Dashboard',
-    '/workflows': 'Workflows',
-    '/templates': 'Templates',
-    '/analytics': 'Analytics',
-    '/account': 'Account Settings',
-    '/admin/users': 'User Management',
-    '/admin/settings': 'System Settings',
+    '/dashboard': t('nav.dashboard'),
+    '/workflows': t('nav.flows'),
+    '/templates': t('nav.flows'),
+    '/analytics': t('nav.runs'),
+    '/account': t('nav.accountSettings'),
+    '/admin/users': t('nav.account'),
+    '/admin/settings': t('common.settings'),
   }
-  
+
   return titleMap[path] || path.split('/').pop()?.replace(/-/g, ' ') || 'Page'
 }
 
@@ -226,8 +229,8 @@ onUnmounted(() => {
               <span class="font-semibold text-gray-900">Mengri Flow</span> © {{ currentYear }}. All rights reserved.
             </div>
             <div class="flex items-center space-x-6">
-              <a href="/privacy" class="text-sm text-gray-600 hover:text-gray-900">Privacy Policy</a>
-              <a href="/terms" class="text-sm text-gray-600 hover:text-gray-900">Terms of Service</a>
+              <a href="/privacy" class="text-sm text-gray-600 hover:text-gray-900">{{ t('common.settings') }}</a>
+              <a href="/terms" class="text-sm text-gray-600 hover:text-gray-900">{{ t('common.help') }}</a>
               <a href="/contact" class="text-sm text-gray-600 hover:text-gray-900">Contact</a>
             </div>
           </div>
