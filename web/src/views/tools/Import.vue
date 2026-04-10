@@ -89,8 +89,10 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { toolAPI } from '@/api/tools'
 import type { Tool } from '@/types/tool'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 const router = useRouter()
+const { toolsPath } = useWorkspaceRoute()
 
 const step = ref(1)
 const importType = ref('')
@@ -146,7 +148,7 @@ async function confirmImport() {
     
     const tools = await toolAPI.import(formData)
     ElMessage.success(`成功导入 ${tools.length} 个工具`)
-    router.push('/tools')
+    router.push(toolsPath())
   } catch (error) {
     ElMessage.error('导入失败')
   } finally {

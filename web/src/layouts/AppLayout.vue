@@ -5,6 +5,7 @@ import { useWindowSize } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 // 组件导入
 import MengriSidebar from '@/components/ui/MengriSidebar.vue'
@@ -31,6 +32,14 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const { handleLogout: authLogout } = useAuth()
+const {
+  dashboardPath,
+  flowsPath,
+  triggersPath,
+  resourcesPath,
+  toolsPath,
+  runsPath,
+} = useWorkspaceRoute()
 
 // 响应式状态
 const showSidebar = ref(true)
@@ -38,19 +47,22 @@ const showSidebar = ref(true)
 // 面包屑导航
 const breadcrumbs = computed(() => {
   const pathArray = route.path.split('/').filter(Boolean)
-  const crumbs = [{ path: '/', label: t('nav.dashboard') }]
+  // 跳过 workspaceId 段（/workspace/:workspaceId/... 中的第2段）
+  const crumbs: Array<{ path: string; label: string }> = [{ path: dashboardPath(), label: t('nav.dashboard') }]
 
-  let currentPath = ''
-  pathArray.forEach((segment, index) => {
-    currentPath += `/${segment}`
-    const routeName = route.matched[index + 1]?.meta?.title ||
-                     segment.charAt(0).toUpperCase() + segment.slice(1)
+  // pathArray 格式: ['workspace', '<wsId>', 'flows', '123', ...]
+  // 跳过前两段（workspace + workspaceId）
+  let currentPath = `/workspace/${route.params.workspaceId || ''}`
+  for (let i = 2; i < pathArray.length; i++) {
+    currentPath += `/${pathArray[i]}`
+    const routeName = route.matched[i]?.meta?.title ||
+                     pathArray[i].charAt(0).toUpperCase() + pathArray[i].slice(1)
 
     crumbs.push({
       path: currentPath,
-      label: (routeName as string) || segment,
+      label: (routeName as string) || pathArray[i],
     })
-  })
+  }
 
   return crumbs
 })
@@ -66,11 +78,11 @@ const navigation = computed(() => {
     {
       title: t('nav.workspace'),
       items: [
-        { path: '/', label: t('nav.dashboard'), icon: HomeIcon },
-        { path: '/flows', label: t('nav.flows'), icon: ArrowsRightLeftIcon },
-        { path: '/triggers', label: t('nav.triggers'), icon: CogIcon },
-        { path: '/resources', label: t('nav.resources'), icon: PuzzleIcon },
-        { path: '/tools', label: t('nav.tools'), icon: CogIcon },
+        { path: dashboardPath(), label: t('nav.dashboard'), icon: HomeIcon },
+        { path: flowsPath(), label: t('nav.flows'), icon: ArrowsRightLeftIcon },
+        { path: triggersPath(), label: t('nav.triggers'), icon: CogIcon },
+        { path: resourcesPath(), label: t('nav.resources'), icon: PuzzleIcon },
+        { path: toolsPath(), label: t('nav.tools'), icon: CogIcon },
       ]
     },
     {
@@ -82,7 +94,7 @@ const navigation = computed(() => {
     {
       title: t('nav.runs'),
       items: [
-        { path: '/runs', label: t('nav.runList'), icon: ChartBarIcon },
+        { path: runsPath(), label: t('nav.runList'), icon: ChartBarIcon },
       ]
     }
   ]
@@ -119,14 +131,11 @@ const handleLogout = () => {
 }
 
 const openSettings = () => {
-  // 打开设置对话框的逻辑
   console.log('Open settings dialog')
 }
 
 const switchWorkspace = (workspaceId: string) => {
-  // workspaceStore.setCurrentWorkspace 已在 MengriSidebar 内调用
-  // 这里刷新当前路由以重新加载数据
-  router.go(0)
+  router.push(`/workspace/${workspaceId}`)
 }
 
 const getRouteTitle = (path: string): string => {
@@ -145,7 +154,6 @@ const getRouteTitle = (path: string): string => {
 
 // 生命周期
 onMounted(() => {
-  // 移动端默认隐藏侧边栏
   if (isMobile.value) {
     showSidebar.value = false
   }

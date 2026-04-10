@@ -144,9 +144,11 @@ import { triggerAPI } from '@/api/triggers'
 import type { Flow } from '@/types/flow'
 import type { CreateTriggerRequest } from '@/types/trigger'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 const router = useRouter()
 const workspaceStore = useWorkspaceStore()
+const { triggersPath } = useWorkspaceRoute()
 
 const step = ref(1)
 const loadingFlows = ref(false)
@@ -234,7 +236,7 @@ async function handleCreate() {
   try {
     await triggerAPI.create(form)
     ElMessage.success('创建成功')
-    router.push('/triggers')
+    router.push(triggersPath())
   } catch (error) {
     ElMessage.error('创建失败')
   }

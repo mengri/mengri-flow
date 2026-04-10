@@ -1,7 +1,7 @@
 <template>
   <div class="trigger-detail" v-if="trigger">
     <div class="header">
-      <router-link to="/triggers" class="back-link">
+      <router-link :to="triggersPath()" class="back-link">
         <el-icon><ArrowLeft /></el-icon>
         返回列表
       </router-link>
@@ -70,9 +70,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { triggerAPI } from '@/api/triggers'
 import type { Trigger } from '@/types/trigger'
 import { formatDate } from '@/utils/request'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 const route = useRoute()
 const router = useRouter()
+const { triggersPath } = useWorkspaceRoute()
 
 const trigger = ref<Trigger>()
 
@@ -113,7 +115,7 @@ function handleDelete() {
     .then(async () => {
       await triggerAPI.delete(trigger.value!.id)
       ElMessage.success('删除成功')
-      router.push('/triggers')
+      router.push(triggersPath())
     })
     .catch(() => {})
 }

@@ -2,11 +2,11 @@
   <aside :class="['sidebar', { expanded: isExpanded, collapsed: isCollapsed }]">
     <!-- 侧边栏头部 -->
     <div class="sidebar-header">
-      <router-link v-if="isExpanded" to="/" class="sidebar-brand">
+      <router-link v-if="isExpanded" :to="dashboardPath()" class="sidebar-brand">
         <AppLogo size="md" />
       </router-link>
 
-      <router-link v-else to="/" class="sidebar-brand-collapsed">
+      <router-link v-else :to="dashboardPath()" class="sidebar-brand-collapsed">
         <AppLogo size="sm" />
       </router-link>
       
@@ -248,10 +248,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
 import AppLogo from '@/components/ui/AppLogo.vue'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 // Props
 const props = defineProps<{
@@ -283,9 +284,11 @@ const emit = defineEmits<{
 
 // Route
 const route = useRoute()
+const router = useRouter()
 
 // Stores
 const workspaceStore = useWorkspaceStore()
+const { dashboardPath } = useWorkspaceRoute()
 
 // Reactive state
 const isCollapsed = ref(false)
@@ -347,7 +350,8 @@ const toggleWorkspaceMenu = () => {
 
 const switchWorkspace = (workspace: any) => {
   workspaceStore.setCurrentWorkspace(workspace.id)
-  emit('workspace-change', workspace.id)
+  // 导航到新空间
+  router.push(`/workspace/${workspace.id}`)
   showWorkspaceMenu.value = false
 }
 

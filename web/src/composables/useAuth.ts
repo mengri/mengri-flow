@@ -31,7 +31,9 @@ export function useAuth() {
       } else if (authStore.isAdmin) {
         await router.push('/admin/accounts')
       } else {
-        await router.push('/')
+        // 跳转到当前工作空间的 dashboard
+        const wsId = workspaceStore.currentWorkspaceId
+        await router.push(wsId ? `/workspace/${wsId}` : '/')
       }
       return true
     } catch (error) {

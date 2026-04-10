@@ -1,7 +1,7 @@
 <template>
   <div class="resource-detail" v-if="resource">
     <div class="header">
-      <router-link to="/resources" class="back-link">
+      <router-link :to="resourcesPath()" class="back-link">
         <el-icon><ArrowLeft /></el-icon>
         返回列表
       </router-link>
@@ -71,9 +71,11 @@ import { toolAPI } from '@/api/tools'
 import type { Resource } from '@/types/resource'
 import type { Tool } from '@/types/tool'
 import { formatDate } from '@/utils/request'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 const route = useRoute()
 const router = useRouter()
+const { resourcesPath, resourceDetailPath, toolDetailPath } = useWorkspaceRoute()
 
 const resource = ref<Resource>()
 const tools = ref<Tool[]>([])
@@ -121,7 +123,7 @@ async function handleTest() {
 
 function handleEdit() {
   if (!resource.value) return
-  router.push(`/resources/${resource.value.id}/edit`)
+  router.push(resourceDetailPath(resource.value.id) + '/edit')
 }
 
 function handleDelete() {
@@ -134,13 +136,13 @@ function handleDelete() {
     .then(async () => {
       await resourceAPI.delete(resource.value!.id)
       ElMessage.success('删除成功')
-      router.push('/resources')
+      router.push(resourcesPath())
     })
     .catch(() => {})
 }
 
 function handleViewTool(id: string) {
-  router.push(`/tools/${id}`)
+  router.push(toolDetailPath(id))
 }
 
 function statusTagType(status: string) {

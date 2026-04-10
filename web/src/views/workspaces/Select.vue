@@ -46,7 +46,8 @@ onMounted(async () => {
 // 进入主页面
 function redirectToApp() {
   const redirect = router.currentRoute.value.query.redirect as string
-  router.replace(redirect || '/')
+  const wsId = workspaceStore.currentWorkspaceId
+  router.replace(redirect || (wsId ? `/workspace/${wsId}` : '/'))
 }
 
 // 选择工作空间

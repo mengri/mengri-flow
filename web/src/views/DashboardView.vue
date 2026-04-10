@@ -111,7 +111,7 @@
           <div class="recent-activity">
             <div class="section-header">
               <h2 class="section-title">Recent Activity</h2>
-              <router-link to="/runs" class="view-all-link">
+              <router-link :to="runsPath()" class="view-all-link">
                 View All
               </router-link>
             </div>
@@ -249,7 +249,7 @@
           <div class="resource-usage">
             <div class="section-header">
               <h2 class="section-title">Active Triggers</h2>
-              <router-link to="/triggers" class="view-all-link">
+              <router-link :to="triggersPath()" class="view-all-link">
                 View All
               </router-link>
             </div>
@@ -292,6 +292,7 @@ import { useRouter } from 'vue-router'
 import { Loading } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboard } from '@/composables/useDashboard'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 import { runAPI } from '@/api/runs'
 import MButton from '@/components/ui/MButton.vue'
 import MStatCard from '@/components/ui/MStatCard.vue'
@@ -318,6 +319,7 @@ import {
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { createFlowPath, flowsPath, runsPath, triggersPath, resourcesPath, runDetailPath, wsPath } = useWorkspaceRoute()
 const {
   isLoading,
   statistics,
@@ -350,22 +352,22 @@ onMounted(() => {
 
 // 导航方法 - key 到实际路由的映射
 const routeMap: Record<string, string> = {
-  workflows: '/flows',
-  templates: '/flows',
-  analytics: '/runs',
-  integrations: '/resources',
+  workflows: flowsPath(),
+  templates: flowsPath(),
+  analytics: runsPath(),
+  integrations: resourcesPath(),
 }
 
 const navigateTo = (section: string) => {
-  router.push(routeMap[section] || `/${section}`)
+  router.push(routeMap[section] || wsPath(section))
 }
 
 const createWorkflow = () => {
-  router.push('/flows/new')
+  router.push(createFlowPath())
 }
 
 const viewRunDetails = async (run: any) => {
-  router.push(`/runs/${run.id}`)
+  router.push(runDetailPath(run.id))
 }
 
 const retryRun = async (run: any) => {

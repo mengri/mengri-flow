@@ -1,7 +1,7 @@
 <template>
   <div class="run-detail" v-if="run">
     <div class="header">
-      <router-link to="/runs" class="back-link">
+      <router-link :to="runsPath()" class="back-link">
         <el-icon><ArrowLeft /></el-icon>
         返回列表
       </router-link>
@@ -88,8 +88,10 @@ import { runAPI } from '@/api/runs'
 import ExecutionTimeline from '@/components/run/ExecutionTimeline.vue'
 import type { RunDetail, ExecutionTimeline as Timeline } from '@/types/run'
 import { formatDate, formatDuration, statusTagType, statusText } from '@/utils/request'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 const route = useRoute()
+const { runsPath } = useWorkspaceRoute()
 
 const run = ref<RunDetail>()
 const timeline = ref<Timeline>()

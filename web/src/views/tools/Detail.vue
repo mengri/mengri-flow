@@ -1,7 +1,7 @@
 <template>
   <div class="tool-detail" v-if="tool">
     <div class="header">
-      <router-link to="/tools" class="back-link">
+      <router-link :to="toolsPath()" class="back-link">
         <el-icon><ArrowLeft /></el-icon>
         返回列表
       </router-link>
@@ -81,9 +81,11 @@ import { toolAPI } from '@/api/tools'
 import ToolTestPanel from '@/components/ToolTestPanel.vue'
 import type { Tool } from '@/types/tool'
 import { formatDate } from '@/utils/request'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 const route = useRoute()
 const router = useRouter()
+const { toolsPath, toolDetailPath } = useWorkspaceRoute()
 
 const tool = ref<Tool>()
 
@@ -111,7 +113,7 @@ async function handleTest() {
 
 function handleEdit() {
   if (!tool.value) return
-  router.push(`/tools/${tool.value.id}/edit`)
+  router.push(toolDetailPath(tool.value.id) + '/edit')
 }
 
 async function handleToggleStatus() {
@@ -140,7 +142,7 @@ function handleDelete() {
     .then(async () => {
       await toolAPI.delete(tool.value!.id)
       ElMessage.success('删除成功')
-      router.push('/tools')
+      router.push(toolsPath())
     })
     .catch(() => {})
 }

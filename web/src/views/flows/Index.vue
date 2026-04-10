@@ -95,10 +95,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { flowAPI } from '@/api/flows'
 import type { Flow } from '@/types/flow'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 import { formatDate } from '@/utils/request'
 
 const router = useRouter()
 const workspaceStore = useWorkspaceStore()
+const { createFlowPath, flowDetailPath } = useWorkspaceRoute()
 
 const loading = ref(false)
 const flows = ref<Flow[]>([])
@@ -134,15 +136,15 @@ async function loadFlows() {
 }
 
 function handleCreate() {
-  router.push('/flows/new')
+  router.push(createFlowPath())
 }
 
 function handleCanvas(id: string) {
-  router.push(`/flows/${id}`)
+  router.push(flowDetailPath(id))
 }
 
 function handleEdit(id: string) {
-  router.push(`/flows/${id}/edit`)
+  router.push(flowDetailPath(id) + '/edit')
 }
 
 async function handleToggleStatus(flow: Flow) {

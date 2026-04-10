@@ -93,10 +93,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { resourceAPI } from '@/api/resources'
 import type { Resource } from '@/types/resource'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 import { formatDate } from '@/utils/request'
 
 const router = useRouter()
 const workspaceStore = useWorkspaceStore()
+const { createResourcePath, resourceDetailPath, toolsPath } = useWorkspaceRoute()
 
 const loading = ref(false)
 const resources = ref<Resource[]>([])
@@ -132,11 +134,11 @@ async function loadResources() {
 }
 
 function handleCreate() {
-  router.push('/resources/new')
+  router.push(createResourcePath())
 }
 
 function handleEdit(id: string) {
-  router.push(`/resources/${id}`)
+  router.push(resourceDetailPath(id))
 }
 
 async function handleTest(id: string) {
@@ -153,7 +155,7 @@ async function handleExtractTools(id: string) {
   try {
     const tools = await resourceAPI.extractTools(id)
     ElMessage.success(`成功提取 ${tools.length} 个工具`)
-    router.push('/tools')
+    router.push(toolsPath())
   } catch (error) {
     ElMessage.error('提取工具失败')
   }

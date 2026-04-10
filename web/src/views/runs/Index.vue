@@ -81,7 +81,7 @@
     <el-table :data="runs" v-loading="loading" border>
       <el-table-column prop="id" label="运行ID" width="180" fixed="left">
         <template #default="{ row }">
-          <router-link :to="`/runs/${row.id}`" class="run-id-link">
+          <router-link :to="runDetailPath(row.id)" class="run-id-link">
             {{ row.id }}
           </router-link>
         </template>
@@ -141,12 +141,14 @@ import { Chart, registerables } from 'chart.js'
 import { runAPI } from '@/api/runs'
 import type { Run, RunStats } from '@/types/run'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 import { formatDate, formatDuration, statusTagType, statusText } from '@/utils/request'
 
 Chart.register(...registerables)
 
 const router = useRouter()
 const workspaceStore = useWorkspaceStore()
+const { runDetailPath } = useWorkspaceRoute()
 
 const loading = ref(false)
 const runs = ref<Run[]>([])
@@ -301,7 +303,7 @@ function handleSearch() {
 }
 
 function handleView(id: string) {
-  router.push(`/runs/${id}`)
+  router.push(runDetailPath(id))
 }
 
 async function handleRetry(id: string) {

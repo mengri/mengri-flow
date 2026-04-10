@@ -13,15 +13,17 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import ToolForm from '@/components/ToolForm.vue'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 const router = useRouter()
+const { toolsPath } = useWorkspaceRoute()
 
 function handleSuccess() {
-  router.push('/tools')
+  router.push(toolsPath())
 }
 
 function handleCancel() {
-  router.push('/tools')
+  router.push(toolsPath())
 }
 </script>
 

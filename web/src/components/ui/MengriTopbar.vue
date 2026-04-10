@@ -16,7 +16,7 @@
         </button>
         
         <div class="logo-wrapper">
-          <router-link to="/" class="logo-link">
+          <router-link :to="dashboardPath()" class="logo-link">
             <AppLogo size="md" />
           </router-link>
         </div>
@@ -28,7 +28,7 @@
               <router-link
                 :to="item.path"
                 class="nav-link"
-                :class="{ active: $route.path.startsWith(item.path) }"
+                :class="{ active: $route.path.startsWith(item.path) || (item.path.startsWith('/workspace') && $route.path === item.path) }"
                 @focus="activeNavIndex = index"
               >
                 <component
@@ -313,6 +313,7 @@ import { useWindowSize, useEventListener } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import AppLogo from '@/components/ui/AppLogo.vue'
 import {
@@ -347,6 +348,9 @@ withDefaults(defineProps<Props>(), {
   showSearch: true,
 })
 
+// 注意: menuItems 作为 prop 传入时，应由 AppLayout 使用 useWorkspaceRoute 生成正确的 workspace-scoped 路径
+// 这里的默认值仅作为 fallback
+
 // Emits
 const emit = defineEmits<{
   'toggle-sidebar': []
@@ -358,6 +362,7 @@ const emit = defineEmits<{
 const authStore = useAuthStore()
 const { handleLogout: authLogout } = useAuth()
 const { t } = useI18n()
+const { dashboardPath, flowsPath, resourcesPath, toolsPath } = useWorkspaceRoute()
 
 // Reactive state
 const searchQuery = ref('')

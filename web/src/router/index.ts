@@ -21,16 +21,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/workspaces/Select.vue'),
     meta: { requiresAuth: true, skipWorkspaceCheck: true },
   },
+  // --- 非空间内路由（直接在 AppLayout 下） ---
   {
     path: '/',
     component: () => import('@/layouts/AppLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      {
-        path: '',
-        name: 'Dashboard',
-        component: () => import('@/views/DashboardView.vue'),
-      },
       {
         path: '/account',
         name: 'Account',
@@ -48,85 +44,107 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAdmin: true },
       },
       {
-        path: '/resources',
+        path: '',
+        redirect: () => {
+          const workspaceStore = useWorkspaceStore()
+          const wsId = workspaceStore.currentWorkspaceId
+          return wsId ? `/workspace/${wsId}` : '/select-workspace'
+        },
+      },
+    ],
+  },
+  // --- 空间内路由（带 workspaceId 参数） ---
+  {
+    path: '/workspace/:workspaceId',
+    component: () => import('@/layouts/AppLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'Dashboard',
+        component: () => import('@/views/DashboardView.vue'),
+      },
+      {
+        path: 'resources',
         name: 'Resources',
         component: () => import('@/views/resources/Index.vue'),
       },
       {
-        path: '/resources/new',
+        path: 'resources/new',
         name: 'CreateResource',
         component: () => import('@/views/resources/Create.vue'),
       },
       {
-        path: '/resources/:id',
+        path: 'resources/:id',
         name: 'ResourceDetail',
         component: () => import('@/views/resources/Detail.vue'),
       },
       {
-        path: '/tools',
+        path: 'tools',
         name: 'Tools',
         component: () => import('@/views/tools/Index.vue'),
       },
       {
-        path: '/tools/new',
+        path: 'tools/new',
         name: 'CreateTool',
         component: () => import('@/views/tools/Create.vue'),
       },
       {
-        path: '/tools/import',
+        path: 'tools/import',
         name: 'ImportTools',
         component: () => import('@/views/tools/Import.vue'),
       },
       {
-        path: '/tools/:id',
+        path: 'tools/:id',
         name: 'ToolDetail',
         component: () => import('@/views/tools/Detail.vue'),
       },
       {
-        path: '/flows',
+        path: 'flows',
         name: 'Flows',
         component: () => import('@/views/flows/Index.vue'),
       },
       {
-        path: '/flows/new',
+        path: 'flows/new',
         name: 'CreateFlow',
         component: () => import('@/views/flows/Create.vue'),
       },
       {
-        path: '/flows/:id',
+        path: 'flows/:id',
         name: 'FlowCanvas',
         component: () => import('@/views/flows/Canvas.vue'),
       },
       {
-        path: '/triggers',
+        path: 'triggers',
         name: 'Triggers',
         component: () => import('@/views/triggers/Index.vue'),
       },
       {
-        path: '/triggers/new',
+        path: 'triggers/new',
         name: 'CreateTrigger',
         component: () => import('@/views/triggers/Create.vue'),
       },
       {
-        path: '/triggers/:id',
+        path: 'triggers/:id',
         name: 'TriggerDetail',
         component: () => import('@/views/triggers/Detail.vue'),
       },
       {
-        path: '/runs',
+        path: 'runs',
         name: 'Runs',
         component: () => import('@/views/runs/Index.vue'),
       },
       {
-        path: '/runs/:id',
+        path: 'runs/:id',
         name: 'RunDetail',
         component: () => import('@/views/runs/Detail.vue'),
       },
     ],
   },
+  // --- Catch-all ---
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/',
+    redirect: '/select-workspace',
   },
 ]
 
@@ -139,9 +157,11 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
 
-  // 已登录用户访问登录/激活页，重定向到首页
+  // 已登录用户访问登录/激活页，重定向到空间首页
   if ((to.path === '/login' || to.path === '/activation') && authStore.isAuthenticated) {
-    next('/')
+    const workspaceStore = useWorkspaceStore()
+    const wsId = workspaceStore.currentWorkspaceId
+    next(wsId ? `/workspace/${wsId}` : '/select-workspace')
     return
   }
 
@@ -151,7 +171,9 @@ router.beforeEach((to, _from, next) => {
   }
 
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    next('/')
+    const workspaceStore = useWorkspaceStore()
+    const wsId = workspaceStore.currentWorkspaceId || to.params.workspaceId
+    next(wsId ? `/workspace/${wsId}` : '/')
     return
   }
 
@@ -159,8 +181,6 @@ router.beforeEach((to, _from, next) => {
   if (authStore.isAuthenticated && !to.meta.skipWorkspaceCheck) {
     const workspaceStore = useWorkspaceStore()
     if (workspaceStore.workspaces.length === 0 || !workspaceStore.hasCurrentWorkspace) {
-      // 仅在 workspace 已加载过（非初始化阶段）才拦截
-      // 初始化阶段由 App.vue 处理
       if (!workspaceStore.loading) {
         next({ path: '/select-workspace', query: { redirect: to.fullPath } })
         return

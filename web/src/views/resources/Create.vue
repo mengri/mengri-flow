@@ -13,15 +13,17 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import ResourceForm from '@/components/ResourceForm.vue'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
 const router = useRouter()
+const { resourcesPath } = useWorkspaceRoute()
 
 function handleSuccess() {
-  router.push('/resources')
+  router.push(resourcesPath())
 }
 
 function handleCancel() {
-  router.push('/resources')
+  router.push(resourcesPath())
 }
 </script>
 

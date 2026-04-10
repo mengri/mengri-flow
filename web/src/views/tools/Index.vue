@@ -121,10 +121,12 @@ import { resourceAPI } from '@/api/resources'
 import type { Tool } from '@/types/tool'
 import type { Resource } from '@/types/resource'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 import { formatDate } from '@/utils/request'
 
 const router = useRouter()
 const workspaceStore = useWorkspaceStore()
+const { createToolPath, importToolPath, toolDetailPath, toolsPath } = useWorkspaceRoute()
 
 const loading = ref(false)
 const tools = ref<Tool[]>([])
@@ -182,15 +184,15 @@ async function loadResources() {
 }
 
 function handleCreate() {
-  router.push('/tools/new')
+  router.push(createToolPath())
 }
 
 function handleImport() {
-  router.push('/tools/import')
+  router.push(importToolPath())
 }
 
 function handleEdit(id: string) {
-  router.push(`/tools/${id}`)
+  router.push(toolDetailPath(id))
 }
 
 async function handleTest(tool: Tool) {

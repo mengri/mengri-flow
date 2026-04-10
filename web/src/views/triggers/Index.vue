@@ -101,10 +101,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { triggerAPI } from '@/api/triggers'
 import type { Trigger } from '@/types/trigger'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 import { formatDate } from '@/utils/request'
 
 const router = useRouter()
 const workspaceStore = useWorkspaceStore()
+const { createTriggerPath, triggerDetailPath } = useWorkspaceRoute()
 
 const loading = ref(false)
 const triggers = ref<Trigger[]>([])
@@ -138,11 +140,11 @@ async function loadTriggers() {
 }
 
 function handleCreate() {
-  router.push('/triggers/new')
+  router.push(createTriggerPath())
 }
 
 function handleView(id: string) {
-  router.push(`/triggers/${id}`)
+  router.push(triggerDetailPath(id))
 }
 
 async function handleToggleStatus(trigger: Trigger) {

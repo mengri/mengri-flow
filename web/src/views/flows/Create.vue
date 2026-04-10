@@ -73,10 +73,12 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { flowAPI } from '@/api/flows'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 import type { CreateFlowRequest } from '@/types/flow'
 
 const router = useRouter()
 const workspaceStore = useWorkspaceStore()
+const { flowDetailPath, flowsPath } = useWorkspaceRoute()
 
 const formRef = ref()
 
@@ -124,7 +126,7 @@ async function handleSubmit() {
     
     const response = await flowAPI.create(form)
     ElMessage.success('创建成功')
-    router.push(`/flows/${response.id}`)
+    router.push(flowDetailPath(response.id))
   } catch (error) {
     ElMessage.error('创建失败')
   } finally {
@@ -133,7 +135,7 @@ async function handleSubmit() {
 }
 
 function handleCancel() {
-  router.push('/flows')
+  router.push(flowsPath())
 }
 </script>
 
