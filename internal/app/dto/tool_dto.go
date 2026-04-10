@@ -57,3 +57,11 @@ type ListToolsResponse struct {
 	PageSize int            `json:"pageSize"`
 	List     []ToolResponse `json:"list"`
 }
+
+// ToolVersionResponse 工具版本响应
+type ToolVersionResponse struct {
+	Version   int       `json:"version"`
+	Comment   string    `json:"comment"`
+	CreatedBy string    `json:"createdBy"`
+	CreatedAt time.Time `json:"createdAt"`
+}

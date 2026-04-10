@@ -14,6 +14,16 @@ type WorkspaceHandlerImpl struct {
 	service service.IWorkspaceService `autowired:""`
 }
 
+// CreateWorkspace 创建工作空间
+// @Summary 创建工作空间
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.CreateWorkspaceRequest true "创建工作空间请求"
+// @Success 200 {object} response.Response{data=dto.WorkspaceResponse}
+// @Failure 400 {object} response.Response
+// @Router /workspaces [post]
 func (h *WorkspaceHandlerImpl) CreateWorkspace(c *gin.Context) {
 	var req dto.CreateWorkspaceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -31,6 +41,16 @@ func (h *WorkspaceHandlerImpl) CreateWorkspace(c *gin.Context) {
 	response.Success(c, workspace)
 }
 
+// ListWorkspaces 获取工作空间列表
+// @Summary 获取工作空间列表
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "页码" default(1)
+// @Param pageSize query int false "每页数量" default(10)
+// @Success 200 {object} response.Response{data=dto.ListWorkspacesResponse}
+// @Router /workspaces [get]
 func (h *WorkspaceHandlerImpl) ListWorkspaces(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
@@ -45,6 +65,16 @@ func (h *WorkspaceHandlerImpl) ListWorkspaces(c *gin.Context) {
 	response.Success(c, workspaces)
 }
 
+// GetWorkspace 获取工作空间详情
+// @Summary 获取工作空间详情
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "工作空间ID"
+// @Success 200 {object} response.Response{data=dto.WorkspaceResponse}
+// @Failure 404 {object} response.Response
+// @Router /workspaces/{id} [get]
 func (h *WorkspaceHandlerImpl) GetWorkspace(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
@@ -58,6 +88,18 @@ func (h *WorkspaceHandlerImpl) GetWorkspace(c *gin.Context) {
 	response.Success(c, workspace)
 }
 
+// UpdateWorkspace 更新工作空间
+// @Summary 更新工作空间
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "工作空间ID"
+// @Param request body dto.UpdateWorkspaceRequest true "更新工作空间请求"
+// @Success 200 {object} response.Response{data=dto.WorkspaceResponse}
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /workspaces/{id} [put]
 func (h *WorkspaceHandlerImpl) UpdateWorkspace(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
@@ -77,6 +119,16 @@ func (h *WorkspaceHandlerImpl) UpdateWorkspace(c *gin.Context) {
 	response.Success(c, workspace)
 }
 
+// DeleteWorkspace 删除工作空间
+// @Summary 删除工作空间
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "工作空间ID"
+// @Success 200 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /workspaces/{id} [delete]
 func (h *WorkspaceHandlerImpl) DeleteWorkspace(c *gin.Context) {
 	id := c.Param("id")
 	accountID := c.GetString("accountID")
@@ -89,6 +141,17 @@ func (h *WorkspaceHandlerImpl) DeleteWorkspace(c *gin.Context) {
 	response.Success(c, gin.H{"message": "workspace deleted successfully"})
 }
 
+// AddMember 添加工作空间成员
+// @Summary 添加工作空间成员
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "工作空间ID"
+// @Param request body dto.AddWorkspaceMemberRequest true "添加成员请求"
+// @Success 200 {object} response.Response{data=dto.WorkspaceMemberResponse}
+// @Failure 400 {object} response.Response
+// @Router /workspaces/{id}/members [post]
 func (h *WorkspaceHandlerImpl) AddMember(c *gin.Context) {
 	workspaceID := c.Param("id")
 	accountID := c.GetString("accountID")
@@ -108,6 +171,17 @@ func (h *WorkspaceHandlerImpl) AddMember(c *gin.Context) {
 	response.Success(c, member)
 }
 
+// RemoveMember 移除工作空间成员
+// @Summary 移除工作空间成员
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "工作空间ID"
+// @Param userId path string true "成员ID"
+// @Success 200 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /workspaces/{id}/members/{userId} [delete]
 func (h *WorkspaceHandlerImpl) RemoveMember(c *gin.Context) {
 	workspaceID := c.Param("id")
 	memberID := c.Param("userId")

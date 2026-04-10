@@ -57,3 +57,11 @@ type ListFlowsResponse struct {
 	PageSize int             `json:"pageSize"`
 	List     []*FlowResponse `json:"list"`
 }
+
+// FlowVersionResponse 流程版本响应
+type FlowVersionResponse struct {
+	Version   int       `json:"version"`
+	Comment   string    `json:"comment"`
+	CreatedBy string    `json:"createdBy"`
+	CreatedAt time.Time `json:"createdAt"`
+}

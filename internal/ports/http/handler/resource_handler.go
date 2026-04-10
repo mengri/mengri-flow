@@ -15,6 +15,17 @@ type ResourceHandlerImpl struct {
 	resourceService service.IResourceService `autowired:""`
 }
 
+// CreateResource 创建资源
+// @Summary 创建资源
+// @Tags Resource
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.CreateResourceRequest true "创建资源请求"
+// @Success 200 {object} response.Response{data=dto.ResourceResponse}
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /resources [post]
 func (h *ResourceHandlerImpl) CreateResource(c *gin.Context) {
 	var req dto.CreateResourceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -43,6 +54,18 @@ func (h *ResourceHandlerImpl) CreateResource(c *gin.Context) {
 	response.Success(c, resp)
 }
 
+// UpdateResource 更新资源
+// @Summary 更新资源
+// @Tags Resource
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "资源ID"
+// @Param request body dto.UpdateResourceRequest true "更新资源请求"
+// @Success 200 {object} response.Response{data=dto.ResourceResponse}
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /resources/{id} [put]
 func (h *ResourceHandlerImpl) UpdateResource(c *gin.Context) {
 	id := c.Param("id")
 	var req dto.UpdateResourceRequest
@@ -72,6 +95,16 @@ func (h *ResourceHandlerImpl) UpdateResource(c *gin.Context) {
 	response.Success(c, resp)
 }
 
+// DeleteResource 删除资源
+// @Summary 删除资源
+// @Tags Resource
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "资源ID"
+// @Success 200 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /resources/{id} [delete]
 func (h *ResourceHandlerImpl) DeleteResource(c *gin.Context) {
 	id := c.Param("id")
 
@@ -83,6 +116,16 @@ func (h *ResourceHandlerImpl) DeleteResource(c *gin.Context) {
 	response.Success(c, gin.H{"message": "resource deleted"})
 }
 
+// GetResource 获取资源详情
+// @Summary 获取资源详情
+// @Tags Resource
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "资源ID"
+// @Success 200 {object} response.Response{data=dto.ResourceResponse}
+// @Failure 404 {object} response.Response
+// @Router /resources/{id} [get]
 func (h *ResourceHandlerImpl) GetResource(c *gin.Context) {
 	id := c.Param("id")
 
@@ -107,6 +150,20 @@ func (h *ResourceHandlerImpl) GetResource(c *gin.Context) {
 	response.Success(c, resp)
 }
 
+// ListResources 获取资源列表
+// @Summary 获取资源列表
+// @Tags Resource
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param workspaceId query string true "工作空间ID"
+// @Param type query string false "资源类型"
+// @Param page query int false "页码" default(1)
+// @Param pageSize query int false "每页数量" default(20)
+// @Success 200 {object} response.Response{data=dto.ListResourcesResponse}
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /resources [get]
 func (h *ResourceHandlerImpl) ListResources(c *gin.Context) {
 	workspaceID := c.Query("workspaceId")
 	if workspaceID == "" {
@@ -149,6 +206,16 @@ func (h *ResourceHandlerImpl) ListResources(c *gin.Context) {
 	response.Success(c, resp)
 }
 
+// TestConnection 测试资源连接
+// @Summary 测试资源连接
+// @Tags Resource
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.TestConnectionRequest true "测试连接请求"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Router /resources/test-connection [post]
 func (h *ResourceHandlerImpl) TestConnection(c *gin.Context) {
 	var req dto.TestConnectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

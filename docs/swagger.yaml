@@ -1,0 +1,3460 @@
+definitions:
+  mengri-flow_internal_app_dto.AccountBrief:
+    properties:
+      accountId:
+        type: string
+      displayName:
+        type: string
+      email:
+        type: string
+      status:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.AccountDetailResponse:
+    properties:
+      accountId:
+        type: string
+      activatedAt:
+        type: string
+      activationExpireAt:
+        type: string
+      createdAt:
+        type: string
+      displayName:
+        type: string
+      email:
+        type: string
+      identities:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.IdentityBrief'
+        type: array
+      role:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.AccountResponse:
+    properties:
+      accountId:
+        type: string
+      activatedAt:
+        type: string
+      activationExpireAt:
+        type: string
+      createdAt:
+        type: string
+      displayName:
+        type: string
+      email:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.ActivationConfirmRequest:
+    properties:
+      confirmPassword:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - confirmPassword
+    - password
+    - token
+    type: object
+  mengri-flow_internal_app_dto.ActivationConfirmResponse:
+    properties:
+      accountId:
+        type: string
+      activated:
+        type: boolean
+      activatedAt:
+        type: string
+      status:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.ActivationValidateResponse:
+    properties:
+      alreadyActivated:
+        type: boolean
+      emailMasked:
+        type: string
+      expireAt:
+        type: string
+      valid:
+        type: boolean
+    type: object
+  mengri-flow_internal_app_dto.AddWorkspaceMemberRequest:
+    properties:
+      accountId:
+        type: string
+      role:
+        enum:
+        - member
+        - admin
+        type: string
+    required:
+    - accountId
+    - role
+    type: object
+  mengri-flow_internal_app_dto.AuditEventItem:
+    properties:
+      createdAt:
+        type: string
+      eventType:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      result:
+        type: string
+      ua:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.AuditEventListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.AuditEventItem'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ChangePasswordRequest:
+    properties:
+      confirmPassword:
+        type: string
+      newPassword:
+        minLength: 8
+        type: string
+      oldPassword:
+        type: string
+      revokeOtherSessions:
+        type: boolean
+    required:
+    - confirmPassword
+    - newPassword
+    - oldPassword
+    type: object
+  mengri-flow_internal_app_dto.ChangePasswordResponse:
+    properties:
+      changed:
+        type: boolean
+      revokedSessions:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ChangeStatusRequest:
+    properties:
+      action:
+        enum:
+        - lock
+        - unlock
+        - disable
+        - enable
+        type: string
+      reason:
+        type: string
+    required:
+    - action
+    type: object
+  mengri-flow_internal_app_dto.ClusterDetailResponse:
+    properties:
+      activeFlows:
+        type: integer
+      createdAt:
+        type: string
+      description:
+        type: string
+      environmentId:
+        type: string
+      etcdEndpoints:
+        type: string
+      etcdUsername:
+        type: string
+      executorCount:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      nodeCount:
+        type: integer
+      status:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.ClusterResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      environmentId:
+        type: string
+      etcdEndpoints:
+        type: string
+      etcdUsername:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      nodeCount:
+        type: integer
+      status:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.CreateAccountRequest:
+    properties:
+      displayName:
+        maxLength: 50
+        minLength: 1
+        type: string
+      email:
+        type: string
+      username:
+        maxLength: 50
+        minLength: 2
+        type: string
+    required:
+    - displayName
+    - email
+    - username
+    type: object
+  mengri-flow_internal_app_dto.CreateClusterRequest:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      environmentId:
+        type: string
+      etcdEndpoints:
+        type: string
+      etcdPassword:
+        type: string
+      etcdUsername:
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - environmentId
+    - etcdEndpoints
+    - name
+    type: object
+  mengri-flow_internal_app_dto.CreateEnvironmentRequest:
+    properties:
+      color:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      key:
+        maxLength: 20
+        type: string
+      name:
+        maxLength: 50
+        type: string
+    required:
+    - key
+    - name
+    type: object
+  mengri-flow_internal_app_dto.CreateFlowRequest:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      workspaceId:
+        type: string
+    required:
+    - config
+    - name
+    - workspaceId
+    type: object
+  mengri-flow_internal_app_dto.CreateResourceRequest:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      type:
+        type: string
+      workspaceId:
+        type: string
+    required:
+    - config
+    - name
+    - type
+    - workspaceId
+    type: object
+  mengri-flow_internal_app_dto.CreateToolRequest:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      type:
+        type: string
+      workspaceId:
+        type: string
+    required:
+    - config
+    - name
+    - type
+    - workspaceId
+    type: object
+  mengri-flow_internal_app_dto.CreateTriggerRequest:
+    properties:
+      clusterId:
+        type: string
+      config:
+        additionalProperties: true
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      errorHandling:
+        $ref: '#/definitions/mengri-flow_internal_app_dto.ErrorHandlingConfig'
+      flowId:
+        type: string
+      flowVersion:
+        type: integer
+      inputMapping:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        maxLength: 100
+        type: string
+      outputMapping:
+        additionalProperties:
+          type: string
+        type: object
+      type:
+        type: string
+      workspaceId:
+        type: string
+    required:
+    - config
+    - flowId
+    - name
+    - type
+    type: object
+  mengri-flow_internal_app_dto.CreateWorkspaceRequest:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - name
+    type: object
+  mengri-flow_internal_app_dto.DeviceInfo:
+    properties:
+      deviceId:
+        type: string
+      ip:
+        type: string
+      ua:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.EnvironmentResponse:
+    properties:
+      clusterCount:
+        type: integer
+      color:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.ErrorHandlingConfig:
+    properties:
+      customErrorFormat:
+        additionalProperties: true
+        type: object
+      retryOnFailure:
+        type: boolean
+      strategy:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.ErrorHandlingResponse:
+    properties:
+      customErrorFormat:
+        additionalProperties: true
+        type: object
+      retryOnFailure:
+        type: boolean
+      strategy:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.ExecutionTimelineResponse:
+    properties:
+      completedAt:
+        type: string
+      error:
+        type: string
+      executionTime:
+        type: integer
+      nodeId:
+        type: string
+      nodeName:
+        type: string
+      startedAt:
+        type: string
+      status:
+        type: string
+      toolId:
+        type: string
+      toolName:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.FlowResponse:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      version:
+        type: integer
+      workspaceId:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.FlowVersionResponse:
+    properties:
+      comment:
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      version:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.IdentityBrief:
+    properties:
+      boundAt:
+        type: string
+      identityId:
+        type: string
+      loginType:
+        type: string
+      maskedIdentifier:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.IdentityListResponse:
+    properties:
+      canUnbindLast:
+        type: boolean
+      identities:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.IdentityBrief'
+        type: array
+    type: object
+  mengri-flow_internal_app_dto.ImportToolsRequest:
+    properties:
+      resourceId:
+        type: string
+    required:
+    - resourceId
+    type: object
+  mengri-flow_internal_app_dto.ListAccountsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.AccountResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ListClustersResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.ClusterResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ListEnvironmentsResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.EnvironmentResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ListFlowsResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.FlowResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ListResourcesResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.ResourceResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ListRunsResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.RunResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ListToolsResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.ToolResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ListTriggersResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.TriggerResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ListWorkspacesResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.WorkspaceResponse'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.LoginResponse:
+    properties:
+      accessToken:
+        type: string
+      account:
+        $ref: '#/definitions/mengri-flow_internal_app_dto.AccountBrief'
+      expiresIn:
+        type: integer
+      refreshToken:
+        type: string
+      tokenType:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.OAuthCallbackResponse:
+    properties:
+      accessToken:
+        type: string
+      account:
+        $ref: '#/definitions/mengri-flow_internal_app_dto.AccountBrief'
+      bindTicket:
+        type: string
+      expireAt:
+        type: string
+      expiresIn:
+        type: integer
+      identity:
+        $ref: '#/definitions/mengri-flow_internal_app_dto.IdentityBrief'
+      provider:
+        type: string
+      refreshToken:
+        type: string
+      result:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.OAuthURLResponse:
+    properties:
+      authUrl:
+        type: string
+      expireAt:
+        type: string
+      state:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.PasswordLoginRequest:
+    properties:
+      account:
+        type: string
+      deviceInfo:
+        $ref: '#/definitions/mengri-flow_internal_app_dto.DeviceInfo'
+      password:
+        type: string
+    required:
+    - account
+    - password
+    type: object
+  mengri-flow_internal_app_dto.ProfileResponse:
+    properties:
+      accountId:
+        type: string
+      accountStatus:
+        type: string
+      displayName:
+        type: string
+      email:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.PublishFlowRequest:
+    properties:
+      clusterId:
+        type: string
+      flowId:
+        type: string
+    required:
+    - clusterId
+    - flowId
+    type: object
+  mengri-flow_internal_app_dto.PublishTriggerRequest:
+    properties:
+      clusterId:
+        type: string
+      triggerId:
+        type: string
+    required:
+    - clusterId
+    - triggerId
+    type: object
+  mengri-flow_internal_app_dto.RefreshTokenRequest:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  mengri-flow_internal_app_dto.ResendActivationRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.ResendActivationResponse:
+    properties:
+      activationExpireAt:
+        type: string
+      sent:
+        type: boolean
+      throttleSec:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.ResourceResponse:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+      workspaceId:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.RollbackFlowRequest:
+    properties:
+      flowId:
+        type: string
+      version:
+        minimum: 1
+        type: integer
+    required:
+    - flowId
+    - version
+    type: object
+  mengri-flow_internal_app_dto.RunDetailResponse:
+    properties:
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      error:
+        type: string
+      flowId:
+        type: string
+      flowName:
+        type: string
+      id:
+        type: string
+      input:
+        additionalProperties: true
+        type: object
+      nodeCount:
+        type: integer
+      nodeStatus:
+        additionalProperties:
+          type: string
+        type: object
+      output:
+        additionalProperties: true
+        type: object
+      startedAt:
+        type: string
+      status:
+        type: string
+      triggerId:
+        type: string
+      triggerType:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.RunResponse:
+    properties:
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      flowId:
+        type: string
+      flowName:
+        type: string
+      id:
+        type: string
+      startedAt:
+        type: string
+      status:
+        type: string
+      triggerId:
+        type: string
+      triggerType:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.RunStatsResponse:
+    properties:
+      failedRuns:
+        type: integer
+      monthRuns:
+        type: integer
+      runningRuns:
+        type: integer
+      successRuns:
+        type: integer
+      todayRuns:
+        type: integer
+      totalRuns:
+        type: integer
+      weekRuns:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.SMSLoginRequest:
+    properties:
+      code:
+        type: string
+      deviceInfo:
+        $ref: '#/definitions/mengri-flow_internal_app_dto.DeviceInfo'
+      phone:
+        type: string
+    required:
+    - code
+    - phone
+    type: object
+  mengri-flow_internal_app_dto.SMSSendRequest:
+    properties:
+      captchaToken:
+        type: string
+      phone:
+        type: string
+      scene:
+        enum:
+        - login
+        - bind
+        type: string
+    required:
+    - phone
+    - scene
+    type: object
+  mengri-flow_internal_app_dto.SMSSendResponse:
+    properties:
+      retryAfterSec:
+        type: integer
+      sent:
+        type: boolean
+      ttlSec:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.SecurityTicketResponse:
+    properties:
+      expireAt:
+        type: string
+      securityTicket:
+        type: string
+      ttlSec:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.SecurityVerifyRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  mengri-flow_internal_app_dto.TestConnectionRequest:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      type:
+        type: string
+    required:
+    - config
+    - type
+    type: object
+  mengri-flow_internal_app_dto.TestEtcdConnectionRequest:
+    properties:
+      endpoints:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - endpoints
+    type: object
+  mengri-flow_internal_app_dto.TestFlowRequest:
+    properties:
+      flowId:
+        type: string
+      input:
+        additionalProperties: true
+        type: object
+    required:
+    - flowId
+    - input
+    type: object
+  mengri-flow_internal_app_dto.TestToolRequest:
+    properties:
+      input:
+        additionalProperties: true
+        type: object
+      toolId:
+        type: string
+    required:
+    - input
+    - toolId
+    type: object
+  mengri-flow_internal_app_dto.ToolResponse:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+      workspaceId:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.ToolVersionResponse:
+    properties:
+      comment:
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      version:
+        type: integer
+    type: object
+  mengri-flow_internal_app_dto.TriggerResponse:
+    properties:
+      clusterId:
+        type: string
+      config:
+        additionalProperties: true
+        type: object
+      createdAt:
+        type: string
+      description:
+        type: string
+      errorHandling:
+        $ref: '#/definitions/mengri-flow_internal_app_dto.ErrorHandlingResponse'
+      flowId:
+        type: string
+      flowVersion:
+        type: integer
+      id:
+        type: string
+      inputMapping:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      outputMapping:
+        additionalProperties:
+          type: string
+        type: object
+      status:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+      workspaceId:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.UpdateClusterRequest:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.UpdateEnvironmentRequest:
+    properties:
+      color:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      name:
+        maxLength: 50
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.UpdateFlowRequest:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.UpdateResourceRequest:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.UpdateToolRequest:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.UpdateTriggerRequest:
+    properties:
+      clusterId:
+        type: string
+      config:
+        additionalProperties: true
+        type: object
+      description:
+        maxLength: 500
+        type: string
+      errorHandling:
+        $ref: '#/definitions/mengri-flow_internal_app_dto.ErrorHandlingConfig'
+      flowVersion:
+        type: integer
+      inputMapping:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        maxLength: 100
+        type: string
+      outputMapping:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  mengri-flow_internal_app_dto.UpdateWorkspaceRequest:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.WorkspaceMemberResponse:
+    properties:
+      accountId:
+        type: string
+      displayName:
+        type: string
+      email:
+        type: string
+      joinedAt:
+        type: string
+      role:
+        type: string
+    type: object
+  mengri-flow_internal_app_dto.WorkspaceResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      memberCount:
+        type: integer
+      name:
+        type: string
+      ownerId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  mengri-flow_pkg_response.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/admin/accounts:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      - description: 状态过滤
+        in: query
+        name: status
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListAccountsResponse'
+              type: object
+      summary: 账号列表
+      tags:
+      - Admin
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建账号请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.AccountResponse'
+              type: object
+      summary: 创建账号
+      tags:
+      - Admin
+  /api/v1/admin/accounts/{accountId}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 账号 ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.AccountDetailResponse'
+              type: object
+      summary: 账号详情
+      tags:
+      - Admin
+  /api/v1/admin/accounts/{accountId}/activation/resend:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 账号 ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: 重发请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.ResendActivationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ResendActivationResponse'
+              type: object
+      summary: 重发激活邮件
+      tags:
+      - Admin
+  /api/v1/admin/accounts/{accountId}/status:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 账号 ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: 变更状态请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.ChangeStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.AccountResponse'
+              type: object
+      summary: 变更账号状态
+      tags:
+      - Admin
+  /api/v1/admin/audit/events:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 账号 ID
+        in: query
+        name: accountId
+        type: string
+      - description: 事件类型
+        in: query
+        name: eventType
+        type: string
+      - description: 开始时间
+        in: query
+        name: from
+        type: string
+      - description: 结束时间
+        in: query
+        name: to
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.AuditEventListResponse'
+              type: object
+      summary: 审计事件列表
+      tags:
+      - Admin
+  /api/v1/auth/activation/confirm:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 激活请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.ActivationConfirmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ActivationConfirmResponse'
+              type: object
+      summary: 确认激活
+      tags:
+      - Auth
+  /api/v1/auth/activation/validate:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 激活令牌
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ActivationValidateResponse'
+              type: object
+      summary: 校验激活令牌
+      tags:
+      - Auth
+  /api/v1/auth/login/password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 登录请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.PasswordLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.LoginResponse'
+              type: object
+      summary: 密码登录
+      tags:
+      - Auth
+  /api/v1/auth/login/sms/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 发送请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.SMSSendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.SMSSendResponse'
+              type: object
+      summary: 发送短信验证码
+      tags:
+      - Auth
+  /api/v1/auth/login/sms/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 登录请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.SMSLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.LoginResponse'
+              type: object
+      summary: 短信验证码登录
+      tags:
+      - Auth
+  /api/v1/auth/logout:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      summary: 登出
+      tags:
+      - Auth
+  /api/v1/auth/oauth/{provider}/callback:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提供商
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: 授权码
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: 状态码
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.OAuthCallbackResponse'
+              type: object
+      summary: OAuth 回调
+      tags:
+      - Auth
+  /api/v1/auth/oauth/{provider}/url:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提供商 (github)
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: 场景 (login|bind)
+        in: query
+        name: scene
+        required: true
+        type: string
+      - description: 回调地址
+        in: query
+        name: redirectUri
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.OAuthURLResponse'
+              type: object
+      summary: 获取第三方授权地址
+      tags:
+      - Auth
+  /api/v1/auth/token/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 刷新请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.LoginResponse'
+              type: object
+      summary: 刷新 Token
+      tags:
+      - Auth
+  /api/v1/me/identities:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.IdentityListResponse'
+              type: object
+      summary: 身份列表
+      tags:
+      - Me
+  /api/v1/me/password/change:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 修改密码请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ChangePasswordResponse'
+              type: object
+      summary: 修改密码
+      tags:
+      - Me
+  /api/v1/me/profile:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ProfileResponse'
+              type: object
+      summary: 获取资料
+      tags:
+      - Me
+  /api/v1/me/security/logins:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.AuditEventListResponse'
+              type: object
+      summary: 登录历史
+      tags:
+      - Me
+  /api/v1/me/security/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 验证请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.SecurityVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.SecurityTicketResponse'
+              type: object
+      summary: 安全验证
+      tags:
+      - Me
+  /clusters:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 环境ID
+        in: query
+        name: environmentId
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListClustersResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取集群列表
+      tags:
+      - Cluster
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建集群请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.CreateClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ClusterResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建集群
+      tags:
+      - Cluster
+  /clusters/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 集群ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除集群
+      tags:
+      - Cluster
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 集群ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ClusterDetailResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取集群详情
+      tags:
+      - Cluster
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 集群ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新集群请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.UpdateClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ClusterResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新集群
+      tags:
+      - Cluster
+  /clusters/{id}/test-etcd:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 集群ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 测试连接请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.TestEtcdConnectionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 测试etcd连接
+      tags:
+      - Cluster
+  /environments:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListEnvironmentsResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取环境列表
+      tags:
+      - Environment
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建环境请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.CreateEnvironmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.EnvironmentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建环境
+      tags:
+      - Environment
+  /environments/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 环境ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除环境
+      tags:
+      - Environment
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 环境ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.EnvironmentResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取环境详情
+      tags:
+      - Environment
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 环境ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新环境请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.UpdateEnvironmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.EnvironmentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新环境
+      tags:
+      - Environment
+  /flows:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作空间ID
+        in: query
+        name: workspaceId
+        required: true
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListFlowsResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取流程列表
+      tags:
+      - Flow
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建流程请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.CreateFlowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.FlowResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建流程
+      tags:
+      - Flow
+  /flows/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 流程ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除流程
+      tags:
+      - Flow
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 流程ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.FlowResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取流程详情
+      tags:
+      - Flow
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 流程ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新流程请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.UpdateFlowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.FlowResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新流程
+      tags:
+      - Flow
+  /flows/{id}/publish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 流程ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 发布流程请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.PublishFlowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 发布流程
+      tags:
+      - Flow
+  /flows/{id}/rollback:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 流程ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 回滚请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.RollbackFlowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 回滚流程版本
+      tags:
+      - Flow
+  /flows/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 流程ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/mengri-flow_internal_app_dto.FlowVersionResponse'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取流程版本列表
+      tags:
+      - Flow
+  /flows/test:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 测试流程请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.TestFlowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 测试流程
+      tags:
+      - Flow
+  /resources:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作空间ID
+        in: query
+        name: workspaceId
+        required: true
+        type: string
+      - description: 资源类型
+        in: query
+        name: type
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListResourcesResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取资源列表
+      tags:
+      - Resource
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建资源请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.CreateResourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ResourceResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建资源
+      tags:
+      - Resource
+  /resources/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 资源ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除资源
+      tags:
+      - Resource
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 资源ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ResourceResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取资源详情
+      tags:
+      - Resource
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 资源ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新资源请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.UpdateResourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ResourceResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新资源
+      tags:
+      - Resource
+  /resources/test-connection:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 测试连接请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.TestConnectionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 测试资源连接
+      tags:
+      - Resource
+  /runs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 流程ID
+        in: query
+        name: flowId
+        type: string
+      - description: 触发器ID
+        in: query
+        name: triggerId
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListRunsResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取运行记录列表
+      tags:
+      - Run
+  /runs/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 运行ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.RunDetailResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取运行详情
+      tags:
+      - Run
+  /runs/{id}/retry:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 运行ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.RunResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 重试运行
+      tags:
+      - Run
+  /runs/{id}/timeline:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 运行ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ExecutionTimelineResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取执行时间线
+      tags:
+      - Run
+  /runs/stats:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.RunStatsResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取运行统计
+      tags:
+      - Run
+  /tools:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作空间ID
+        in: query
+        name: workspaceId
+        required: true
+        type: string
+      - description: 工具类型
+        in: query
+        name: type
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListToolsResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取工具列表
+      tags:
+      - Tool
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建工具请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.CreateToolRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ToolResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建工具
+      tags:
+      - Tool
+  /tools/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工具ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ToolResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取工具详情
+      tags:
+      - Tool
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工具ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新工具请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.UpdateToolRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ToolResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新工具
+      tags:
+      - Tool
+  /tools/{id}/deprecate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工具ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 下线工具
+      tags:
+      - Tool
+  /tools/{id}/publish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工具ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 发布工具
+      tags:
+      - Tool
+  /tools/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工具ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/mengri-flow_internal_app_dto.ToolVersionResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取工具版本列表
+      tags:
+      - Tool
+  /tools/import:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 导入工具请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.ImportToolsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 批量导入工具
+      tags:
+      - Tool
+  /tools/test:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 测试工具请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.TestToolRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 测试工具
+      tags:
+      - Tool
+  /triggers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 流程ID
+        in: query
+        name: flowId
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListTriggersResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取触发器列表
+      tags:
+      - Trigger
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建触发器请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.CreateTriggerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.TriggerResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建触发器
+      tags:
+      - Trigger
+  /triggers/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 触发器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除触发器
+      tags:
+      - Trigger
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 触发器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.TriggerResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取触发器详情
+      tags:
+      - Trigger
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 触发器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新触发器请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.UpdateTriggerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.TriggerResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新触发器
+      tags:
+      - Trigger
+  /triggers/{id}/disable:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 触发器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 禁用触发器
+      tags:
+      - Trigger
+  /triggers/{id}/enable:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 触发器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 启用触发器
+      tags:
+      - Trigger
+  /triggers/{id}/publish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 触发器ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 发布请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.PublishTriggerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 发布触发器到集群
+      tags:
+      - Trigger
+  /workspaces:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.ListWorkspacesResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取工作空间列表
+      tags:
+      - Workspace
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建工作空间请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.CreateWorkspaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.WorkspaceResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建工作空间
+      tags:
+      - Workspace
+  /workspaces/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作空间ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除工作空间
+      tags:
+      - Workspace
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作空间ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.WorkspaceResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取工作空间详情
+      tags:
+      - Workspace
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作空间ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新工作空间请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.UpdateWorkspaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.WorkspaceResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新工作空间
+      tags:
+      - Workspace
+  /workspaces/{id}/members:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作空间ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 添加成员请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mengri-flow_internal_app_dto.AddWorkspaceMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/mengri-flow_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/mengri-flow_internal_app_dto.WorkspaceMemberResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 添加工作空间成员
+      tags:
+      - Workspace
+  /workspaces/{id}/members/{userId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工作空间ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 成员ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/mengri-flow_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 移除工作空间成员
+      tags:
+      - Workspace
+swagger: "2.0"
