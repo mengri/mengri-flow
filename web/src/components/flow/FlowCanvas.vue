@@ -116,10 +116,11 @@ onMounted(async () => {
   // 加载工具列表
   const workspaceStore = useWorkspaceStore()
   const workspaceId = workspaceStore.currentWorkspaceIdOrThrow
-  tools.value = await toolAPI.list({
+  const data = await toolAPI.list({
     workspaceId,
     status: 'published',
   })
+  tools.value = data.list || []
 })
 
 async function handleSave() {

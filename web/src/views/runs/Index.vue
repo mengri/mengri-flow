@@ -134,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Chart, registerables } from 'chart.js'
@@ -171,6 +171,7 @@ const pagination = reactive({
 })
 
 async function loadRuns() {
+  if (!workspaceStore.currentWorkspaceId) return
   loading.value = true
   try {
     const data = await runAPI.list({
@@ -188,6 +189,7 @@ async function loadRuns() {
 }
 
 async function loadStats() {
+  if (!workspaceStore.currentWorkspaceId) return
   try {
     const data = await runAPI.getStats({
       workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
@@ -323,6 +325,13 @@ function handleCurrentChange() {
 onMounted(() => {
   loadRuns()
   loadStats()
+})
+
+watch(() => workspaceStore.workspaces.length, (len) => {
+  if (len > 0 && workspaceStore.currentWorkspaceId) {
+    loadRuns()
+    loadStats()
+  }
 })
 </script>
 

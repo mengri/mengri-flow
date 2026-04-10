@@ -1,10 +1,17 @@
 import api from './client'
 import type { Flow, CreateFlowRequest } from '@/types/flow'
 
+export interface ListFlowsResponse {
+  total: number
+  page: number
+  pageSize: number
+  list: Flow[]
+}
+
 export const flowAPI = {
   // 流程列表
-  list: (params: { workspaceId: string; status?: string }) => {
-    return api.get<Flow[]>('/flows', { params })
+  list: (params: { workspaceId: string; status?: string; page?: number; pageSize?: number }) => {
+    return api.get<ListFlowsResponse>('/flows', { params })
   },
 
   // 创建流程

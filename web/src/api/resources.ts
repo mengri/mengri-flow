@@ -2,10 +2,17 @@ import api from './client'
 import type { Resource, CreateResourceRequest } from '@/types/resource'
 import type { Tool } from '@/types/tool'
 
+export interface ListResourcesResponse {
+  total: number
+  page: number
+  pageSize: number
+  list: Resource[]
+}
+
 export const resourceAPI = {
   // 资源列表
-  list: (params: { workspaceId: string; type?: string; status?: string }) => {
-    return api.get<Resource[]>('/resources', { params })
+  list: (params: { workspaceId: string; type?: string; status?: string; page?: number; pageSize?: number }) => {
+    return api.get<ListResourcesResponse>('/resources', { params })
   },
 
   // 创建资源

@@ -238,13 +238,13 @@ return {
 
     flowsLoading.value = true
     try {
-      const flows = await flowAPI.list({
+      const result = await flowAPI.list({
         workspaceId: workspaceStore.currentWorkspaceId,
-        status: 'published',
+        status: 'active',
       })
 
-      activeWorkflows.value = flows
-      statistics.value.activeWorkflows = flows.length
+      activeWorkflows.value = result.list || []
+      statistics.value.activeWorkflows = result.list?.length || 0
     } catch (error) {
       console.error('Failed to load workflows:', error)
     } finally {

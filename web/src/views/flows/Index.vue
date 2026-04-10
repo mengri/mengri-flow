@@ -24,7 +24,8 @@
         <el-form-item>
           <el-select v-model="filters.status" placeholder="状态" clearable>
             <el-option label="草稿" value="draft" />
-            <el-option label="已发布" value="published" />
+            <el-option label="已发布" value="active" />
+            <el-option label="未激活" value="inactive" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -61,10 +62,10 @@
           <el-button size="small" @click="handleEdit(row.id)">编辑</el-button>
           <el-button
             size="small"
-            :type="row.status === 'published' ? 'warning' : 'success'"
+            :type="row.status === 'active' ? 'warning' : 'success'"
             @click="handleToggleStatus(row)"
           >
-            {{ row.status === 'published' ? '下线' : '发布' }}
+            {{ row.status === 'active' ? '下线' : '发布' }}
           </el-button>
           <el-button size="small" type="danger" @click="handleDelete(row.id)">
             删除
@@ -88,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { flowAPI } from '@/api/flows'
@@ -114,14 +115,17 @@ const pagination = reactive({
 })
 
 async function loadFlows() {
+  if (!workspaceStore.currentWorkspaceId) return
   loading.value = true
   try {
     const data = await flowAPI.list({
       workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
       status: filters.status || undefined,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
     })
-    flows.value = data
-    pagination.total = data.length
+    flows.value = data.list || []
+    pagination.total = data.total
   } catch (error) {
     ElMessage.error('加载流程失败')
   } finally {
@@ -143,8 +147,8 @@ function handleEdit(id: string) {
 
 async function handleToggleStatus(flow: Flow) {
   try {
-    if (flow.status === 'published') {
-      await flowAPI.update(flow.id, { status: 'draft' })
+    if (flow.status === 'active') {
+      await flowAPI.update(flow.id, { status: 'inactive' })
       ElMessage.success('流程已下线')
     } else {
       await flowAPI.publish(flow.id)
@@ -185,7 +189,8 @@ function handleCurrentChange() {
 
 function statusTagType(status: string) {
   const map: Record<string, string> = {
-    published: 'success',
+    active: 'success',
+    inactive: 'info',
     draft: 'info',
   }
   return map[status] || 'info'
@@ -193,7 +198,8 @@ function statusTagType(status: string) {
 
 function statusText(status: string) {
   const map: Record<string, string> = {
-    published: '已发布',
+    active: '已发布',
+    inactive: '未激活',
     draft: '草稿',
   }
   return map[status] || status
@@ -201,6 +207,10 @@ function statusText(status: string) {
 
 onMounted(() => {
   loadFlows()
+})
+
+watch(() => workspaceStore.workspaces.length, (len) => {
+  if (len > 0 && workspaceStore.currentWorkspaceId) loadFlows()
 })
 </script>
 

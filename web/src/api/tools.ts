@@ -1,10 +1,17 @@
 import api from './client'
 import type { Tool, CreateToolRequest } from '@/types/tool'
 
+export interface ListToolsResponse {
+  total: number
+  page: number
+  pageSize: number
+  list: Tool[]
+}
+
 export const toolAPI = {
   // 工具列表
-  list: (params: { workspaceId: string; resourceId?: string; status?: string }) => {
-    return api.get<Tool[]>('/tools', { params })
+  list: (params: { workspaceId: string; resourceId?: string; status?: string; page?: number; pageSize?: number }) => {
+    return api.get<ListToolsResponse>('/tools', { params })
   },
 
   // 创建工具

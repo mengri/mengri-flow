@@ -21,8 +21,9 @@ export function downloadFile(content: Blob, filename: string) {
   window.URL.revokeObjectURL(url)
 }
 
+import dayjs from 'dayjs'
+
 export function formatDate(date: string | Date, format = 'YYYY-MM-DD HH:mm:ss') {
-  const dayjs = require('dayjs')
   return dayjs(date).format(format)
 }
 

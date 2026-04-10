@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { triggerAPI } from '@/api/triggers'
@@ -122,6 +122,7 @@ const pagination = reactive({
 })
 
 async function loadTriggers() {
+  if (!workspaceStore.currentWorkspaceId) return
   loading.value = true
   try {
     const data = await triggerAPI.list({
@@ -204,6 +205,10 @@ function statusText(status: string) {
 
 onMounted(() => {
   loadTriggers()
+})
+
+watch(() => workspaceStore.workspaces.length, (len) => {
+  if (len > 0 && workspaceStore.currentWorkspaceId) loadTriggers()
 })
 </script>
 

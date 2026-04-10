@@ -244,10 +244,11 @@ onMounted(async () => {
   // 加载已发布的流程
   loadingFlows.value = true
   try {
-    publishedFlows.value = await flowAPI.list({
+    const result = await flowAPI.list({
       workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
-      status: 'published',
+      status: 'active',
     })
+    publishedFlows.value = result.list || []
   } finally {
     loadingFlows.value = false
   }

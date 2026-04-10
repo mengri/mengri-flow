@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { resourceAPI } from '@/api/resources'
@@ -114,6 +114,7 @@ const pagination = reactive({
 })
 
 async function loadResources() {
+  if (!workspaceStore.currentWorkspaceId) return
   loading.value = true
   try {
     const data = await resourceAPI.list({
@@ -121,8 +122,8 @@ async function loadResources() {
       type: filters.type || undefined,
       status: filters.status || undefined,
     })
-    resources.value = data
-    pagination.total = data.length
+    resources.value = data.list || []
+    pagination.total = data.total
   } catch (error) {
     ElMessage.error('加载资源失败')
   } finally {
@@ -205,6 +206,10 @@ function statusText(status: string) {
 
 onMounted(() => {
   loadResources()
+})
+
+watch(() => workspaceStore.workspaces.length, (len) => {
+  if (len > 0 && workspaceStore.currentWorkspaceId) loadResources()
 })
 </script>
 

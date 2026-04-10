@@ -113,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { toolAPI } from '@/api/tools'
@@ -143,6 +143,7 @@ const pagination = reactive({
 })
 
 async function loadTools() {
+  if (!workspaceStore.currentWorkspaceId) return
   loading.value = true
   try {
     const data = await toolAPI.list({
@@ -155,12 +156,12 @@ async function loadTools() {
     await loadResources()
     
     // 关联资源名称
-    tools.value = data.map((tool) => ({
+    tools.value = (data.list || []).map((tool) => ({
       ...tool,
       resourceName: resources.value.find((r) => r.id === tool.resourceId)?.name || '-',
     }))
     
-    pagination.total = data.length
+    pagination.total = data.total
   } catch (error) {
     ElMessage.error('加载工具列表失败')
   } finally {
@@ -169,11 +170,12 @@ async function loadTools() {
 }
 
 async function loadResources() {
+  if (!workspaceStore.currentWorkspaceId) return
   try {
     const data = await resourceAPI.list({
       workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
     })
-    resources.value = data
+    resources.value = data.list || []
   } catch (error) {
     console.error('加载资源列表失败', error)
   }
@@ -265,6 +267,10 @@ function statusText(status: string) {
 
 onMounted(() => {
   loadTools()
+})
+
+watch(() => workspaceStore.workspaces.length, (len) => {
+  if (len > 0 && workspaceStore.currentWorkspaceId) loadTools()
 })
 </script>
 

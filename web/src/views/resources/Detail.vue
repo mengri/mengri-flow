@@ -94,10 +94,11 @@ async function loadTools() {
   loadingTools.value = true
   try {
     const workspaceStore = useWorkspaceStore()
-    tools.value = await toolAPI.list({
+    const data = await toolAPI.list({
       workspaceId: workspaceStore.currentWorkspaceIdOrThrow,
       resourceId: resource.value.id,
     })
+    tools.value = data.list || []
   } catch (error) {
     ElMessage.error('加载工具列表失败')
   } finally {

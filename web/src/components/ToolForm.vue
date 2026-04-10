@@ -155,7 +155,7 @@ async function loadResources() {
     const data = await resourceAPI.list({
       workspaceId,
     })
-    resources.value = data
+    resources.value = data.list || []
   } catch (error) {
     ElMessage.error('加载资源列表失败')
   }

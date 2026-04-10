@@ -9,7 +9,7 @@ export interface Flow {
   inputSchema: Record<string, any>
   outputSchema: Record<string, any>
   workspaceId: string
-  status: 'draft' | 'published'
+  status: 'draft' | 'active' | 'inactive'
   currentVersion: number
   createdAt: string
   updatedAt: string
