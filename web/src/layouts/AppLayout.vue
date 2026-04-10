@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { useWorkspaceStore } from '@/stores/workspace'
 import { useAuth } from '@/composables/useAuth'
 import { useWorkspaceRoute } from '@/composables/useWorkspaceRoute'
 
@@ -31,6 +32,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const workspaceStore = useWorkspaceStore()
 const { handleLogout: authLogout } = useAuth()
 const {
   dashboardPath,
@@ -44,23 +46,60 @@ const {
 // 响应式状态
 const showSidebar = ref(true)
 
-// 面包屑导航
+// 面包屑导航 - 顶级为空间名，概览页面为 空间名/概览
 const breadcrumbs = computed(() => {
-  const pathArray = route.path.split('/').filter(Boolean)
-  // 跳过 workspaceId 段（/workspace/:workspaceId/... 中的第2段）
-  const crumbs: Array<{ path: string; label: string }> = [{ path: dashboardPath(), label: t('nav.dashboard') }]
+  const workspaceName = workspaceStore.currentWorkspace?.name || ''
+  const crumbs: Array<{ path: string; label: string; isLast?: boolean }> = []
 
-  // pathArray 格式: ['workspace', '<wsId>', 'flows', '123', ...]
-  // 跳过前两段（workspace + workspaceId）
-  let currentPath = `/workspace/${route.params.workspaceId || ''}`
+  // 顶级：空间名称（链接到仪表板/概览）
+  const workspaceId = route.params.workspaceId as string
+  const wsBasePath = workspaceId ? `/workspace/${workspaceId}` : dashboardPath()
+
+  // 判断是否为工作区内的路由
+  const pathArray = route.path.split('/').filter(Boolean)
+  const isWorkspaceRoute = pathArray[0] === 'workspace'
+
+  if (!isWorkspaceRoute) {
+    // 非工作区路由不显示面包屑
+    return crumbs
+  }
+
+  // 如果在仪表板（概览）页面，只显示 "空间名 / 概览"
+  if (pathArray.length <= 2 || (pathArray.length === 3 && pathArray[2] === '')) {
+    crumbs.push(
+      { path: wsBasePath, label: workspaceName },
+      { path: route.path, label: t('nav.dashboard'), isLast: true },
+    )
+    return crumbs
+  }
+
+  // 其他页面：空间名 / 功能名 / ...
+  crumbs.push({ path: wsBasePath, label: workspaceName })
+
+  // pathArray: ['workspace', '<wsId>', 'flows', '123', ...]
+  const segmentLabels: Record<string, string> = {
+    flows: t('nav.flows'),
+    triggers: t('nav.triggers'),
+    resources: t('nav.resources'),
+    tools: t('nav.tools'),
+    runs: t('nav.runs'),
+    new: t('common.create'),
+    import: t('common.import'),
+  }
+
+  let currentPath = wsBasePath
   for (let i = 2; i < pathArray.length; i++) {
     currentPath += `/${pathArray[i]}`
-    const routeName = route.matched[i]?.meta?.title ||
-                     pathArray[i].charAt(0).toUpperCase() + pathArray[i].slice(1)
+    const isLast = i === pathArray.length - 1
+    // 优先使用路由 meta.title，其次使用映射表，最后使用原始值
+    const label = (route.matched[i]?.meta?.title as string)
+      || segmentLabels[pathArray[i]]
+      || pathArray[i].charAt(0).toUpperCase() + pathArray[i].slice(1)
 
     crumbs.push({
-      path: currentPath,
-      label: (routeName as string) || pathArray[i],
+      path: isLast ? route.path : currentPath,
+      label: label || pathArray[i],
+      isLast,
     })
   }
 
@@ -182,18 +221,19 @@ onUnmounted(() => {
       <!-- 主要内容区 -->
       <main class="flex-1 overflow-auto p-4 md:p-6">
         <!-- 面包屑导航 -->
-        <div v-if="breadcrumbs.length > 1" class="mb-6">
-          <nav class="flex items-center space-x-2 text-sm">
-            <router-link
-              v-for="crumb in breadcrumbs"
-              :key="crumb.path"
-              :to="crumb.path"
-              class="text-gray-500 hover:text-gray-700 transition-colors"
-              :class="{ 'text-gray-900 font-medium': $route.path === crumb.path }"
-            >
-              {{ crumb.label }}
-              <span v-if="crumb.path !== breadcrumbs[breadcrumbs.length - 1].path" class="ml-2">/</span>
-            </router-link>
+        <div v-if="breadcrumbs.length > 0" class="mb-6">
+          <nav class="flex items-center space-x-1.5 text-sm">
+            <template v-for="(crumb, index) in breadcrumbs" :key="crumb.path">
+              <span v-if="index > 0" class="text-gray-300 select-none">/</span>
+              <router-link
+                v-if="!crumb.isLast"
+                :to="crumb.path"
+                class="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                {{ crumb.label }}
+              </router-link>
+              <span v-else class="text-gray-900 font-medium">{{ crumb.label }}</span>
+            </template>
           </nav>
         </div>
         
