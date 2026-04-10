@@ -176,7 +176,7 @@ Use compile-time checks: `var _ UserService = (*UserServiceImpl)(nil)`
 
 ## Code Style — Vue 3 / TypeScript
 
-详见 [docs/WEB_DEV.md](docs/WEB_DEV.md)
+详见 [prd/WEB_DEV.md](prd/WEB_DEV.md)
 
 ## API Response Contract
 

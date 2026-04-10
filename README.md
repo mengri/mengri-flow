@@ -143,6 +143,25 @@ The Docker image uses a multi-stage build:
 
 ## API
 
+### Swagger 文档
+
+项目使用 [swag](https://github.com/swaggo/swag) 自动生成 API 文档。Handler 中的 Swagger 注解（`// @Summary`、`// @Param` 等）会被解析为交互式文档。
+
+**访问地址：** 启动服务后访问 `http://localhost:8080/swagger/index.html`
+
+**更新文档：**
+
+```bash
+# 安装 swag CLI（首次需要）
+go install github.com/swaggo/swag/cmd/swag@latest
+
+# 重新生成文档
+make swagger
+# 等同于: swag init -g cmd/server/main.go -o docs
+```
+
+生成命令会扫描 `cmd/server/main.go` 及其引用链中的所有 Swagger 注解，输出到 `docs/` 目录（`docs.go`、`swagger.json`、`swagger.yaml`）。修改 Handler 中的接口注解后需重新执行此命令。
+
 All API endpoints are under `/api/v1/`. Responses use a unified format:
 
 ```json
