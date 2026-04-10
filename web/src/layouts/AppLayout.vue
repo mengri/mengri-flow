@@ -106,9 +106,7 @@ const breadcrumbs = computed(() => {
   return crumbs
 })
 
-// 页面标题
-const pageTitle = computed(() => route.meta?.title || getRouteTitle(route.path))
-const pageSubtitle = computed(() => route.meta?.subtitle || '')
+// 页面标题（由各 view 自行管理，layout 不再全局显示）
 const showFooter = computed(() => route.meta?.showFooter !== false)
 
 // 侧边栏导航配置
@@ -177,20 +175,6 @@ const switchWorkspace = (workspaceId: string) => {
   router.push(`/workspace/${workspaceId}`)
 }
 
-const getRouteTitle = (path: string): string => {
-  const titleMap: Record<string, string> = {
-    '/dashboard': t('nav.dashboard'),
-    '/workflows': t('nav.flows'),
-    '/templates': t('nav.flows'),
-    '/analytics': t('nav.runs'),
-    '/account': t('nav.accountSettings'),
-    '/admin/users': t('nav.account'),
-    '/admin/settings': t('common.settings'),
-  }
-
-  return titleMap[path] || path.split('/').pop()?.replace(/-/g, ' ') || 'Page'
-}
-
 // 生命周期
 onMounted(() => {
   if (isMobile.value) {
@@ -235,12 +219,6 @@ onUnmounted(() => {
               <span v-else class="text-gray-900 font-medium">{{ crumb.label }}</span>
             </template>
           </nav>
-        </div>
-        
-        <!-- 页面标题区 -->
-        <div v-if="pageTitle" class="mb-6">
-          <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{{ pageTitle }}</h1>
-          <p v-if="pageSubtitle" class="text-gray-600 text-base md:text-lg">{{ pageSubtitle }}</p>
         </div>
         
         <!-- 内容容器 -->
