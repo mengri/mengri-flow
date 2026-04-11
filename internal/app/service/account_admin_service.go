@@ -13,6 +13,7 @@ import (
 	domainErr "mengri-flow/internal/domain/errors"
 	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/config"
+	"mengri-flow/pkg/ctxutil"
 
 	"github.com/google/uuid"
 )
@@ -271,7 +272,8 @@ func (s *accountAdminServiceImpl) ListAuditEvents(ctx context.Context, req *dto.
 // --- 私有方法 ---
 
 func (s *accountAdminServiceImpl) writeAudit(ctx context.Context, actorID, targetID, eventType string) {
-	audit, _ := entity.NewAuditEvent(actorID, targetID, eventType, entity.AuditResultSuccess, "", "")
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	audit, _ := entity.NewAuditEvent(actorID, targetID, eventType, entity.AuditResultSuccess, ip, ua)
 	if audit != nil {
 		audit.ID = uuid.New().String()
 		if err := s.auditRepo.Create(ctx, audit); err != nil {

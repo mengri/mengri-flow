@@ -36,6 +36,7 @@ func (r *Router) Setup(engine *gin.Engine) error {
 		return err
 	}
 
+	engine.Use(middleware.RequestInfo())
 	engine.Use(middleware.Logger())
 	engine.Use(middleware.Recovery())
 	engine.Use(middleware.CORS())

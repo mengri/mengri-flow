@@ -274,6 +274,7 @@ func runConsole(cfgPath string) {
 
 	gin.SetMode(cfg.Server.Mode)
 	engine := gin.New()
+	engine.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 	// 初始化国际化
 	b := i18n.NewBundle(language.English)
 	b.RegisterUnmarshalFunc("json", json.Unmarshal)

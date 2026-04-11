@@ -18,6 +18,7 @@ import (
 	"mengri-flow/internal/infra/auth"
 	"mengri-flow/internal/infra/config"
 	"mengri-flow/internal/infra/external/oauth"
+	"mengri-flow/pkg/ctxutil"
 
 	"github.com/google/uuid"
 )
@@ -147,7 +148,8 @@ func (s *authServiceImpl) ConfirmActivation(ctx context.Context, req *dto.Activa
 	}
 
 	// 写入审计日志（事务外）
-	audit, _ := entity.NewAuditEvent("", resp.AccountID, entity.AuditAccountActivated, entity.AuditResultSuccess, "", "")
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	audit, _ := entity.NewAuditEvent("", resp.AccountID, entity.AuditAccountActivated, entity.AuditResultSuccess, ip, ua)
 	if audit != nil {
 		audit.ID = uuid.New().String()
 		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
@@ -242,7 +244,8 @@ func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string)
 	}
 
 	// 6. 审计
-	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditTokenRefreshed, entity.AuditResultSuccess, "", "")
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditTokenRefreshed, entity.AuditResultSuccess, ip, ua)
 	if audit != nil {
 		audit.ID = uuid.New().String()
 		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
@@ -264,7 +267,8 @@ func (s *authServiceImpl) Logout(ctx context.Context, accountID, refreshTokenRaw
 	}
 
 	// 审计
-	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditLogout, entity.AuditResultSuccess, "", "")
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditLogout, entity.AuditResultSuccess, ip, ua)
 	if audit != nil {
 		audit.ID = uuid.New().String()
 		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
@@ -562,13 +566,14 @@ func (s *authServiceImpl) HandleOAuthCallback(ctx context.Context, provider, cod
 	}
 
 	// 6. 签发 Token
-	loginResp, err := s.issueTokens(ctx, account, dto.DeviceInfo{})
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	loginResp, err := s.issueTokens(ctx, account, dto.DeviceInfo{IP: ip, UA: ua})
 	if err != nil {
 		return nil, err
 	}
 
 	// 7. 记录登录审计
-	s.recordLoginAudit(ctx, account.ID, entity.AuditLoginSuccess, dto.DeviceInfo{})
+	s.recordLoginAudit(ctx, account.ID, entity.AuditLoginSuccess, dto.DeviceInfo{IP: ip, UA: ua})
 
 	return &dto.OAuthCallbackResponse{
 		Result:       "LOGIN_SUCCESS",

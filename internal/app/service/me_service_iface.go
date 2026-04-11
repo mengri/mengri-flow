@@ -11,7 +11,7 @@ type IMeService interface {
 	GetProfile(ctx context.Context, accountID string) (*dto.ProfileResponse, error)
 	ListIdentities(ctx context.Context, accountID string) (*dto.IdentityListResponse, error)
 	ChangePassword(ctx context.Context, accountID string, req *dto.ChangePasswordRequest) (*dto.ChangePasswordResponse, error)
-	SecurityVerify(ctx context.Context, accountID string, password string) (*dto.SecurityTicketResponse, error)
+	SecurityVerify(ctx context.Context, accountID, password string) (*dto.SecurityTicketResponse, error)
 	LoginHistory(ctx context.Context, accountID string, page, pageSize int) (*dto.AuditEventListResponse, error)
 }
 

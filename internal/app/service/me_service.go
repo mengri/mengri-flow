@@ -12,6 +12,7 @@ import (
 	"mengri-flow/internal/domain/repository"
 	"mengri-flow/internal/infra/auth"
 	"mengri-flow/internal/infra/config"
+	"mengri-flow/pkg/ctxutil"
 
 	"github.com/google/uuid"
 )
@@ -114,7 +115,8 @@ func (s *meServiceImpl) ChangePassword(ctx context.Context, accountID string, re
 	}
 
 	// 5. 审计
-	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditPasswordChanged, entity.AuditResultSuccess, "", "")
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditPasswordChanged, entity.AuditResultSuccess, ip, ua)
 	if audit != nil {
 		audit.ID = uuid.New().String()
 		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
@@ -129,7 +131,7 @@ func (s *meServiceImpl) ChangePassword(ctx context.Context, accountID string, re
 }
 
 // SecurityVerify 二次安全验证：验证密码后签发票据。
-func (s *meServiceImpl) SecurityVerify(ctx context.Context, accountID string, password string) (*dto.SecurityTicketResponse, error) {
+func (s *meServiceImpl) SecurityVerify(ctx context.Context, accountID, password string) (*dto.SecurityTicketResponse, error) {
 	// 1. 验证密码
 	storedHash, err := s.credRepo.GetByAccountID(ctx, accountID)
 	if err != nil {
@@ -146,7 +148,8 @@ func (s *meServiceImpl) SecurityVerify(ctx context.Context, accountID string, pa
 	}
 
 	// 3. 审计
-	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditSecurityVerified, entity.AuditResultSuccess, "", "")
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditSecurityVerified, entity.AuditResultSuccess, ip, ua)
 	if audit != nil {
 		audit.ID = uuid.New().String()
 		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
@@ -236,7 +239,8 @@ func (s *meServiceImpl) BindPhone(ctx context.Context, accountID string, req *dt
 	}
 
 	// 5. 审计
-	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditIdentityBound, entity.AuditResultSuccess, "", "")
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditIdentityBound, entity.AuditResultSuccess, ip, ua)
 	if audit != nil {
 		audit.ID = uuid.New().String()
 		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
@@ -293,7 +297,8 @@ func (s *meServiceImpl) BindProvider(ctx context.Context, accountID string, prov
 	}
 
 	// 5. 审计
-	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditIdentityBound, entity.AuditResultSuccess, "", "")
+	ip, ua := ctxutil.ClientIP(ctx), ctxutil.UserAgent(ctx)
+	audit, _ := entity.NewAuditEvent(accountID, accountID, entity.AuditIdentityBound, entity.AuditResultSuccess, ip, ua)
 	if audit != nil {
 		audit.ID = uuid.New().String()
 		if auditErr := s.auditRepo.Create(ctx, audit); auditErr != nil {
