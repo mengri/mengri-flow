@@ -8,6 +8,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const workspaces = ref<Workspace[]>([])
   const loading = ref(false)
   const currentWorkspaceId = ref<string | null>(localStorage.getItem('currentWorkspaceId'))
+  /** 是否已执行过至少一次 loadWorkspaces（用于区分"从未加载"和"加载后列表为空"） */
+  const loaded = ref(false)
 
   // --- Getters ---
   const currentWorkspace = computed(() =>
@@ -57,6 +59,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       throw error
     } finally {
       loading.value = false
+      loaded.value = true
     }
   }
 
@@ -104,6 +107,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     currentWorkspaceId.value = null
     localStorage.removeItem('currentWorkspaceId')
     workspaces.value = []
+    loaded.value = false
   }
 
   /** 获取工作空间名称 */
@@ -116,6 +120,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     // State
     workspaces,
     loading,
+    loaded,
     currentWorkspaceId,
     // Getters
     currentWorkspace,

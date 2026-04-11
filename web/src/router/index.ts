@@ -194,13 +194,12 @@ router.beforeEach((to, _from, next) => {
   }
 
   // 已登录但未选择工作空间 → 拦截到选择页（/select-workspace 自身除外）
+  // 仅在 workspace 列表已加载过一次后才拦截，避免与 App.vue 初始化竞态
   if (authStore.isAuthenticated && !to.meta.skipWorkspaceCheck) {
     const workspaceStore = useWorkspaceStore()
-    if (workspaceStore.workspaces.length === 0 || !workspaceStore.hasCurrentWorkspace) {
-      if (!workspaceStore.loading) {
-        next({ path: '/select-workspace', query: { redirect: to.fullPath } })
-        return
-      }
+    if (workspaceStore.loaded && (workspaceStore.workspaces.length === 0 || !workspaceStore.hasCurrentWorkspace)) {
+      next({ path: '/select-workspace', query: { redirect: to.fullPath } })
+      return
     }
   }
 
