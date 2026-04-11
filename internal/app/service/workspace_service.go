@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -15,8 +14,9 @@ import (
 )
 
 type workspaceServiceImpl struct {
-	workspaceRepo repository.WorkspaceRepository `autowired:""`
-	accountRepo   repository.AccountRepository   `autowired:""`
+	workspaceRepo repository.WorkspaceRepository     `autowired:""`
+	accountRepo   repository.AccountRepository       `autowired:""`
+	memberRepo    repository.WorkspaceMemberRepository `autowired:""`
 }
 
 func (s *workspaceServiceImpl) CreateWorkspace(ctx context.Context, req *dto.CreateWorkspaceRequest, ownerID string) (*dto.WorkspaceResponse, error) {
@@ -39,7 +39,18 @@ func (s *workspaceServiceImpl) CreateWorkspace(ctx context.Context, req *dto.Cre
 		return nil, fmt.Errorf("failed to create workspace: %w", err)
 	}
 
-	// 4. 转换为DTO返回
+	// 4. 自动添加创建者为 owner 成员
+	member, err := entity.NewWorkspaceMember(workspace.ID.String(), owner.ID, entity.MemberRoleOwner)
+	if err != nil {
+		slog.Error("failed to create owner membership", "workspaceId", workspace.ID, "error", err)
+		return nil, fmt.Errorf("failed to create owner membership: %w", err)
+	}
+	if err := s.memberRepo.Create(ctx, member); err != nil {
+		slog.Error("failed to save owner membership", "workspaceId", workspace.ID, "error", err)
+		return nil, fmt.Errorf("failed to save owner membership: %w", err)
+	}
+
+	// 5. 转换为DTO返回
 	return toWorkspaceResponse(workspace), nil
 }
 
@@ -244,17 +255,20 @@ func (s *workspaceServiceImpl) AddMember(ctx context.Context, workspaceID string
 		return nil, fmt.Errorf("find workspace: %w", err)
 	}
 
-	// 验证权限：只有所有者可以添加成员
+	// 验证权限：只有所有者或管理员可以添加成员
 	if workspace.OwnerID != operatorID {
-		slog.Warn("User does not have permission to add member",
-			"workspaceId", wsID, "operatorId", operatorID, "ownerId", workspace.OwnerID)
-		return nil, domainErr.ErrForbidden
+		operatorMember, err := s.memberRepo.FindByWorkspaceIDAndAccountID(ctx, wsID, operatorID)
+		if err != nil || operatorMember.Role != entity.MemberRoleAdmin {
+			slog.Warn("User does not have permission to add member",
+				"workspaceId", wsID, "operatorId", operatorID, "ownerId", workspace.OwnerID)
+			return nil, domainErr.ErrForbidden
+		}
 	}
 
 	// 检查用户是否能添加自己为成员
-	if req.AccountID == operatorID {
-		slog.Warn("Cannot add owner as member", "accountId", req.AccountID)
-		return nil, fmt.Errorf("owner cannot be added as member")
+	if req.AccountID == operatorID && workspace.OwnerID != operatorID {
+		slog.Warn("Cannot add self as member", "accountId", req.AccountID)
+		return nil, fmt.Errorf("cannot add self as member")
 	}
 
 	// 检查要添加的用户是否存在
@@ -268,24 +282,49 @@ func (s *workspaceServiceImpl) AddMember(ctx context.Context, workspaceID string
 		return nil, fmt.Errorf("get account: %w", err)
 	}
 
-	// TODO: 检查用户是否已经是成员
-	// 这里需要实现 WorkspaceMemberRepository 来检查成员关系
+	// 检查用户是否已经是成员
+	_, err = s.memberRepo.FindByWorkspaceIDAndAccountID(ctx, wsID, req.AccountID)
+	if err == nil {
+		slog.Warn("User is already a member", "workspaceId", wsID, "accountId", req.AccountID)
+		return nil, domainErr.ErrConflict
+	}
+	if err != domainErr.ErrNotFound {
+		slog.Error("Failed to check membership", "workspaceId", wsID, "accountId", req.AccountID, "error", err)
+		return nil, fmt.Errorf("check membership: %w", err)
+	}
 
-	// TODO: 创建成员关系记录
-	// 这里需要实现 WorkspaceMemberRepository 来保存成员关系
+	// 创建成员关系
+	member, err := entity.NewWorkspaceMember(workspaceID, req.AccountID, entity.MemberRole(req.Role))
+	if err != nil {
+		return nil, fmt.Errorf("create member: %w", err)
+	}
 
-	slog.Info("Workspace member addition simulated - repository not implemented",
+	if err := s.memberRepo.Create(ctx, member); err != nil {
+		if err == domainErr.ErrConflict {
+			slog.Warn("Member already exists (race condition)", "workspaceId", wsID, "accountId", req.AccountID)
+			return nil, domainErr.ErrConflict
+		}
+		slog.Error("Failed to create member", "workspaceId", wsID, "accountId", req.AccountID, "error", err)
+		return nil, fmt.Errorf("create member: %w", err)
+	}
+
+	// 更新工作空间成员数量
+	workspace.IncrementMemberCount()
+	if err := s.workspaceRepo.Update(ctx, workspace); err != nil {
+		slog.Error("Failed to update workspace member count", "workspaceId", wsID, "error", err)
+		// 不影响主流程，仅记录日志
+	}
+
+	slog.Info("Workspace member added successfully",
 		"workspaceId", wsID, "accountId", req.AccountID, "role", req.Role)
 
-	// 由于成员管理仓库未实现，返回一个模拟响应
-	// TODO: 实现实际的成员添加逻辑后移除此模拟返回
 	return &dto.WorkspaceMemberResponse{
 		AccountID:   req.AccountID,
 		Email:       targetAccount.Email.String(),
 		DisplayName: targetAccount.DisplayName,
 		Role:        req.Role,
-		JoinedAt:    time.Now(),
-	}, fmt.Errorf("workspace member management not fully implemented")
+		JoinedAt:    member.JoinedAt,
+	}, nil
 }
 
 func (s *workspaceServiceImpl) RemoveMember(ctx context.Context, workspaceID string, memberID string, operatorID string) error {
@@ -322,31 +361,27 @@ func (s *workspaceServiceImpl) RemoveMember(ctx context.Context, workspaceID str
 		return fmt.Errorf("cannot remove workspace owner")
 	}
 
-	// 检查要移除的成员是否存在
-	if _, err := s.accountRepo.GetByID(ctx, memberID); err != nil {
+	// 删除成员关系
+	if err := s.memberRepo.Delete(ctx, wsID, memberID); err != nil {
 		if err == domainErr.ErrNotFound {
-			slog.Warn("Member account not found", "memberId", memberID)
+			slog.Warn("Member not found in workspace", "workspaceId", wsID, "memberId", memberID)
 			return domainErr.ErrNotFound
 		}
-		slog.Error("Failed to get member account", "memberId", memberID, "error", err)
-		return fmt.Errorf("get account: %w", err)
+		slog.Error("Failed to remove member", "workspaceId", wsID, "memberId", memberID, "error", err)
+		return fmt.Errorf("remove member: %w", err)
 	}
 
-	// TODO: 检查用户是否是成员
-	// 这里需要实现 WorkspaceMemberRepository 来检查成员关系
+	// 更新工作空间成员数量
+	workspace.DecrementMemberCount()
+	if err := s.workspaceRepo.Update(ctx, workspace); err != nil {
+		slog.Error("Failed to update workspace member count", "workspaceId", wsID, "error", err)
+	}
 
-	// TODO: 删除成员关系记录
-	// 这里需要实现 WorkspaceMemberRepository 来删除成员关系
-
-	slog.Info("Workspace member removal simulated - repository not implemented",
-		"workspaceId", wsID, "memberId", memberID)
-
-	// 由于成员管理仓库未实现，返回成功模拟
-	// TODO: 实现实际的成员移除逻辑后移除此模拟返回
-	return fmt.Errorf("workspace member management not fully implemented")
+	slog.Info("Workspace member removed successfully", "workspaceId", wsID, "memberId", memberID)
+	return nil
 }
 
-func (s *workspaceServiceImpl) ListMembers(ctx context.Context, workspaceID string, accountID string, page int, pageSize int) ([]dto.WorkspaceMemberResponse, error) {
+func (s *workspaceServiceImpl) ListMembers(ctx context.Context, workspaceID string, accountID string, page int, pageSize int) ([]dto.WorkspaceMemberResponse, int64, error) {
 	slog.Info("Listing workspace members", "workspaceId", workspaceID, "accountId", accountID, "page", page, "pageSize", pageSize)
 
 	// 验证分页参数
@@ -361,7 +396,7 @@ func (s *workspaceServiceImpl) ListMembers(ctx context.Context, workspaceID stri
 	wsID, err := uuid.Parse(workspaceID)
 	if err != nil {
 		slog.Warn("Invalid workspace ID", "workspaceId", workspaceID, "error", err)
-		return nil, domainErr.ErrInvalidInput
+		return nil, 0, domainErr.ErrInvalidInput
 	}
 
 	// 查找工作空间
@@ -369,47 +404,55 @@ func (s *workspaceServiceImpl) ListMembers(ctx context.Context, workspaceID stri
 	if err != nil {
 		if err == domainErr.ErrNotFound {
 			slog.Warn("Workspace not found", "workspaceId", wsID)
-			return nil, domainErr.ErrNotFound
+			return nil, 0, domainErr.ErrNotFound
 		}
 		slog.Error("Failed to find workspace", "workspaceId", wsID, "error", err)
-		return nil, fmt.Errorf("find workspace: %w", err)
+		return nil, 0, fmt.Errorf("find workspace: %w", err)
 	}
 
-	// 验证权限：只有所有者或成员可以查看成员列表
+	// 验证权限：所有者或成员可以查看成员列表
 	if workspace.OwnerID != accountID {
-		// TODO: 实现成员权限检查，如果是成员也允许查看
-		slog.Warn("User does not have permission to list members",
-			"workspaceId", wsID, "userId", accountID, "ownerId", workspace.OwnerID)
-		return nil, domainErr.ErrForbidden
+		_, err := s.memberRepo.FindByWorkspaceIDAndAccountID(ctx, wsID, accountID)
+		if err != nil {
+			slog.Warn("User does not have permission to list members",
+				"workspaceId", wsID, "userId", accountID, "ownerId", workspace.OwnerID)
+			return nil, 0, domainErr.ErrForbidden
+		}
 	}
 
-	// TODO: 实现成员列表查询
-	// 这里需要实现 WorkspaceMemberRepository 来查询成员列表
-	// 由于成员管理仓库未实现，返回模拟数据
-
-	slog.Info("Workspace member listing simulated - repository not implemented",
-		"workspaceId", wsID)
-
-	// 模拟返回：只返回所有者信息
-	ownerAccount, err := s.accountRepo.GetByID(ctx, workspace.OwnerID)
+	// 查询成员列表
+	offset := (page - 1) * pageSize
+	members, total, err := s.memberRepo.ListByWorkspaceID(ctx, wsID, offset, pageSize)
 	if err != nil {
-		slog.Error("Failed to get owner account", "ownerId", workspace.OwnerID, "error", err)
-		return nil, fmt.Errorf("get owner account: %w", err)
+		slog.Error("Failed to list workspace members", "workspaceId", wsID, "error", err)
+		return nil, 0, fmt.Errorf("list members: %w", err)
 	}
 
-	// 创建模拟响应
-	members := []dto.WorkspaceMemberResponse{
-		{
-			AccountID:   ownerAccount.ID,
-			Email:       ownerAccount.Email.String(),
-			DisplayName: ownerAccount.DisplayName,
-			Role:        "owner",
-			JoinedAt:    workspace.CreatedAt,
-		},
+	// 组装响应：关联账号信息
+	responseList := make([]dto.WorkspaceMemberResponse, 0, len(members))
+	for _, m := range members {
+		account, err := s.accountRepo.GetByID(ctx, m.AccountID)
+		if err != nil {
+			slog.Warn("Failed to get member account info", "accountId", m.AccountID, "error", err)
+			// 账号可能已被删除，仍返回基本信息
+			responseList = append(responseList, dto.WorkspaceMemberResponse{
+				AccountID: m.AccountID,
+				Role:      string(m.Role),
+				JoinedAt:  m.JoinedAt,
+			})
+			continue
+		}
+		responseList = append(responseList, dto.WorkspaceMemberResponse{
+			AccountID:   m.AccountID,
+			Email:       account.Email.String(),
+			DisplayName: account.DisplayName,
+			Role:        string(m.Role),
+			JoinedAt:    m.JoinedAt,
+		})
 	}
 
-	slog.Info("Workspace members listed (simulated)", "workspaceId", wsID, "count", len(members))
-	return members, fmt.Errorf("workspace member management not fully implemented")
+	slog.Info("Workspace members listed successfully", "workspaceId", wsID, "total", total, "returned", len(responseList))
+	return responseList, total, nil
 }
 
 // --- 私有方法 ---

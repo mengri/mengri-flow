@@ -104,6 +104,7 @@ func (r *Router) Setup(engine *gin.Engine) error {
 			workspaceGroup.PUT("/:id", r.workspaceHandler.UpdateWorkspace)
 			workspaceGroup.DELETE("/:id", r.workspaceHandler.DeleteWorkspace)
 			workspaceGroup.POST("/:id/members", r.workspaceHandler.AddMember)
+			workspaceGroup.GET("/:id/members", r.workspaceHandler.ListMembers)
 			workspaceGroup.DELETE("/:id/members/:userId", r.workspaceHandler.RemoveMember)
 		}
 

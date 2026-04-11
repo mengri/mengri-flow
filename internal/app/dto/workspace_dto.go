@@ -48,3 +48,10 @@ type ListWorkspacesResponse struct {
 	PageSize int                `json:"pageSize"`
 	List     []WorkspaceResponse `json:"list"`
 }
+
+type ListWorkspaceMembersResponse struct {
+	Total    int64                    `json:"total"`
+	Page     int                      `json:"page"`
+	PageSize int                      `json:"pageSize"`
+	List     []WorkspaceMemberResponse `json:"list"`
+}

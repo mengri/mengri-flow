@@ -13,6 +13,7 @@ import (
 	sessionRepository "mengri-flow/internal/infra/persistence/mysql/session_repository"
 	toolRepository "mengri-flow/internal/infra/persistence/mysql/tool_repository"
 	triggerRepository "mengri-flow/internal/infra/persistence/mysql/trigger_repository"
+	workspaceMemberRepository "mengri-flow/internal/infra/persistence/mysql/workspace_member_repository"
 	workspaceRepository "mengri-flow/internal/infra/persistence/mysql/workspace_repository"
 )
 
@@ -32,4 +33,5 @@ func init() {
 	workspaceRepository.Auto(event)
 	flowRepository.Auto(event)
 	triggerRepository.Auto(event)
+	workspaceMemberRepository.Auto(event)
 }

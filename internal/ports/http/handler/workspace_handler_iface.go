@@ -15,6 +15,7 @@ type IWorkspaceHandler interface {
 	DeleteWorkspace(c *gin.Context)
 	AddMember(c *gin.Context)
 	RemoveMember(c *gin.Context)
+	ListMembers(c *gin.Context)
 }
 
 func init() {

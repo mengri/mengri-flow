@@ -194,3 +194,34 @@ func (h *WorkspaceHandlerImpl) RemoveMember(c *gin.Context) {
 
 	response.Success(c, gin.H{"message": "member removed successfully"})
 }
+
+// ListMembers 获取工作空间成员列表
+// @Summary 获取工作空间成员列表
+// @Tags Workspace
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "工作空间ID"
+// @Param page query int false "页码" default(1)
+// @Param pageSize query int false "每页数量" default(20)
+// @Success 200 {object} response.Response{data=dto.ListWorkspaceMembersResponse}
+// @Router /workspaces/{id}/members [get]
+func (h *WorkspaceHandlerImpl) ListMembers(c *gin.Context) {
+	workspaceID := c.Param("id")
+	accountID := c.GetString("accountID")
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+
+	members, total, err := h.service.ListMembers(c.Request.Context(), workspaceID, accountID, page, pageSize)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	response.Success(c, &dto.ListWorkspaceMembersResponse{
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+		List:     members,
+	})
+}
