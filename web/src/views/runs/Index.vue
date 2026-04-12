@@ -29,7 +29,7 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-select v-model="filters.status" placeholder="状态" clearable>
+          <el-select v-model="filters.status" placeholder="状态" clearable style="width: auto; min-width: 180px">
             <el-option label="成功" value="success" />
             <el-option label="失败" value="failed" />
             <el-option label="运行中" value="running" />

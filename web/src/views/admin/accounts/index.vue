@@ -158,7 +158,7 @@ onMounted(() => {
           @keyup.enter="onSearch"
           @clear="onSearch"
         />
-        <el-select v-model="statusFilter" placeholder="Status" clearable class="w-48" @change="onSearch">
+        <el-select v-model="statusFilter" placeholder="Status" clearable style="width: auto; min-width: 180px" @change="onSearch">
           <el-option
             v-for="opt in statusOptions"
             :key="opt.value"

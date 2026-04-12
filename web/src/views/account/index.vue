@@ -109,16 +109,25 @@ async function onChangePassword() {
 
 // --- Login History ---
 const loginHistory = ref<AuditEventItem[] | null>(null)
+const historyTotal = ref(0)
+const historyPage = ref(1)
+const historyPageSize = ref(20)
 const historyLoading = ref(false)
 
 async function fetchLoginHistory() {
   historyLoading.value = true
   try {
-    const result = await getLoginHistory()
+    const result = await getLoginHistory({ page: historyPage.value, pageSize: historyPageSize.value })
     loginHistory.value = result?.items ?? []
+    historyTotal.value = result?.total ?? 0
   } finally {
     historyLoading.value = false
   }
+}
+
+function onHistoryPageChange(page: number) {
+  historyPage.value = page
+  fetchLoginHistory()
 }
 
 // --- Tab Change Handler ---
@@ -293,6 +302,15 @@ const statusTagType: Record<string, string> = {
           </el-table>
           <div v-if="loginHistory && loginHistory.length === 0" class="text-center py-4 text-gray-400">
             No login history
+          </div>
+          <div v-if="historyTotal > 0" class="flex justify-end mt-4">
+            <el-pagination
+              v-model:current-page="historyPage"
+              :page-size="historyPageSize"
+              :total="historyTotal"
+              layout="total, prev, pager, next"
+              @current-change="onHistoryPageChange"
+            />
           </div>
         </el-card>
       </el-tab-pane>

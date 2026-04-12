@@ -14,7 +14,7 @@
     <div class="filters">
       <el-form :inline="true" :model="filters">
         <el-form-item label="类型">
-          <el-select v-model="filters.type" placeholder="全部" clearable>
+          <el-select v-model="filters.type" placeholder="全部" clearable style="width: auto; min-width: 180px">
             <el-option label="HTTP" value="http" />
             <el-option label="gRPC" value="grpc" />
             <el-option label="MySQL" value="mysql" />
@@ -22,7 +22,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="filters.status" placeholder="全部" clearable>
+          <el-select v-model="filters.status" placeholder="全部" clearable style="width: auto; min-width: 180px">
             <el-option label="正常" value="active" />
             <el-option label="异常" value="error" />
             <el-option label="未激活" value="inactive" />

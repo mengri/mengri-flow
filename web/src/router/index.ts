@@ -155,6 +155,25 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/runs/Detail.vue'),
         meta: { title: '运行详情' },
       },
+      {
+        path: 'settings',
+        component: () => import('@/views/workspace/Layout.vue'),
+        meta: { title: '空间设置' },
+        children: [
+          {
+            path: '',
+            name: 'WorkspaceSettings',
+            component: () => import('@/views/workspace/Settings.vue'),
+            meta: { title: '空间信息' },
+          },
+          {
+            path: 'members',
+            name: 'WorkspaceMembers',
+            component: () => import('@/views/workspace/Members.vue'),
+            meta: { title: '成员管理' },
+          },
+        ],
+      },
     ],
   },
   // --- Catch-all ---

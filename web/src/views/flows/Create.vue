@@ -26,7 +26,7 @@
         </el-form-item>
 
         <el-form-item label="工作空间" prop="workspaceId">
-          <el-select v-model="form.workspaceId" placeholder="请选择工作空间">
+          <el-select v-model="form.workspaceId" placeholder="请选择工作空间" style="width: auto; min-width: 180px">
             <el-option
               v-for="ws in workspaces"
               :key="ws.id"

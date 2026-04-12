@@ -26,7 +26,7 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-select v-model="filters.resourceId" placeholder="选择资源" clearable>
+          <el-select v-model="filters.resourceId" placeholder="选择资源" clearable style="width: auto; min-width: 180px">
             <el-option
               v-for="resource in resources"
               :key="resource.id"
@@ -36,7 +36,7 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="filters.status" placeholder="状态" clearable>
+          <el-select v-model="filters.status" placeholder="状态" clearable style="width: auto; min-width: 180px">
             <el-option label="草稿" value="draft" />
             <el-option label="已发布" value="published" />
             <el-option label="已下线" value="deprecated" />

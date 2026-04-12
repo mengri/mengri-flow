@@ -22,7 +22,7 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-select v-model="filters.type" placeholder="类型" clearable>
+          <el-select v-model="filters.type" placeholder="类型" clearable style="width: auto; min-width: 180px">
             <el-option label="RESTful" value="restful" />
             <el-option label="定时任务" value="timer" />
             <el-option label="RabbitMQ" value="rabbitmq" />
@@ -30,7 +30,7 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="filters.status" placeholder="状态" clearable>
+          <el-select v-model="filters.status" placeholder="状态" clearable style="width: auto; min-width: 180px">
             <el-option label="运行中" value="active" />
             <el-option label="已停止" value="inactive" />
           </el-select>

@@ -24,3 +24,23 @@ export interface ListWorkspacesResponse {
   pageSize: number
   list: Workspace[]
 }
+
+export interface WorkspaceMember {
+  accountId: string
+  email: string
+  displayName: string
+  role: 'owner' | 'admin' | 'member'
+  joinedAt: string
+}
+
+export interface AddWorkspaceMemberRequest {
+  accountId: string
+  role: 'member' | 'admin'
+}
+
+export interface ListWorkspaceMembersResponse {
+  total: number
+  page: number
+  pageSize: number
+  list: WorkspaceMember[]
+}

@@ -22,7 +22,7 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-select v-model="filters.status" placeholder="状态" clearable>
+          <el-select v-model="filters.status" placeholder="状态" clearable style="width: auto; min-width: 180px">
             <el-option label="草稿" value="draft" />
             <el-option label="已发布" value="active" />
             <el-option label="未激活" value="inactive" />

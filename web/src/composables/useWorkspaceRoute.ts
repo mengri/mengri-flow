@@ -62,6 +62,9 @@ export function useWorkspaceRoute() {
   function runsPath() { return wsPath('/runs') }
   function runDetailPath(id: string) { return wsPath(`/runs/${id}`) }
 
+  function settingsPath() { return wsPath('/settings') }
+  function settingsMembersPath() { return wsPath('/settings/members') }
+
   return {
     workspaceId,
     wsPath,
@@ -83,5 +86,7 @@ export function useWorkspaceRoute() {
     createTriggerPath,
     runsPath,
     runDetailPath,
+    settingsPath,
+    settingsMembersPath,
   }
 }

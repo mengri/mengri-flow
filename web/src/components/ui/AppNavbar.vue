@@ -17,6 +17,7 @@ import {
   PlayIcon,
   WrenchScrewdriverIcon,
   QueueListIcon,
+  Cog8ToothIcon,
 } from '@/components/icons'
 
 const route = useRoute()
@@ -35,6 +36,7 @@ const {
   resourcesPath,
   toolsPath,
   runsPath,
+  settingsPath,
 } = useWorkspaceRoute()
 
 // --- Workspace panel (triggered by hamburger) ---
@@ -75,6 +77,8 @@ const breadcrumbs = computed(() => {
       resources: t('nav.resources'),
       tools: t('nav.tools'),
       runs: t('nav.runs'),
+      settings: t('common.settings'),
+      members: t('workspace.members'),
       new: t('common.create'),
       import: t('common.import'),
     }
@@ -145,6 +149,7 @@ const workspaceTabs = computed(() => [
   { path: triggersPath(), label: t('nav.triggers'), icon: PlayIcon },
   { path: toolsPath(), label: t('nav.tools'), icon: WrenchScrewdriverIcon },
   { path: runsPath(), label: t('nav.runList'), icon: QueueListIcon },
+  { path: settingsPath(), label: t('common.settings'), icon: Cog8ToothIcon },
 ])
 
 const isTabActive = (tab: { path: string }) => {

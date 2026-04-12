@@ -4,6 +4,9 @@ import type {
   CreateWorkspaceRequest,
   UpdateWorkspaceRequest,
   ListWorkspacesResponse,
+  WorkspaceMember,
+  AddWorkspaceMemberRequest,
+  ListWorkspaceMembersResponse,
 } from '@/types/workspace'
 
 export const workspaceAPI = {
@@ -30,5 +33,20 @@ export const workspaceAPI = {
   /** 删除工作空间 */
   delete: (id: string) => {
     return api.delete(`/workspaces/${id}`)
+  },
+
+  /** 获取工作空间成员列表 */
+  listMembers: (id: string, params?: { page?: number; pageSize?: number }) => {
+    return api.get<ListWorkspaceMembersResponse>(`/workspaces/${id}/members`, { params })
+  },
+
+  /** 添加工作空间成员 */
+  addMember: (id: string, data: AddWorkspaceMemberRequest) => {
+    return api.post<WorkspaceMember>(`/workspaces/${id}/members`, data)
+  },
+
+  /** 移除工作空间成员 */
+  removeMember: (id: string, memberId: string) => {
+    return api.delete(`/workspaces/${id}/members/${memberId}`)
   },
 }
