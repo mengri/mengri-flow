@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/domain/entity"
+
+	"github.com/google/uuid"
 )
 
 // WorkspaceRepository 定义工作空间仓储接口
@@ -24,6 +25,9 @@ type WorkspaceRepository interface {
 	// FindByOwnerID 根据所有者ID查找工作空间列表
 	FindByOwnerID(ctx context.Context, ownerID string) ([]*entity.Workspace, error)
 
-	// List 分页列出所有工作空间
+	// List 分页列出所有工作空间（管理用途）
 	List(ctx context.Context, offset, limit int) ([]*entity.Workspace, int64, error)
+
+	// ListByOwner 分页列出指定账号拥有的工作空间
+	ListByOwner(ctx context.Context, ownerID string, offset, limit int) ([]*entity.Workspace, int64, error)
 }

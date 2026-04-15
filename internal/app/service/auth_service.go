@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"math/big"
@@ -296,7 +297,17 @@ func (s *authServiceImpl) issueTokens(ctx context.Context, account *entity.Accou
 	// 存储 refresh token session
 	sessionID := uuid.New().String()
 	refreshHash := hashToken(refreshToken)
-	deviceJSON := fmt.Sprintf(`{"ua":"%s","ip":"%s","deviceId":"%s"}`, device.UA, device.IP, device.DeviceID)
+
+	type deviceMeta struct {
+		UA       string `json:"ua"`
+		IP       string `json:"ip"`
+		DeviceID string `json:"deviceId"`
+	}
+	deviceJSONBytes, err := json.Marshal(deviceMeta{UA: device.UA, IP: device.IP, DeviceID: device.DeviceID})
+	if err != nil {
+		return nil, fmt.Errorf("marshal device info: %w", err)
+	}
+	deviceJSON := string(deviceJSONBytes)
 
 	if err := s.sessionStore.SaveRefreshToken(ctx, sessionID, account.ID, refreshHash, deviceJSON, device.IP, s.jwtManager.RefreshTokenExpiry()); err != nil {
 		return nil, fmt.Errorf("save session: %w", err)
@@ -376,6 +387,12 @@ func maskPhone(phone string) string {
 		return "***"
 	}
 	return phone[:3] + "****" + phone[len(phone)-4:]
+}
+
+// oauthLoginType 将已校验的 provider 名称转换为 LoginType。
+// provider 必须已经通过 oauthProviders.GetProvider 校验，此处仅做格式转换。
+func oauthLoginType(provider string) entity.LoginType {
+	return entity.LoginType(strings.ToLower(provider) + "_oauth")
 }
 
 // SendSMSCode 发送短信验证码。
@@ -523,8 +540,8 @@ func (s *authServiceImpl) HandleOAuthCallback(ctx context.Context, provider, cod
 		return nil, domainErr.ErrOAuthExchangeFailed
 	}
 
-	// 3. 查找是否已绑定
-	identity, err := s.identityRepo.GetByProviderID(ctx, entity.LoginType(provider+"_oauth"), userInfo.ProviderUserID)
+	// 3. 查找是否已绑定（provider 已通过 GetProvider 校验，使用规范化函数转换避免直接拼接）
+	identity, err := s.identityRepo.GetByProviderID(ctx, oauthLoginType(provider), userInfo.ProviderUserID)
 	if err != nil {
 
 		bindTicket, err := s.bindStore.Generate(ctx, &repository.BindTicketData{

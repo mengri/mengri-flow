@@ -11,6 +11,7 @@ import (
 
 // Auth JWT 认证中间件。
 // 从 Authorization 头提取 Bearer token，解析并注入 accountID、role 到 gin.Context。
+// Refresh Token 不允许用于 API 访问，防止 token 混用。
 func Auth(jwtMgr auth.IJWTManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
@@ -31,6 +32,13 @@ func Auth(jwtMgr auth.IJWTManager) gin.HandlerFunc {
 		claims, err := jwtMgr.ParseToken(tokenStr)
 		if err != nil {
 			response.Unauthorized(c, "session expired or invalid")
+			c.Abort()
+			return
+		}
+
+		// Refresh Token 不能用于 API 访问
+		if claims.TokenType == auth.TokenTypeRefresh {
+			response.Unauthorized(c, "refresh token cannot be used for API access")
 			c.Abort()
 			return
 		}

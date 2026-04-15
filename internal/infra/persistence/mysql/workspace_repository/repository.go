@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"mengri-flow/internal/domain/entity"
 	domainErr "mengri-flow/internal/domain/errors"
 	"mengri-flow/internal/domain/repository"
+
+	"github.com/google/uuid"
 
 	"gorm.io/gorm"
 )
@@ -103,6 +104,34 @@ func (r *WorkspaceRepositoryImpl) List(ctx context.Context, offset, limit int) (
 		Offset(offset).Limit(limit).Find(&models)
 	if result.Error != nil {
 		return nil, 0, fmt.Errorf("workspaceRepository.List: failed to list workspaces: %w", result.Error)
+	}
+
+	workspaces := make([]*entity.Workspace, len(models))
+	for i, model := range models {
+		workspace, err := toEntity(&model)
+		if err != nil {
+			return nil, 0, err
+		}
+		workspaces[i] = workspace
+	}
+	return workspaces, total, nil
+}
+
+// ListByOwner 分页列出指定账号拥有的工作空间
+func (r *WorkspaceRepositoryImpl) ListByOwner(ctx context.Context, ownerID string, offset, limit int) ([]*entity.Workspace, int64, error) {
+	var models []WorkspaceModel
+	var total int64
+
+	query := r.db.WithContext(ctx).Model(&WorkspaceModel{}).Where("owner_id = ?", ownerID)
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("workspaceRepository.ListByOwner: failed to count workspaces: %w", err)
+	}
+
+	result := r.db.WithContext(ctx).Where("owner_id = ?", ownerID).
+		Order("created_at DESC").Offset(offset).Limit(limit).Find(&models)
+	if result.Error != nil {
+		return nil, 0, fmt.Errorf("workspaceRepository.ListByOwner: failed to list workspaces: %w", result.Error)
 	}
 
 	workspaces := make([]*entity.Workspace, len(models))

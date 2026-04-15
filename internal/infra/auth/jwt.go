@@ -10,10 +10,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const (
+	TokenTypeAccess  = "access"
+	TokenTypeRefresh = "refresh"
+)
+
 // Claims JWT 自定义声明。
 type Claims struct {
 	AccountID string `json:"accountId"`
 	Role      string `json:"role"`
+	TokenType string `json:"tokenType"` // "access" 或 "refresh"
 	jwt.RegisteredClaims
 }
 
@@ -42,6 +48,7 @@ func (m *JWTManagerImpl) GenerateAccessToken(accountID, role string) (string, er
 	claims := Claims{
 		AccountID: accountID,
 		Role:      role,
+		TokenType: TokenTypeAccess,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.accessTokenExpiry)),
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -58,6 +65,7 @@ func (m *JWTManagerImpl) GenerateRefreshToken(accountID, role string) (string, e
 	claims := Claims{
 		AccountID: accountID,
 		Role:      role,
+		TokenType: TokenTypeRefresh,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.refreshTokenExpiry)),
 			IssuedAt:  jwt.NewNumericDate(now),

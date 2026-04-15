@@ -14,8 +14,8 @@ import (
 )
 
 type workspaceServiceImpl struct {
-	workspaceRepo repository.WorkspaceRepository     `autowired:""`
-	accountRepo   repository.AccountRepository       `autowired:""`
+	workspaceRepo repository.WorkspaceRepository       `autowired:""`
+	accountRepo   repository.AccountRepository         `autowired:""`
 	memberRepo    repository.WorkspaceMemberRepository `autowired:""`
 }
 
@@ -67,22 +67,16 @@ func (s *workspaceServiceImpl) ListWorkspaces(ctx context.Context, accountID str
 
 	offset := (page - 1) * pageSize
 
-	// 使用仓库的分页查询
-	workspaces, total, err := s.workspaceRepo.List(ctx, offset, pageSize)
+	// 按 ownerID 过滤查询，total 与 list 均基于同一过滤条件
+	workspaces, total, err := s.workspaceRepo.ListByOwner(ctx, accountID, offset, pageSize)
 	if err != nil {
 		slog.Error("Failed to list workspaces", "error", err)
 		return nil, fmt.Errorf("list workspaces: %w", err)
 	}
 
-	// 转换为响应DTO
 	responseList := make([]dto.WorkspaceResponse, 0, len(workspaces))
 	for _, workspace := range workspaces {
-		// 检查用户是否有权限查看此工作空间
-		// 这里简化处理：只允许用户查看自己拥有的工作空间
-		// 或者需要实现工作空间成员查询
-		if workspace.OwnerID == accountID {
-			responseList = append(responseList, *toWorkspaceResponse(workspace))
-		}
+		responseList = append(responseList, *toWorkspaceResponse(workspace))
 	}
 
 	slog.Info("Workspaces listed successfully", "total", total, "returned", len(responseList))
